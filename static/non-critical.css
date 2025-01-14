@@ -1232,39 +1232,21 @@ th.resizing {
 
 
 /*----------------------------------------
-  设置模态框样式
+  设置模态框样式 - 必要样式在index中
 ----------------------------------------*/
-/* 标题和设置按钮布局 */
-.subtitle-with-controls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-}
-
-.subtitle-with-controls .subtitle {
-    margin-bottom: 0;
-}
-
-/* 设置按钮样式 */
-.settings-button {
-    border: none;
-    padding: 0.5rem;
-    height: auto;
-    transition: background-color 0.2s ease;
-}
-
 .settings-button:hover {
     background-color: #f0f0f0;
 }
 
-.settings-button .icon {
-    color: #666;
-}
-
 /* 设置模态框样式 */
 .settings-modal .modal-card {
-    max-width: 480px;
+    width: 480px;
+}
+
+.settings-modal .table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    position: relative;
 }
 
 .settings-tabs {
@@ -1305,7 +1287,6 @@ th.resizing {
 .add-item-form {
     display: flex;
     gap: 0.5rem;
-    margin-bottom: 1rem;
 }
 
 .add-item-form .input {
@@ -1333,4 +1314,33 @@ th.resizing {
 
 .settings-modal .modal-card {
     pointer-events: auto;
+}
+
+/* 设置标签和维度的表格样式 */
+.table td .edit-form {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.table td .edit-form .input {
+    height: 2rem;
+    font-size: 0.875rem;
+}
+
+.table td .edit-form .button {
+    height: 2rem;
+    padding: 0 0.75rem;
+}
+
+.settings-modal .table thead {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 1;
+}
+
+/* 表格行悬停效果 */
+.settings-modal .table tbody tr:hover {
+    background-color: #f5f5f5;
 }
