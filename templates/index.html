@@ -133,6 +133,33 @@
 			padding: 0.5rem;
 			background: #fff;
 			box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+		}
+		
+		
+		/*----------------------------------------
+		  搜索过滤相关样式 - 必要样式
+		----------------------------------------*/
+		.filter-options {
+			background-color: #f5f5f5;
+			padding: 0.8rem;
+			border-radius: 4px;
+		}
+
+		.filter-options .label {
+			font-size: 0.9rem;
+			padding-left: 0.2rem;
+		}
+
+		.filter-options .select {
+			width: 80% !important;
+			padding-left: 1rem;
+		}
+
+		.filter-options .column {
+			padding: 0.5rem;
+			display: flex;
+			justify-content: flex-start;
+			align-items: baseline;
 		}		
     </style>
     <!-- 异步加载非关键CSS -->
@@ -184,6 +211,37 @@
                             <button class="button is-info" id="search-button">搜索</button>
                         </div>
                     </div>
+					
+					<div class="filter-options mt-3">
+						<div class="columns is-multiline">
+							<!-- 评分维度过滤 -->
+							<div class="column is-half">
+								<label class="label">评分维度</label>
+								<div class="select is-fullwidth">
+									<select id="rating-dimension-filter">
+										<option value="">全部维度</option>
+										<!-- 这里的选项将由 JavaScript 动态填充 -->
+									</select>
+								</div>
+							</div>
+							
+							<!-- 星级过滤 -->
+							<div class="column is-half">
+								<label class="label">最低星级</label>
+								<div class="select is-fullwidth">
+									<select id="min-rating-filter">
+										<option value="">不限</option>
+										<option value="5">5星</option>
+										<option value="4">4星及以上</option>
+										<option value="3">3星及以上</option>
+										<option value="2">2星及以上</option>
+										<option value="1">1星及以上</option>
+									</select>
+								</div>
+							</div>
+						</div>
+					</div>					
+					
                     <div id="search-message"></div>
                     <div id="search-results" class="table-container"></div>
 					<div id="pagination" class="mt-4"></div>
@@ -903,17 +961,58 @@ const debounce = (func, wait) => {
     };
 };
 
+// 加载评分维度
+function loadRatingDimensions() {
+    fetch('/get_ratings_dimensions')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const dimensionSelect = document.getElementById('rating-dimension-filter');
+                // 保留"全部维度"选项
+                dimensionSelect.innerHTML = '<option value="">全部维度</option>';
+                
+                // 添加从后端获取的维度选项
+                data.dimensions.forEach(dimension => {
+                    const option = document.createElement('option');
+                    option.value = dimension.name;  // 使用维度名称作为值
+                    option.textContent = dimension.name;
+                    dimensionSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('加载评分维度失败:', error);
+        });
+}
+
 function searchMovies() {
     const title = document.getElementById('search-input').value.trim();
+    const ratingDimension = document.getElementById('rating-dimension-filter').value;
+    const minRating = document.getElementById('min-rating-filter').value;
     const messageDiv = document.getElementById('search-message');
     const resultsDiv = document.getElementById('search-results');
     
     // 清空之前的结果
     //messageDiv.innerHTML = '<div class="notification is-info">正在搜索...</div>';
     //resultsDiv.innerHTML = '';
+
+    // 构建搜索参数
+    const searchParams = new URLSearchParams();
+    if (title) {
+        searchParams.append('title', title);
+    }
+    if (ratingDimension) {
+        searchParams.append('rating_dimension', ratingDimension);
+    }
+    if (minRating) {
+        searchParams.append('min_rating', minRating);
+    }
+
+    // 构建搜索URL
+    const searchUrl = `/search?${searchParams.toString()}`;
     
-    // 构建搜索URL - 当输入为空时不添加title参数
-    const searchUrl = title ? `/search?title=${encodeURIComponent(title)}` : '/search';
+    // 显示加载提示
+    //messageDiv.innerHTML = '<div class="notification is-info">正在搜索...</div>';
     
     fetch(searchUrl)
         .then(response => {
@@ -928,11 +1027,26 @@ function searchMovies() {
             }
 
             if (result.success) {
-                if (!Array.isArray(result.data)) {
-                    result.data = [];
+                // 处理评分维度过滤
+                let filteredMovies = result.data;
+                if (minRating) {
+                    const minRatingValue = parseInt(minRating);
+                    filteredMovies = filteredMovies.filter(movie => {
+                        const ratings = movie.ratings_display || {};
+                        
+                        if (ratingDimension) {
+                            // 特定维度过滤
+                            return ratings[ratingDimension] >= minRatingValue;
+                        } else {
+                            // 全部维度过滤（所有维度都必须达到最低评分要求）
+                            const ratingValues = Object.values(ratings);
+                            return ratingValues.length > 0 && // 确保有评分
+                                   ratingValues.every(rating => rating >= minRatingValue);
+                        }
+                    });
                 }
-                
-                allMovies = result.data;
+	
+                allMovies = filteredMovies;
                 totalPages = Math.ceil(allMovies.length / itemsPerPage);
                 
                 if (allMovies.length === 0) {
@@ -1642,6 +1756,9 @@ document.getElementById('add-movie-form').addEventListener('submit', function(e)
 document.getElementById('search-button').addEventListener('click', searchMovies);
 
 document.addEventListener('DOMContentLoaded', function() {
+
+	loadRatingDimensions();
+
     const form = document.querySelector('#add-movie-form');
     const movieNameInput = form.querySelector('input[name="title"]'); // 修改为正确的选择器
     const collapsibleBoxes = form.querySelectorAll('.collapsible-box');
