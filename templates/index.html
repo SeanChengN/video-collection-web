@@ -593,34 +593,36 @@ const ModalManager = {
             // 设置新的 z-index 值，确保比当前最高值大
             modal.style.zIndex = maxZIndex + 1;
 			
-            if (this.minimizedModals.has(modalId)) {
-                // 如果是最小化状态，恢复窗口
+            if (toolbarButton && this.minimizedModals.has(modalId)) {
+                // 如果是工具栏按钮且处于最小化状态，恢复窗口
                 this.restoreModal(modalId);
             } else {
                 // 普通打开模态窗口(先显示模态窗口但设置为不可见，以便获取正确的尺寸)
                 modal.classList.add('is-active');
-                modalCard.style.visibility = 'hidden';
-                modalCard.style.position = 'absolute';
-                modalCard.style.transform = 'none';
-                modalCard.style.margin = '0';
+                if (modalCard) {
+                    modalCard.style.visibility = 'hidden';
+                    modalCard.style.position = 'absolute';
+                    modalCard.style.transform = 'none';
+                    modalCard.style.margin = '0';
                 
-                // 确保模态窗口内容可以滚动
-                modalCard.style.maxHeight = '90vh';
-                modalCard.style.overflowY = 'auto';
+                    // 确保模态窗口内容可以滚动
+                    modalCard.style.maxHeight = '90vh';
+                    modalCard.style.overflowY = 'auto';
                 
-                // 等待下一帧以确保尺寸计算正确
-                requestAnimationFrame(() => {
-                    const viewportWidth = window.innerWidth;
-                    const viewportHeight = window.innerHeight;
-                    const modalWidth = modalCard.offsetWidth;
-                    const modalHeight = modalCard.offsetHeight;
+                    // 等待下一帧以确保尺寸计算正确
+                    requestAnimationFrame(() => {
+                        const viewportWidth = window.innerWidth;
+                        const viewportHeight = window.innerHeight;
+                        const modalWidth = modalCard.offsetWidth;
+                        const modalHeight = modalCard.offsetHeight;
                     
-                    // 设置初始位置在屏幕中心
-                    modalCard.style.left = `${Math.max(0, (viewportWidth - modalWidth) / 2)}px`;
-                    modalCard.style.top = `${Math.max(0, (viewportHeight - modalHeight) / 2)}px`;
-                    modalCard.style.visibility = 'visible';
-                });
-            }			
+                        // 设置初始位置在屏幕中心
+                        modalCard.style.left = `${Math.max(0, (viewportWidth - modalWidth) / 2)}px`;
+                        modalCard.style.top = `${Math.max(0, (viewportHeight - modalHeight) / 2)}px`;
+                        modalCard.style.visibility = 'visible';
+                    });
+                }
+            }
 
             // 激活对应的工具栏按钮
             if (toolbarButton) {
@@ -891,7 +893,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'wtlModal',
         'thunderModal',
         'embyModal',
-        'editModal'
+        'editModal',
 		'settingsModal'
     ];
     
@@ -1154,18 +1156,16 @@ function formatTime(seconds) {
 let editingItemId = null;
 
 function openSettingsModal() {
-    const modal = document.getElementById('settingsModal');
-    modal.classList.add('is-active');
+    document.getElementById('settingsModal').classList.add('is-active');
     loadSettings();
 }
 
 function closeSettingsModal() {
-    const modal = document.getElementById('settingsModal');
-    modal.classList.remove('is-active');
+    document.getElementById('settingsModal').classList.remove('is-active');
 }
 
-// 标签页切换
 document.addEventListener('DOMContentLoaded', function() {
+    // 标签页切换
     const tabs = document.querySelector('.settings-tabs');
     const contents = document.querySelectorAll('.settings-content');
     
@@ -1187,57 +1187,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 加载设置内容
 function loadSettings() {
-    // 加载标签
-    fetch('/get_tags')
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                const tagsList = document.getElementById('tagsList');
-                tagsList.innerHTML = result.data.map(tag => `
-                    <div class="settings-list-item">
-                        <div class="item-content">
-                            <div class="tag-name">${tag}</div>
-                            <div class="edit-form" style="display: none;">
-                                <input type="text" class="input" value="${tag}">
-                                <button class="button is-success is-small" onclick="saveTagEdit(this, '${tag}')">保存</button>
-                                <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
-                            </div>
-                        </div>
-                        <div class="item-actions">
-                            <button class="button is-small is-info" onclick="startEdit(this)">
-                                编辑
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        });
-    
-    // 加载评分维度
-    fetch('/get_ratings_dimensions')
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                const ratingsList = document.getElementById('ratingsList');
-                ratingsList.innerHTML = result.dimensions.map(dimension => `
-                    <div class="settings-list-item">
-                        <div class="item-content">
-                            <div class="rating-name">${dimension.name}</div>
-                            <div class="edit-form" style="display: none;">
-                                <input type="text" class="input" value="${dimension.name}">
-                                <button class="button is-success is-small" onclick="saveRatingEdit(this, '${dimension.name}')">保存</button>
-                                <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
-                            </div>
-                        </div>
-                        <div class="item-actions">
-                            <button class="button is-small is-info" onclick="startEdit(this)">
-                                编辑
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-        });
+    loadSettingsTags();
+    loadSettingsRatingDimensions();
 }
 
 // 开始编辑
@@ -1266,6 +1217,7 @@ function saveTagEdit(button, oldName) {
     const item = button.closest('.settings-list-item');
     const input = item.querySelector('input');
     const newName = input.value.trim();
+    const nameDiv = item.querySelector('.tag-name');
     
     if (!newName || newName === oldName) {
         cancelEdit(button);
@@ -1285,17 +1237,24 @@ function saveTagEdit(button, oldName) {
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            loadSettings(); // 重新加载列表
-            loadTags(); // 重新加载主页面的标签
+            // 只更新设置界面中的显示
+            nameDiv.textContent = newName;
+            // 更新编辑表单中的值
+            input.value = newName;
+            // 更新按钮的 onclick 属性
+            const saveButton = item.querySelector('.edit-form button');
+            saveButton.setAttribute('onclick', `saveTagEdit(this, '${newName}')`);
+            // 隐藏编辑表单
+            cancelEdit(button);
+            // 重新加载设置界面的标签列表
+            loadSettingsTags();
         } else {
             alert(result.message || '更新失败');
-            cancelEdit(button);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('更新失败');
-        cancelEdit(button);
+        alert('更新失败：' + error.message);
     });
 }
 
@@ -1304,6 +1263,7 @@ function saveRatingEdit(button, oldName) {
     const item = button.closest('.settings-list-item');
     const input = item.querySelector('input');
     const newName = input.value.trim();
+    const nameDiv = item.querySelector('.rating-name');
     
     if (!newName || newName === oldName) {
         cancelEdit(button);
@@ -1323,17 +1283,24 @@ function saveRatingEdit(button, oldName) {
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            loadSettings(); // 重新加载列表
-            loadRatingDimensions(); // 重新加载主页面的评分维度
+            // 只更新设置界面中的显示
+            nameDiv.textContent = newName;
+            // 更新编辑表单中的值
+            input.value = newName;
+            // 更新按钮的 onclick 属性
+            const saveButton = item.querySelector('.edit-form button');
+            saveButton.setAttribute('onclick', `saveRatingEdit(this, '${newName}')`);
+            // 隐藏编辑表单
+            cancelEdit(button);
+            // 重新加载设置界面的评分维度列表
+            loadSettingsRatingDimensions();
         } else {
             alert(result.message || '更新失败');
-            cancelEdit(button);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('更新失败');
-        cancelEdit(button);
+        alert('更新失败：' + error.message);
     });
 }
 
@@ -1392,7 +1359,6 @@ function addNewRating() {
         if (result.success) {
             input.value = '';
             loadSettings(); // 重新加载列表
-            loadRatingDimensions(); // 重新加载主页面的评分维度
         } else {
             alert(result.message || '添加失败');
         }
@@ -1401,6 +1367,58 @@ function addNewRating() {
         console.error('Error:', error);
         alert('添加失败');
     });
+}
+
+// 加载设置界面的标签列表
+function loadSettingsTags() {
+    fetch('/get_tags')
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                const tagsList = document.getElementById('tagsList');
+                tagsList.innerHTML = result.data.map(tag => `
+                    <div class="settings-list-item">
+                        <div class="item-content">
+                            <div class="tag-name">${tag}</div>
+                            <div class="edit-form" style="display: none;">
+                                <input type="text" class="input" value="${tag}">
+                                <button class="button is-success is-small" onclick="saveTagEdit(this, '${tag}')">保存</button>
+                                <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="button is-small is-info" onclick="startEdit(this)">编辑</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        });
+}
+
+// 加载设置界面的评分维度列表
+function loadSettingsRatingDimensions() {
+    fetch('/get_ratings_dimensions')
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                const ratingsList = document.getElementById('ratingsList');
+                ratingsList.innerHTML = result.dimensions.map(dimension => `
+                    <div class="settings-list-item">
+                        <div class="item-content">
+                            <div class="rating-name">${dimension.name}</div>
+                            <div class="edit-form" style="display: none;">
+                                <input type="text" class="input" value="${dimension.name}">
+                                <button class="button is-success is-small" onclick="saveRatingEdit(this, '${dimension.name}')">保存</button>
+                                <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="button is-small is-info" onclick="startEdit(this)">编辑</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        });
 }
 
 // 获取保存的列宽设置
