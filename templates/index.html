@@ -3,184 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="description" content="电影收藏管理系统">
-	<meta name="keywords" content="电影,收藏,管理">
-	<!-- 资源预加载 -->
-	<link rel="preconnect" href="https://cdn.jsdelivr.net">
-	<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-	<link rel="preload" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" as="style">
+    <meta name="description" content="电影收藏管理系统">
+    <meta name="keywords" content="电影,收藏,管理">
+    <!-- 资源预加载 -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" as="style">
     <title>电影收藏</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-	<link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
     <style>
-		/*----------------------------------------
-		  折叠框样式 - 必要样式
-		----------------------------------------*/
-		/* 整体样式 */
-		.collapsible-box {
-			border: 1px solid #dbdbdb;
-			border-radius: 6px;
-			margin: 0.5rem 0;
-		}
-		/* 标题样式 */
-		.box-header {
-			user-select: none;
-			padding: 0.3rem;
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			cursor: pointer;
-			background-color: white;
-			border-radius: 4px;
-		}
-		.box-title {
-			font-weight: bold;
-			font-size: 1rem;
-		}
-		.collapse-icon {
-			width: 0;
-			height: 0;
-			border-left: 6px solid transparent;
-			border-right: 6px solid transparent;
-			border-top: 6px solid #666;
-			transition: transform 0.3s ease;
-			transform: rotate(-90deg); /* 默认为折叠状态 */
-		}
-		.collapse-icon.collapsed {
-			transform: rotate(-90deg);
-		}
-		.box-content {
-			padding: 0.5rem;
-			display: none;
-		}
+        /*----------------------------------------
+          折叠框样式 - 必要样式
+        ----------------------------------------*/
+        /* 整体样式 */
+        .collapsible-box {
+            border: 1px solid #dbdbdb;
+            border-radius: 6px;
+            margin: 0.5rem 0;
+        }
+        /* 标题样式 */
+        .box-header {
+            user-select: none;
+            padding: 0.3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            background-color: white;
+            border-radius: 4px;
+        }
+        .box-title {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        .collapse-icon {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #666;
+            transition: transform 0.3s ease;
+            transform: rotate(-90deg); /* 默认为折叠状态 */
+        }
+        .collapse-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+        .box-content {
+            padding: 0.5rem;
+            display: none;
+        }
 
-		
-		/*----------------------------------------
-		  功能区样式 - 必要样式
-		----------------------------------------*/
-		.function-tools {
-			background: white;
-			padding: 1rem;
-			border-radius: 6px;
-			margin-bottom: 1.5rem;
-			box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-		}
-		.function-tools .buttons {
-			display: flex;
-			gap: 1rem;
-		}
-		.function-tools .button {
-			flex: 1;
-			transition: transform 0.2s ease;
-		}
+        
+        /*----------------------------------------
+          功能区样式 - 必要样式
+        ----------------------------------------*/
+        .function-tools {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .function-tools .buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        .function-tools .button {
+            flex: 1;
+            transition: transform 0.2s ease;
+        }
 
         /* 工具栏按钮内图标尺寸 */
-		.function-tools .buttons .icon {
-			width: 3.5rem;
-		}
+        .function-tools .buttons .icon {
+            width: 3.5rem;
+        }
 
 
         /* 导航栏样式 - 必要样式 */
-	    .navbar-brand {
-			width: 100%;
-			justify-content: flex-start;  
-		}
-	
-		.navbar-brand .title {
-			text-align: left;  
-			padding: 1rem 0;
-			padding-left: 1rem;
-		}
-		
-		
-		/* 搜索结果相关样式 - 必要样式 */
-		#search-results { 
-			margin-top: 20px; 
-		}
-		
-		
-		/* 模态框统一样式 - 必要样式 */
-		.modal {
-			pointer-events: none;
-		}
-		
-		
-		/* 表格容器样式 - 必要样式 */
-		.table-container {
-			overflow: visible !important;
-		}
-		
-		
-		/*----------------------------------------
-		  评分框通用样式 - 必要样式
-		----------------------------------------*/
-		.ratings-box {
-			border: 1px solid #e0e0e0;
-			border-radius: 6px;
-			padding: 0.5rem;
-			background: #fff;
-			box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
-		}
-		
-		
-		/*----------------------------------------
-		  标签框通用样式 - 必要样式
-		----------------------------------------*/
-		.tags-box {
-			border: 1px solid #e0e0e0;
-			border-radius: 6px;
-			padding: 0.5rem;
-			background: #fff;
-			box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
-		}
-		
-		
-		/*----------------------------------------
-		  搜索过滤相关样式 - 必要样式
-		----------------------------------------*/
-		.filter-options {
-			background-color: #fafafa;
-			padding: 0.8rem;
-			border-radius: 4px;
-			border: 1px solid #dbdbdb;
-		}
+        .navbar-brand {
+            width: 100%;
+            justify-content: flex-start;  
+        }
+    
+        .navbar-brand .title {
+            text-align: left;  
+            padding: 1rem 0;
+            padding-left: 1rem;
+        }
+        
+        
+        /* 搜索结果相关样式 - 必要样式 */
+        #search-results { 
+            margin-top: 20px; 
+        }
+        
+        
+        /* 模态框统一样式 - 必要样式 */
+        .modal {
+            pointer-events: none;
+        }
+        
+        
+        /* 表格容器样式 - 必要样式 */
+        .table-container {
+            overflow: visible !important;
+        }
+        
+        
+        /*----------------------------------------
+          评分框通用样式 - 必要样式
+        ----------------------------------------*/
+        .ratings-box {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 0.5rem;
+            background: #fff;
+            box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+        }
+        
+        
+        /*----------------------------------------
+          标签框通用样式 - 必要样式
+        ----------------------------------------*/
+        .tags-box {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 0.5rem;
+            background: #fff;
+            box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+        }
+        
+        
+        /*----------------------------------------
+          搜索过滤相关样式 - 必要样式
+        ----------------------------------------*/
+        .filter-options {
+            background-color: #fafafa;
+            padding: 0.8rem;
+            border-radius: 4px;
+            border: 1px solid #dbdbdb;
+        }
 
-		.filter-options .label {
-			font-size: 0.9rem;
-			padding-left: 0.2rem;
-			width: 22%;
-		}
+        .filter-options .label {
+            font-size: 0.9rem;
+            padding-left: 0.2rem;
+            width: 22%;
+        }
 
-		.filter-options .select {
-			width: 80% !important;
-		}
+        .filter-options .select {
+            width: 80% !important;
+        }
 
-		.filter-options .column {
-			padding: 0.5rem;
-			display: flex;
-			justify-content: flex-start;
-			align-items: baseline;
-		}
-		/* 标签过滤样式 */
-		.tags-filter {
-			padding: 0.3rem;
-			border: 1px solid #dbdbdb;
-			border-radius: 4px;
-			background-color: white;
-			width: 187%;
-		}
+        .filter-options .column {
+            padding: 0.5rem;
+            display: flex;
+            justify-content: flex-start;
+            align-items: baseline;
+        }
+        /* 标签过滤样式 */
+        .tags-filter {
+            padding: 0.3rem;
+            border: 1px solid #dbdbdb;
+            border-radius: 4px;
+            background-color: white;
+            width: 187%;
+        }
 
-		.tags-filter .tag {
-			margin: 0.2rem;
-			cursor: pointer;
-			transition: background-color 0.2s ease;
-		}
-		.tag { 
-			cursor: pointer; 
-			transition: all 0.3s ease;
-			background-color: #d3d3d3;
-			color: #4a4a4a;
+        .tags-filter .tag {
+            margin: 0.2rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .tag { 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            background-color: #d3d3d3;
+            color: #4a4a4a;
         }
         /*----------------------------------------
         设置功能相关样式 - 必要样式
@@ -226,25 +226,25 @@
     <div class="container">
         <div class="columns is-desktop">
             <div class="column is-two-thirds-desktop">
-				<div class="function-tools">
-					<div class="buttons">
-						<a href="#" class="button is-info is-light" onclick="openDuplicateModal(); return false;">
-							<span class="icon"><img src="/static/duplicate-icon.svg" height="32" width="32" alt="查重核对"></span>
-						</a>
-						<a href="#" class="button is-info is-light" onclick="openJackettModal(); return false;">
-							<span class="icon"><img src="/static/jackett-icon.svg" height="32" width="32" alt="Jackett"></span>
-						</a>
-						<a href="#" class="button is-info is-light" onclick="openWtlModal(); return false;">
-							<span class="icon"><img src="/static/wtl-icon.svg" height="32" width="32" alt="What's the link"></span>
-						</a>
-						<a href="#" class="button is-info is-light" onclick="openThunderModal(); return false;">
-							<span class="icon"><img src="/static/thunder-icon.svg" height="32" width="32" alt="迅雷"></span>
-						</a>
-						<a href="#" class="button is-info is-light" onclick="openEmbyModal(); return false;">
-							<span class="icon"><img src="/static/emby-icon.svg" height="32" width="32" alt="Emby"></span>
-						</a>
-					</div>
-				</div>
+                <div class="function-tools">
+                    <div class="buttons">
+                        <a href="#" class="button is-info is-light" onclick="openDuplicateModal(); return false;">
+                            <span class="icon"><img src="/static/duplicate-icon.svg" height="32" width="32" alt="查重核对"></span>
+                        </a>
+                        <a href="#" class="button is-info is-light" onclick="openJackettModal(); return false;">
+                            <span class="icon"><img src="/static/jackett-icon.svg" height="32" width="32" alt="Jackett"></span>
+                        </a>
+                        <a href="#" class="button is-info is-light" onclick="openWtlModal(); return false;">
+                            <span class="icon"><img src="/static/wtl-icon.svg" height="32" width="32" alt="What's the link"></span>
+                        </a>
+                        <a href="#" class="button is-info is-light" onclick="openThunderModal(); return false;">
+                            <span class="icon"><img src="/static/thunder-icon.svg" height="32" width="32" alt="迅雷"></span>
+                        </a>
+                        <a href="#" class="button is-info is-light" onclick="openEmbyModal(); return false;">
+                            <span class="icon"><img src="/static/emby-icon.svg" height="32" width="32" alt="Emby"></span>
+                        </a>
+                    </div>
+                </div>
                 <div class="box">
                     <h2 class="subtitle">搜索电影</h2>
                     <div class="field has-addons">
@@ -255,65 +255,65 @@
                             <button class="button is-info" id="search-button">搜索</button>
                         </div>
                     </div>
-					<div class="filter-options mt-3">
-						<div class="columns is-multiline">
-							<!-- 评分维度过滤 -->
-							<div class="column is-half">
-								<label class="label">评分维度</label>
-								<div class="select is-fullwidth">
-									<select id="rating-dimension-filter">
-										<option value="">全部维度</option>
-										<!-- 这里的选项将由 JavaScript 动态填充 -->
-									</select>
-								</div>
-							</div>
-							<!-- 星级过滤 -->
-							<div class="column is-half">
-								<label class="label">最低星级</label>
-								<div class="select is-fullwidth">
-									<select id="min-rating-filter">
-										<option value="">不限</option>
-										<option value="5">5星</option>
-										<option value="4">4星及以上</option>
-										<option value="3">3星及以上</option>
-										<option value="2">2星及以上</option>
-										<option value="1">1星及以上</option>
-									</select>
-								</div>
-							</div>
-							<!-- 标签过滤 -->
-							<div class="column is-full">
-								<label class="label">标签过滤</label>
-								<div class="tags-filter" id="tags-filter">
-									<!-- 这里的选项将由 JavaScript 动态填充 -->
-								</div>
-							</div>
-						</div>
-					</div>
+                    <div class="filter-options mt-3">
+                        <div class="columns is-multiline">
+                            <!-- 评分维度过滤 -->
+                            <div class="column is-half">
+                                <label class="label">评分维度</label>
+                                <div class="select is-fullwidth">
+                                    <select id="rating-dimension-filter">
+                                        <option value="">全部维度</option>
+                                        <!-- 这里的选项将由 JavaScript 动态填充 -->
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- 星级过滤 -->
+                            <div class="column is-half">
+                                <label class="label">最低星级</label>
+                                <div class="select is-fullwidth">
+                                    <select id="min-rating-filter">
+                                        <option value="">不限</option>
+                                        <option value="5">5星</option>
+                                        <option value="4">4星及以上</option>
+                                        <option value="3">3星及以上</option>
+                                        <option value="2">2星及以上</option>
+                                        <option value="1">1星及以上</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- 标签过滤 -->
+                            <div class="column is-full">
+                                <label class="label">标签过滤</label>
+                                <div class="tags-filter" id="tags-filter">
+                                    <!-- 这里的选项将由 JavaScript 动态填充 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div id="search-message"></div>
                     <div id="search-results" class="table-container"></div>
-					<div id="pagination" class="mt-4"></div>
+                    <div id="pagination" class="mt-4"></div>
                 </div>
             </div>
 
             <div class="column is-one-third-desktop">
                 <div class="box">
-					<div class="subtitle-with-controls">
-						<h2 class="subtitle">添加电影</h2>
-						<button class="button is-light is-small settings-button" onclick="openSettingsModal()">
-							<span class="icon is-small">
-								<svg viewBox="0 0 24 24" width="16" height="16">
-									<path fill="currentColor" d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.65.07-.97 0-.32-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65A.488.488 0 0 0 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98 0 .33.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65z"/>
-								</svg>
-							</span>
-						</button>
-					</div>
+                    <div class="subtitle-with-controls">
+                        <h2 class="subtitle">添加电影</h2>
+                        <button class="button is-light is-small settings-button" onclick="openSettingsModal()">
+                            <span class="icon is-small">
+                                <svg viewBox="0 0 24 24" width="16" height="16">
+                                    <path fill="currentColor" d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.65.07-.97 0-.32-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65A.488.488 0 0 0 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98 0 .33.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65z"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
                     <form id="add-movie-form">
                         <div class="field">
                             <input class="input" type="text" name="title" placeholder="电影名称" required>
                         </div>
                         <div class="field">
-							<label class="label">推荐</label>
+                            <label class="label">推荐</label>
                             <label class="radio">
                                 <input type="radio" name="recommended" value="1" checked> ✅
                             </label>
@@ -324,25 +324,25 @@
                         <div class="field">
                             <textarea class="textarea" name="review" placeholder="评价"></textarea>
                         </div>
-						<div class="collapsible-box tags-box">
-							<div class="box-header">
-								<span class="box-title">标签</span>
-								<div class="collapse-icon collapsed"></div>
-							</div>
-							<div class="box-content">
-								<div class="tag-group" id="add-tags"></div>
-							</div>
-						</div>
-						<div class="collapsible-box ratings-box">
-							<div class="box-header">
-								<span class="box-title">评分</span>
-								<div class="collapse-icon collapsed"></div>
-							</div>
-							<div class="box-content">
-								<div id="add-ratings-container"></div>
-							</div>
-						</div>
-						<button class="button is-primary" type="submit">添加</button>
+                        <div class="collapsible-box tags-box">
+                            <div class="box-header">
+                                <span class="box-title">标签</span>
+                                <div class="collapse-icon collapsed"></div>
+                            </div>
+                            <div class="box-content">
+                                <div class="tag-group" id="add-tags"></div>
+                            </div>
+                        </div>
+                        <div class="collapsible-box ratings-box">
+                            <div class="box-header">
+                                <span class="box-title">评分</span>
+                                <div class="collapse-icon collapsed"></div>
+                            </div>
+                            <div class="box-content">
+                                <div id="add-ratings-container"></div>
+                            </div>
+                        </div>
+                        <button class="button is-primary" type="submit">添加</button>
                     </form>
                     <div id="add-movie-message"></div>
                 </div>
@@ -378,12 +378,12 @@
                     <label class="label">评价</label>
                     <textarea class="textarea" id="edit-review"></textarea>
                 </div>
-				<div class="field">
-					<div class="tags-box">
-						<div class="tags-box-title">标签</div>
-						<div class="tag-group" id="edit-tags"></div>
-					</div>
-				</div>
+                <div class="field">
+                    <div class="tags-box">
+                        <div class="tags-box-title">标签</div>
+                        <div class="tag-group" id="edit-tags"></div>
+                    </div>
+                </div>
                 <div id="edit-ratings-container"></div>
             </form>
         </section>
@@ -397,13 +397,13 @@
 <div class="modal" id="wtlModal">
     <div class="modal-background"></div>
     <div class="modal-card">
-		<header class="modal-card-head">
-			<p class="modal-card-title">What's the link?</p>
-			<div class="modal-card-controls">
-				<button class="modal-control-button minimize" onclick="minimizeModal('wtlModal')" aria-label="minimize"></button>
-				<button class="delete" onclick="closeWtlModal()" aria-label="close"></button>
-			</div>
-		</header>
+        <header class="modal-card-head">
+            <p class="modal-card-title">What's the link?</p>
+            <div class="modal-card-controls">
+                <button class="modal-control-button minimize" onclick="minimizeModal('wtlModal')" aria-label="minimize"></button>
+                <button class="delete" onclick="closeWtlModal()" aria-label="close"></button>
+            </div>
+        </header>
         <section class="modal-card-body">
             <div class="field has-addons">
                 <div class="control is-expanded">
@@ -421,13 +421,13 @@
 <div class="modal" id="jackettModal">
     <div class="modal-background"></div>
     <div class="modal-card">
-		<header class="modal-card-head">
-			<p class="modal-card-title">Jackett</p>
-			<div class="modal-card-controls">
-				<button class="modal-control-button minimize" onclick="minimizeModal('jackettModal')" aria-label="minimize"></button>
-				<button class="delete" onclick="closeJackettModal()" aria-label="close"></button>
-			</div>
-		</header>
+        <header class="modal-card-head">
+            <p class="modal-card-title">Jackett</p>
+            <div class="modal-card-controls">
+                <button class="modal-control-button minimize" onclick="minimizeModal('jackettModal')" aria-label="minimize"></button>
+                <button class="delete" onclick="closeJackettModal()" aria-label="close"></button>
+            </div>
+        </header>
         <section class="modal-card-body" style="padding: 0;">
             <iframe style="width: 100%; height: 80vh; border: none;"></iframe>
         </section>
@@ -438,13 +438,13 @@
 <div class="modal" id="thunderModal">
     <div class="modal-background"></div>
     <div class="modal-card">
-		<header class="modal-card-head">
-			<p class="modal-card-title">迅雷下载</p>
-			<div class="modal-card-controls">
-				<button class="modal-control-button minimize" onclick="minimizeModal('thunderModal')" aria-label="minimize"></button>
-				<button class="delete" onclick="closeThunderModal()" aria-label="close"></button>
-			</div>
-		</header>		
+        <header class="modal-card-head">
+            <p class="modal-card-title">迅雷下载</p>
+            <div class="modal-card-controls">
+                <button class="modal-control-button minimize" onclick="minimizeModal('thunderModal')" aria-label="minimize"></button>
+                <button class="delete" onclick="closeThunderModal()" aria-label="close"></button>
+            </div>
+        </header>		
         <section class="modal-card-body" style="padding: 0; overflow-x: auto;">
             <iframe style="width: 100%; height: 80vh; border: none;"></iframe>
         </section>
@@ -455,13 +455,13 @@
 <div class="modal" id="embyModal">
     <div class="modal-background"></div>
     <div class="modal-card">
-		<header class="modal-card-head">
-			<p class="modal-card-title">Emby</p>
-			<div class="modal-card-controls">
-				<button class="modal-control-button minimize" onclick="minimizeModal('embyModal')" aria-label="minimize"></button>
-				<button class="delete" onclick="closeEmbyModal()" aria-label="close"></button>
-			</div>
-		</header>
+        <header class="modal-card-head">
+            <p class="modal-card-title">Emby</p>
+            <div class="modal-card-controls">
+                <button class="modal-control-button minimize" onclick="minimizeModal('embyModal')" aria-label="minimize"></button>
+                <button class="delete" onclick="closeEmbyModal()" aria-label="close"></button>
+            </div>
+        </header>
         <section class="modal-card-body">
             <div class="field has-addons">
                 <div class="control is-expanded">
@@ -480,28 +480,28 @@
 <div class="modal" id="duplicateModal">
     <div class="modal-background"></div>
     <div class="modal-card">
-		<header class="modal-card-head">
-			<p class="modal-card-title">查重核对</p>
-			<div class="modal-card-controls">
-				<button class="modal-control-button minimize" onclick="minimizeModal('duplicateModal')" aria-label="minimize"></button>
-				<button class="delete" onclick="closeDuplicateModal()" aria-label="close"></button>
-			</div>
-		</header>
-		<section class="modal-card-body">
-			<div class="columns">
-				<div class="column is-8">
-					<textarea class="textarea" id="duplicate-input" placeholder="每行一个电影名称" rows="10"></textarea>
-				</div>
-				<div class="column is-4 is-flex is-flex-direction-column">
-					<div id="check-result" class="has-text-grey-light has-text-centered">
-						等待核对...
-					</div>
-					<div class="mt-auto">
-						<button class="button is-info" onclick="checkDuplicates()">开始核对</button>
-					</div>
-				</div>
-			</div>
-		</section>
+        <header class="modal-card-head">
+            <p class="modal-card-title">查重核对</p>
+            <div class="modal-card-controls">
+                <button class="modal-control-button minimize" onclick="minimizeModal('duplicateModal')" aria-label="minimize"></button>
+                <button class="delete" onclick="closeDuplicateModal()" aria-label="close"></button>
+            </div>
+        </header>
+        <section class="modal-card-body">
+            <div class="columns">
+                <div class="column is-8">
+                    <textarea class="textarea" id="duplicate-input" placeholder="每行一个电影名称" rows="10"></textarea>
+                </div>
+                <div class="column is-4 is-flex is-flex-direction-column">
+                    <div id="check-result" class="has-text-grey-light has-text-centered">
+                        等待核对...
+                    </div>
+                    <div class="mt-auto">
+                        <button class="button is-info" onclick="checkDuplicates()">开始核对</button>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 </div>
 
@@ -627,7 +627,7 @@ const ModalManager = {
         if (modal) {
             const modalCard = modal.querySelector('.modal-card');
             const toolbarButton = this.getToolbarButton(modalId);
-			
+            
             // 获取当前最高的 z-index 值
             const modals = document.querySelectorAll('.modal');
             let maxZIndex = Math.max(...Array.from(modals).map(m => 
@@ -635,7 +635,7 @@ const ModalManager = {
             ));
             // 设置新的 z-index 值，确保比当前最高值大
             modal.style.zIndex = maxZIndex + 1;
-			
+            
             if (toolbarButton && this.minimizedModals.has(modalId)) {
                 // 如果是工具栏按钮且处于最小化状态，恢复窗口
                 this.restoreModal(modalId);
@@ -759,9 +759,9 @@ const ModalManager = {
             }
         }
         this.activeModals.delete(modalId);
-		this.minimizedModals.delete(modalId);
+        this.minimizedModals.delete(modalId);
     },
-	
+    
     getToolbarButton(modalId) {
         // 获取对应的工具栏按钮
         const buttonMap = {
@@ -840,7 +840,7 @@ function makeDraggable(modal) {
     let currentX;
     let currentY;
     let animationFrameId = null; // 用于requestAnimationFrame
-	
+    
     // 为整个模态框添加点击事件
     modal.addEventListener('mousedown', () => {
         zIndexCounter += 1;
@@ -852,10 +852,10 @@ function makeDraggable(modal) {
         if (e.target.closest('.modal-card-controls')) {
             return; // 如果点击的是控制按钮，不启动拖拽
         }
-		
+        
         if (e.target === modalHead || e.target.closest('.modal-card-head')) {
             isDragging = true;
-			
+            
             // 获取当前位置
             const rect = modalCard.getBoundingClientRect();
             currentX = rect.left;
@@ -911,7 +911,7 @@ function makeDraggable(modal) {
             animationFrameId = null;
         }
     }
-	
+    
     // 使用 passive 选项优化事件监听
     modalHead.addEventListener('mousedown', dragStart, { passive: false });
     document.addEventListener('mousemove', drag, { passive: false });
@@ -937,7 +937,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'thunderModal',
         'embyModal',
         'editModal',
-		'settingsModal'
+        'settingsModal'
     ];
     
     modals.forEach(modalId => {
@@ -1587,7 +1587,7 @@ function searchMovies() {
     if (selectedTags.length > 0) {
         searchParams.append('tags', selectedTags.join(','));
     }
-	
+    
     // 构建搜索URL
     const searchUrl = `/search?${searchParams.toString()}`;
     
@@ -1610,15 +1610,15 @@ function searchMovies() {
                 // 处理过滤
                 let filteredMovies = result.data;
                 
-				// 标签过滤
+                // 标签过滤
                 if (selectedTags.length > 0) {
                     filteredMovies = filteredMovies.filter(movie => {
                         const movieTags = movie.tag_names.split(', ');
                         return selectedTags.every(tag => movieTags.includes(tag));
                     });
                 }
-				
-				// 评分过滤
+                
+                // 评分过滤
                 if (minRating) {
                     const minRatingValue = parseInt(minRating);
                     filteredMovies = filteredMovies.filter(movie => {
@@ -1635,7 +1635,7 @@ function searchMovies() {
                         }
                     });
                 }
-	
+    
                 allMovies = filteredMovies;
                 totalPages = Math.ceil(allMovies.length / itemsPerPage);
                 
@@ -1796,8 +1796,8 @@ function loadNonCriticalResources() {
 document.addEventListener('DOMContentLoaded', () => {
     loadTags();
     loadNonCriticalResources();
-	loadRatingsDimensions();
-	setupDropdownPositioning();
+    loadRatingsDimensions();
+    setupDropdownPositioning();
 });
 
 // 全局变量
@@ -1915,7 +1915,7 @@ function openModal(movie) {
     if (oldDateField) {
         oldDateField.remove();
     }
-	
+    
     // 设置基本信息
     document.getElementById('edit-title').value = movie.title;
     
@@ -1930,7 +1930,7 @@ function openModal(movie) {
     // 将日期字段插入到表单开头
     const form = document.getElementById('edit-movie-form');
     form.insertBefore(dateField, form.firstChild);
-	
+    
     // 设置推荐状态
     const recommendedRadio = document.querySelector(`input[name="edit-recommended"][value="${movie.recommended ? '1' : '0'}"]`);
     if (recommendedRadio) {
@@ -2060,8 +2060,8 @@ function saveSearchState() {
 function restoreSearchState() {
     // 恢复搜索关键词
     document.getElementById('search-input').value = searchState.title;
-	
-	// 恢复评分过滤状态
+    
+    // 恢复评分过滤状态
     document.getElementById('rating-dimension-filter').value = searchState.ratingDimension;
     document.getElementById('min-rating-filter').value = searchState.minRating;
     
@@ -2393,12 +2393,12 @@ document.getElementById('add-movie-form').addEventListener('submit', function(e)
 
 // 在页面加载时初始化
 document.addEventListener('DOMContentLoaded', function() {
-	loadFilters();
-	
-	// 添加事件监听
-	document.getElementById('rating-dimension-filter').addEventListener('change', searchMovies);
+    loadFilters();
+    
+    // 添加事件监听
+    document.getElementById('rating-dimension-filter').addEventListener('change', searchMovies);
     document.getElementById('min-rating-filter').addEventListener('change', searchMovies);	
-	document.getElementById('search-button').addEventListener('click', searchMovies);
+    document.getElementById('search-button').addEventListener('click', searchMovies);
 
     // 快捷键监听
     document.getElementById('search-input').addEventListener('keypress', function(e) {
@@ -2406,21 +2406,21 @@ document.addEventListener('DOMContentLoaded', function() {
             searchMovies();
         }
     });
-	document.getElementById('wtl-input').addEventListener('keypress', function(e) {
-		if (e.key === 'Enter') {
-			searchWtl();
-		}
-	});
-	document.getElementById('emby-search-input').addEventListener('keypress', function(e) {
-		if (e.key === 'Enter') {
-			searchEmby();
-		}
-	});
-	document.getElementById('duplicate-input').addEventListener('keydown', function(e) {
-		if (e.ctrlKey && e.key === 'Enter') {
-			checkDuplicates();
-		}
-	});
+    document.getElementById('wtl-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchWtl();
+        }
+    });
+    document.getElementById('emby-search-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchEmby();
+        }
+    });
+    document.getElementById('duplicate-input').addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            checkDuplicates();
+        }
+    });
 
     // ----  添加电影折叠框相关监听 ---- //
     const form = document.querySelector('#add-movie-form');
