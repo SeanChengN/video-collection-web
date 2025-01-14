@@ -310,12 +310,6 @@
 	flex-wrap: wrap;
 	gap: 5px;
 }
-.tag { 
-	cursor: pointer; 
-	transition: all 0.3s ease;
-	background-color: #d3d3d3;
-	color: #4a4a4a;
-}
 
 
 
@@ -1137,4 +1131,13 @@ th.resizing {
 		padding: 0 1rem !important;
 		width: 5em !important;
 	}
+}
+
+
+
+/*----------------------------------------
+  搜索过滤相关样式 - 必要样式在index中
+----------------------------------------*/
+.tags-filter .tag.is-selected:hover {
+	background-color: #2366d1;
 }
