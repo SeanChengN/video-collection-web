@@ -1,92 +1,92 @@
 /* 移动端响应式布局 */
 @media screen and (max-width: 1200px) {
-	.columns {
-		margin: 0;
-	}
-	.column {
-		padding: 1.5rem;
-	}
+    .columns {
+        margin: 0;
+    }
+    .column {
+        padding: 1.5rem;
+    }
 
 
-	/* 移动端元素放大 */
-	.title {
-		font-size: 2.5rem !important;
-	}
-	.subtitle {
-		font-size: 2rem !important;
-	}
-	.input, .textarea {
-		font-size: 1.5rem !important;
-		height: 3.5em;
-		padding: 1rem;
-	}
-	.button {
-		font-size: 1.5rem !important;
-		height: 3.5em;
-		padding: 0 2rem;
-	}
-	.tag {
-		font-size: 1.4rem !important;
-		height: 2.8em !important;
-		padding: 0.7em 1.2em !important;
-	}
-	.label {
-		font-size: 1.5rem !important;
-		margin-bottom: 1rem;
-	}
-	.radio {
-		font-size: 1.5rem;
-		margin: 0.8em 0;
-	}
-	.field:not(:last-child) {
-		margin-bottom: 1.5rem;
-	}
-	
-	
-	/* 工具栏按钮内图标尺寸 */
-	.function-tools .buttons .icon {
-		width: 4.5rem;
-		height: 4.5rem;
-	}
+    /* 移动端元素放大 */
+    .title {
+        font-size: 2.5rem !important;
+    }
+    .subtitle {
+        font-size: 2rem !important;
+    }
+    .input, .textarea {
+        font-size: 1.5rem !important;
+        height: 3.5em;
+        padding: 1rem;
+    }
+    .button {
+        font-size: 1.5rem !important;
+        height: 3.5em;
+        padding: 0 2rem;
+    }
+    .tag {
+        font-size: 1.4rem !important;
+        height: 2.8em !important;
+        padding: 0.7em 1.2em !important;
+    }
+    .label {
+        font-size: 1.5rem !important;
+        margin-bottom: 1rem;
+    }
+    .radio {
+        font-size: 1.5rem;
+        margin: 0.8em 0;
+    }
+    .field:not(:last-child) {
+        margin-bottom: 1.5rem;
+    }
 
 
-	/* 调整Emby搜索界面 */
-	#embyModal .columns.is-multiline .column.is-one-fifth {
-		width: 50% !important;
-		padding: 0.5rem;
-	}
-	.movie-card .card-content {
-		padding: 0.6rem;
-	}
-	
-	.movie-card .card-content .title.is-6 {
-		font-size: 1.3rem !important;
-	}
-	
-	.movie-card .image .runtime-badge {
-		padding: 0.5rem 0.8rem !important;
-		font-size: 1.3rem !important;
-	}
+    /* 工具栏按钮内图标尺寸 */
+    .function-tools .buttons .icon {
+        width: 4.5rem;
+        height: 4.5rem;
+    }
 
 
+    /* 调整Emby搜索界面 */
+    #embyModal .columns.is-multiline .column.is-one-fifth {
+        width: 50% !important;
+        padding: 0.5rem;
+    }
+    .movie-card .card-content {
+        padding: 0.6rem;
+    }
 
-	/* 查重核对结果框字体 */
-	#check-result .notification p {
-		font-size: 1.2rem;
-	}
-	#check-result .notification strong {
-		font-size: 1.4rem;
-	}
+    .movie-card .card-content .title.is-6 {
+        font-size: 1.3rem !important;
+    }
+
+    .movie-card .image .runtime-badge {
+        padding: 0.5rem 0.8rem !important;
+        font-size: 1.3rem !important;
+    }
 
 
 
-	/* 导航栏样式 */
-	.navbar-brand {
-		justify-content: center;  
-	}
-	.navbar-brand .title {
-		text-align: center;  
-	}
+    /* 查重核对结果框字体 */
+    #check-result .notification p {
+        font-size: 1.2rem;
+    }
+    #check-result .notification strong {
+        font-size: 1.4rem;
+    }
+
+
+
+    /* 导航栏样式 */
+    .navbar-brand {
+        justify-content: center;  
+    }
+    .navbar-brand .title {
+        text-align: center;  
+    }
 
 
     /* 评价和标签相关样式 */
@@ -115,13 +115,13 @@
 }
 
 .message { 
-	margin: 10px 0; 
+    margin: 10px 0; 
 }
 
 /* 工具提示支持 */
 [data-tooltip] {
-	position: relative;
-	cursor: default;
+    position: relative;
+    cursor: default;
 }
 
 
@@ -130,17 +130,17 @@
   What's the link?查询截图样式
 ----------------------------------------*/
 .screenshots {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-	gap: 1rem;
-	margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
 }
 .screenshot-item {
-	text-align: center;
+    text-align: center;
 }
 .screenshot-item img {
-	max-width: 100%;
-	border-radius: 4px;
+    max-width: 100%;
+    border-radius: 4px;
 }
 
 
@@ -149,37 +149,37 @@
   Emby搜索封面样式
 ----------------------------------------*/
 .movie-card {
-	height: 100%;
-	display: flex;
-	flex-direction: column;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 .movie-card .card-content {
-	padding: 0.8rem;
+    padding: 0.8rem;
 }
 .movie-title {
-	display: -webkit-box;
-	-webkit-line-clamp: 2;
-	-webkit-box-orient: vertical;
-	overflow: hidden;
-	margin-bottom: 0 !important;
-	line-height: 1.4;
-	height: 2.8em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 0 !important;
+    line-height: 1.4;
+    height: 2.8em;
 }
 .runtime-badge {
-	position: absolute;
-	bottom: 0;
-	right: 0;
-	background: rgba(0, 0, 0, 0.7);
-	color: white;
-	padding: 0.3rem 0.6rem;
-	font-weight: bold;
-	border-top-left-radius: 4px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.3rem 0.6rem;
+    font-weight: bold;
+    border-top-left-radius: 4px;
 }
 .image.is-2by3 {
-	position: relative;
+    position: relative;
 }
 .columns.is-multiline .column.is-one-fifth {
-	width: 16.666% !important;
+    width: 16.666% !important;
 }
 
 
@@ -188,54 +188,54 @@
   查重核对相关样式
 ----------------------------------------*/
 #duplicateModal .textarea {
-	font-family: monospace;
-	resize: vertical;
-	min-height: 200px;
+    font-family: monospace;
+    resize: vertical;
+    min-height: 200px;
 }
 
 #duplicateModal .button {
-	min-width: 120px;
-	width: 100%;
+    min-width: 120px;
+    width: 100%;
 }
 
 .duplicate-result {
-	margin-top: 10px;
-	padding: 10px;
-	border-radius: 4px;
-	background-color: #f5f5f5;
-	font-size: 0.9em;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+    font-size: 0.9em;
 }
 
 #check-result {
-	min-height: 100px;
-	padding: 1rem;
-	border-radius: 4px;
-	background: #f5f5f5;
-	flex-grow: 1;
-	margin-bottom: 1rem;
+    min-height: 100px;
+    padding: 1rem;
+    border-radius: 4px;
+    background: #f5f5f5;
+    flex-grow: 1;
+    margin-bottom: 1rem;
 }
 
 #check-result .notification {
-	padding: 1rem;
-	margin-bottom: 0;
+    padding: 1rem;
+    margin-bottom: 0;
 }
 
 #check-result .notification p {
-	font-size: 1rem;
+    font-size: 1rem;
 }
 
 #check-result .notification strong {
-	font-size: 1.1rem;
+    font-size: 1.1rem;
 }
 
 #duplicateModal .columns {
-	margin-bottom: 1rem;
+    margin-bottom: 1rem;
 }
 
 #duplicateModal .column.is-4 {
-	display: flex;
-	flex-direction: column;
-	height: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 
@@ -244,11 +244,11 @@
   标签相关样式
 ----------------------------------------*/
 .tag:hover {
-	background-color: #b5b5b5;
+    background-color: #b5b5b5;
 }
 .tag.is-selected {
-	background-color: #3273dc;
-	color: white;
+    background-color: #3273dc;
+    color: white;
 }
 
 
@@ -310,7 +310,7 @@
 
 .review-cell:hover::after,
 .tags-cell:hover::after {
-	display: none;
+    display: none;
     content: attr(title);
     position: absolute;
     left: 0;
@@ -329,10 +329,10 @@
 }
 
 .tag-group { 
-	margin-bottom: 10px; 
-	display: flex;
-	flex-wrap: wrap;
-	gap: 5px;
+    margin-bottom: 10px; 
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
 }
 
 
@@ -374,8 +374,8 @@
 #editModal #edit-ratings-container {
     display: flex;
     flex-wrap: wrap;
-	align-items: baseline;
-	padding-left: 0.1rem;
+    align-items: baseline;
+    padding-left: 0.1rem;
 }
 
 #editModal .ratings-box .field {
@@ -383,7 +383,7 @@
     align-items: center;
     padding-right: 1rem;
     padding-bottom: 0.2rem;
-	margin-bottom: 0rem;
+    margin-bottom: 0rem;
 }
 
 /* 维度名称样式 */
@@ -432,8 +432,8 @@
 .collapsible-box #edit-ratings-container,
 .collapsible-box #add-ratings-container {
     display: grid;
-	grid-template-columns: 50% 50%;
-	align-items: baseline;
+    grid-template-columns: 50% 50%;
+    align-items: baseline;
 }
 
 
@@ -510,7 +510,7 @@
     padding-bottom: 0.3rem;
     margin-bottom: 0.2rem;
     border-bottom: 1px solid #eee;
-	padding-left: 0.3rem;
+    padding-left: 0.3rem;
 }
 
 /*----------------------------------------
@@ -521,7 +521,7 @@
     align-items: baseline;
     padding-left: 0.2rem;
     padding-right: 1rem;
-	flex-wrap: wrap;
+    flex-wrap: wrap;
 }
 
 .ratings-box .field:first-child {
@@ -537,8 +537,8 @@
 .ratings-box .field label:first-child {
     min-width: 3.5em;
     margin-right: 0.2rem;
-	font-size: 0.9rem;
-	font-weight: normal;
+    font-size: 0.9rem;
+    font-weight: normal;
 }
 
 .ratings-box label.radio {
@@ -622,8 +622,8 @@
 /* 评分项样式 */
 .rating-item {
     padding-right: 0.5rem;
-	padding-bottom: 0.5rem;
-	padding-left: 0.5rem;
+    padding-bottom: 0.5rem;
+    padding-left: 0.5rem;
     display: flex;
     align-items: center;
     white-space: nowrap;
@@ -875,7 +875,7 @@
 }
 
 .modal.stacked {
-	z-index: 1000 !important; /* 或任何足够大的值 */
+    z-index: 1000 !important; /* 或任何足够大的值 */
 }
 
 /*----------------------------------------
@@ -912,7 +912,7 @@
 }
 /* 迅雷模态框添加滚动条 */
 #thunderModal .modal-card-body {
-	overflow-x: auto;
+    overflow-x: auto;
 }
 
 /* 编辑模态框 */
@@ -1109,18 +1109,18 @@ th.resizing {
     background: rgba(0, 0, 0, 0.05);
 }
 .table th::after {
-	content: '';
-	position: absolute;
-	right: 0;
-	top: 0;
-	height: 100%;
-	width: 5px;
-	background: transparent;
-	cursor: col-resize;
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 5px;
+    background: transparent;
+    cursor: col-resize;
 }
 
 .table th:hover::after {
-	background: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.1);
 }
 
 /* 所有需要缩略的单元格通用样式 */
@@ -1180,7 +1180,7 @@ th.resizing {
         color: #666;
         flex-shrink: 0;
     }
-	
+    
     .table td.review-cell {
         flex-direction: column;
     }
@@ -1226,7 +1226,7 @@ th.resizing {
   搜索过滤相关样式 - 必要样式在index中
 ----------------------------------------*/
 .tags-filter .tag.is-selected:hover {
-	background-color: #2366d1;
+    background-color: #2366d1;
 }
 
 
