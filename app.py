@@ -208,20 +208,26 @@ def search():
             cursor.execute("SELECT * FROM ratings_dimensions")
             all_dimensions = {str(dim['id']): dim['name'] for dim in cursor.fetchall()}
             
-            # 获取搜索关键词
+            # 获取搜索参数
             search_term = request.args.get('title', '').strip()
+            rating_dimension = request.args.get('rating_dimension', '').strip()
+            min_rating = request.args.get('min_rating', '').strip()
             
+            # 构建基础查询
+            query = "SELECT * FROM movies"
+            params = []
+            where_clauses = []			
+			
             if search_term:
-                # 如果有搜索关键词，按标题和评价搜索
-                cursor.execute("""
-                    SELECT * FROM movies 
-                    WHERE title LIKE %s OR review LIKE %s
-                    ORDER BY added_date DESC
-                """, (f'%{search_term}%', f'%{search_term}%'))
-            else:
-                # 如果搜索关键词为空，返回所有电影
-                cursor.execute("SELECT * FROM movies ORDER BY added_date DESC")
+                where_clauses.append("(title LIKE %s OR review LIKE %s)")
+                params.extend([f'%{search_term}%', f'%{search_term}%'])
             
+            if where_clauses:
+                query += " WHERE " + " AND ".join(where_clauses)
+            
+            query += " ORDER BY added_date DESC"			
+			
+            cursor.execute(query, params)
             movies = cursor.fetchall()
             
             # 处理每部电影的数据
