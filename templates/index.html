@@ -275,7 +275,16 @@
 
             <div class="column is-one-third-desktop">
                 <div class="box">
-                    <h2 class="subtitle">添加电影</h2>
+					<div class="subtitle-with-controls">
+						<h2 class="subtitle">添加电影</h2>
+						<button class="button is-light is-small settings-button" onclick="openSettingsModal()">
+							<span class="icon is-small">
+								<svg viewBox="0 0 24 24" width="16" height="16">
+									<path fill="currentColor" d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.65.07-.97 0-.32-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65A.488.488 0 0 0 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98 0 .33.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65z"/>
+								</svg>
+							</span>
+						</button>
+					</div>
                     <form id="add-movie-form">
                         <div class="field">
                             <input class="input" type="text" name="title" placeholder="电影名称" required>
@@ -470,6 +479,45 @@
 				</div>
 			</div>
 		</section>
+    </div>
+</div>
+
+<!-- 设置模态框 -->
+<div class="modal settings-modal" id="settingsModal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">设置</p>
+            <button class="delete" onclick="closeSettingsModal()" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+            <div class="tabs settings-tabs">
+                <ul>
+                    <li class="is-active" data-tab="tags"><a>标签管理</a></li>
+                    <li data-tab="ratings"><a>评分维度</a></li>
+                </ul>
+            </div>
+            
+            <div class="settings-content" id="tagsSettings">
+                <div class="add-item-form">
+                    <input type="text" class="input" id="newTagInput" placeholder="输入新标签名称">
+                    <button class="button is-primary" onclick="addNewTag()">添加</button>
+                </div>
+                <div class="settings-list" id="tagsList">
+                    <!-- 标签列表将通过 JavaScript 动态填充 -->
+                </div>
+            </div>
+            
+            <div class="settings-content" id="ratingsSettings" style="display: none;">
+                <div class="add-item-form">
+                    <input type="text" class="input" id="newRatingInput" placeholder="输入新评分维度名称">
+                    <button class="button is-primary" onclick="addNewRating()">添加</button>
+                </div>
+                <div class="settings-list" id="ratingsList">
+                    <!-- 评分维度列表将通过 JavaScript 动态填充 -->
+                </div>
+            </div>
+        </section>
     </div>
 </div>
 
@@ -844,6 +892,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'thunderModal',
         'embyModal',
         'editModal'
+		'settingsModal'
     ];
     
     modals.forEach(modalId => {
@@ -1100,6 +1149,259 @@ function formatTime(seconds) {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
+
+// 设置功能相关代码
+let editingItemId = null;
+
+function openSettingsModal() {
+    const modal = document.getElementById('settingsModal');
+    modal.classList.add('is-active');
+    loadSettings();
+}
+
+function closeSettingsModal() {
+    const modal = document.getElementById('settingsModal');
+    modal.classList.remove('is-active');
+}
+
+// 标签页切换
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelector('.settings-tabs');
+    const contents = document.querySelectorAll('.settings-content');
+    
+    tabs.addEventListener('click', e => {
+        const tab = e.target.closest('[data-tab]');
+        if (!tab) return;
+        
+        // 更新标签页状态
+        tabs.querySelectorAll('li').forEach(li => li.classList.remove('is-active'));
+        tab.classList.add('is-active');
+        
+        // 显示对应内容
+        const targetId = tab.dataset.tab + 'Settings';
+        contents.forEach(content => {
+            content.style.display = content.id === targetId ? '' : 'none';
+        });
+    });
+});
+
+// 加载设置内容
+function loadSettings() {
+    // 加载标签
+    fetch('/get_tags')
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                const tagsList = document.getElementById('tagsList');
+                tagsList.innerHTML = result.data.map(tag => `
+                    <div class="settings-list-item">
+                        <div class="item-content">
+                            <div class="tag-name">${tag}</div>
+                            <div class="edit-form" style="display: none;">
+                                <input type="text" class="input" value="${tag}">
+                                <button class="button is-success is-small" onclick="saveTagEdit(this, '${tag}')">保存</button>
+                                <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="button is-small is-info" onclick="startEdit(this)">
+                                编辑
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        });
+    
+    // 加载评分维度
+    fetch('/get_ratings_dimensions')
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                const ratingsList = document.getElementById('ratingsList');
+                ratingsList.innerHTML = result.dimensions.map(dimension => `
+                    <div class="settings-list-item">
+                        <div class="item-content">
+                            <div class="rating-name">${dimension.name}</div>
+                            <div class="edit-form" style="display: none;">
+                                <input type="text" class="input" value="${dimension.name}">
+                                <button class="button is-success is-small" onclick="saveRatingEdit(this, '${dimension.name}')">保存</button>
+                                <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="button is-small is-info" onclick="startEdit(this)">
+                                编辑
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        });
+}
+
+// 开始编辑
+function startEdit(button) {
+    const item = button.closest('.settings-list-item');
+    const nameDiv = item.querySelector('.tag-name, .rating-name');
+    const editForm = item.querySelector('.edit-form');
+    
+    nameDiv.style.display = 'none';
+    editForm.style.display = 'flex';
+    editForm.querySelector('input').focus();
+}
+
+// 取消编辑
+function cancelEdit(button) {
+    const item = button.closest('.settings-list-item');
+    const nameDiv = item.querySelector('.tag-name, .rating-name');
+    const editForm = item.querySelector('.edit-form');
+    
+    nameDiv.style.display = 'block';
+    editForm.style.display = 'none';
+}
+
+// 保存标签编辑
+function saveTagEdit(button, oldName) {
+    const item = button.closest('.settings-list-item');
+    const input = item.querySelector('input');
+    const newName = input.value.trim();
+    
+    if (!newName || newName === oldName) {
+        cancelEdit(button);
+        return;
+    }
+    
+    fetch('/update_tag', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+            old_name: oldName,
+            new_name: newName 
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            loadSettings(); // 重新加载列表
+            loadTags(); // 重新加载主页面的标签
+        } else {
+            alert(result.message || '更新失败');
+            cancelEdit(button);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('更新失败');
+        cancelEdit(button);
+    });
+}
+
+// 保存评分维度编辑
+function saveRatingEdit(button, oldName) {
+    const item = button.closest('.settings-list-item');
+    const input = item.querySelector('input');
+    const newName = input.value.trim();
+    
+    if (!newName || newName === oldName) {
+        cancelEdit(button);
+        return;
+    }
+    
+    fetch('/update_rating_dimension', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+            old_name: oldName,
+            new_name: newName 
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            loadSettings(); // 重新加载列表
+            loadRatingDimensions(); // 重新加载主页面的评分维度
+        } else {
+            alert(result.message || '更新失败');
+            cancelEdit(button);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('更新失败');
+        cancelEdit(button);
+    });
+}
+
+// 添加新标签
+function addNewTag() {
+    const input = document.getElementById('newTagInput');
+    const tagName = input.value.trim();
+    
+    if (!tagName) {
+        alert('请输入标签名称');
+        return;
+    }
+    
+    fetch('/add_tag', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: tagName })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            input.value = '';
+            loadSettings(); // 重新加载列表
+            loadTags(); // 重新加载主页面的标签
+        } else {
+            alert(result.message || '添加失败');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('添加失败');
+    });
+}
+
+// 添加新评分维度
+function addNewRating() {
+    const input = document.getElementById('newRatingInput');
+    const ratingName = input.value.trim();
+    
+    if (!ratingName) {
+        alert('请输入评分维度名称');
+        return;
+    }
+    
+    fetch('/add_rating_dimension', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: ratingName })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            input.value = '';
+            loadSettings(); // 重新加载列表
+            loadRatingDimensions(); // 重新加载主页面的评分维度
+        } else {
+            alert(result.message || '添加失败');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('添加失败');
+    });
+}
 
 // 获取保存的列宽设置
 function getStoredColumnWidths() {
