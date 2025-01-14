@@ -140,9 +140,10 @@
 		  搜索过滤相关样式 - 必要样式
 		----------------------------------------*/
 		.filter-options {
-			background-color: #f5f5f5;
+			background-color: #fafafa;
 			padding: 0.8rem;
 			border-radius: 4px;
+			border: 1px solid #dbdbdb;
 		}
 
 		.filter-options .label {
@@ -364,10 +365,19 @@
 <div class="modal" id="wtlModal">
     <div class="modal-background"></div>
     <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title">What's the link?</p>
-            <button class="delete" onclick="closeWtlModal()"></button>
-        </header>
+		<header class="modal-card-head">
+			<p class="modal-card-title">What's the link?</p>
+			<div class="modal-card-controls">
+				<button class="modal-control-button" onclick="minimizeModal('wtlModal', this)">
+					<span class="icon is-small">
+						<svg viewBox="0 0 24 24" width="16" height="16">
+							<path fill="currentColor" d="M20,14H4V10H20"/>
+						</svg>
+					</span>
+				</button>
+				<button class="delete" aria-label="close" onclick="closeWtlModal()"></button>
+			</div>
+		</header>
         <section class="modal-card-body">
             <div class="field has-addons">
                 <div class="control is-expanded">
@@ -385,10 +395,19 @@
 <div class="modal" id="jackettModal">
     <div class="modal-background"></div>
     <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title">Jackett</p>
-            <button class="delete" onclick="closeJackettModal()"></button>
-        </header>
+		<header class="modal-card-head">
+			<p class="modal-card-title">Jackett</p>
+			<div class="modal-card-controls">
+				<button class="modal-control-button" onclick="minimizeModal('jackettModal', this)">
+					<span class="icon is-small">
+						<svg viewBox="0 0 24 24" width="16" height="16">
+							<path fill="currentColor" d="M20,14H4V10H20"/>
+						</svg>
+					</span>
+				</button>
+				<button class="delete" aria-label="close" onclick="closeJackettModal()"></button>
+			</div>
+		</header>
         <section class="modal-card-body" style="padding: 0;">
             <iframe style="width: 100%; height: 80vh; border: none;"></iframe>
         </section>
@@ -399,10 +418,19 @@
 <div class="modal" id="thunderModal">
     <div class="modal-background"></div>
     <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title">迅雷下载</p>
-            <button class="delete" onclick="closeThunderModal()"></button>
-        </header>
+		<header class="modal-card-head">
+			<p class="modal-card-title">迅雷下载</p>
+			<div class="modal-card-controls">
+				<button class="modal-control-button" onclick="minimizeModal('thunderModal', this)">
+					<span class="icon is-small">
+						<svg viewBox="0 0 24 24" width="16" height="16">
+							<path fill="currentColor" d="M20,14H4V10H20"/>
+						</svg>
+					</span>
+				</button>
+				<button class="delete" aria-label="close" onclick="closeThunderModal()"></button>
+			</div>
+		</header>		
         <section class="modal-card-body" style="padding: 0; overflow-x: auto;">
             <iframe style="width: 100%; height: 80vh; border: none;"></iframe>
         </section>
@@ -413,10 +441,19 @@
 <div class="modal" id="embyModal">
     <div class="modal-background"></div>
     <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title">Emby</p>
-            <button class="delete" onclick="closeEmbyModal()"></button>
-        </header>
+		<header class="modal-card-head">
+			<p class="modal-card-title">Emby</p>
+			<div class="modal-card-controls">
+				<button class="modal-control-button" onclick="minimizeModal('embyModal', this)">
+					<span class="icon is-small">
+						<svg viewBox="0 0 24 24" width="16" height="16">
+							<path fill="currentColor" d="M20,14H4V10H20"/>
+						</svg>
+					</span>
+				</button>
+				<button class="delete" aria-label="close" onclick="closeEmbyModal()"></button>
+			</div>
+		</header>
         <section class="modal-card-body">
             <div class="field has-addons">
                 <div class="control is-expanded">
@@ -435,10 +472,19 @@
 <div class="modal" id="duplicateModal">
     <div class="modal-background"></div>
     <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title">查重核对</p>
-            <button class="delete" onclick="closeDuplicateModal()"></button>
-        </header>
+		<header class="modal-card-head">
+			<p class="modal-card-title">查重核对</p>
+			<div class="modal-card-controls">
+				<button class="modal-control-button" onclick="minimizeModal('duplicateModal', this)">
+					<span class="icon is-small">
+						<svg viewBox="0 0 24 24" width="16" height="16">
+							<path fill="currentColor" d="M20,14H4V10H20"/>
+						</svg>
+					</span>
+				</button>
+				<button class="delete" aria-label="close" onclick="closeDuplicateModal()"></button>
+			</div>
+		</header>
 		<section class="modal-card-body">
 			<div class="columns">
 				<div class="column is-8">
@@ -456,7 +502,6 @@
 		</section>
     </div>
 </div>
-
 
 <script>
 // 全局错误处理
@@ -513,12 +558,14 @@ const imageObserver = new IntersectionObserver((entries, observer) => {
 
 // 模态框管理器
 const ModalManager = {
-    activeModals: new Set(),
+    activeModals: new Map(),
+    minimizedModals: new Set(),
 
     open(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
             const modalCard = modal.querySelector('.modal-card');
+            const toolbarButton = this.getToolbarButton(modalId);
 			
             // 获取当前最高的 z-index 值
             const modals = document.querySelectorAll('.modal');
@@ -528,41 +575,147 @@ const ModalManager = {
             // 设置新的 z-index 值，确保比当前最高值大
             modal.style.zIndex = maxZIndex + 1;
 			
-            // 先显示模态窗口但设置为不可见，以便获取正确的尺寸
-            modal.classList.add('is-active');
-            modalCard.style.visibility = 'hidden';
-            modalCard.style.position = 'absolute';
-            modalCard.style.transform = 'none';
-            modalCard.style.margin = '0';
-            
-            // 确保模态窗口内容可以滚动
-            modalCard.style.maxHeight = '90vh';
-            modalCard.style.overflowY = 'auto';
-			
-            // 等待下一帧以确保尺寸计算正确
-            requestAnimationFrame(() => {
-                // 计算屏幕中心位置
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-                const modalWidth = modalCard.offsetWidth;
-                const modalHeight = modalCard.offsetHeight;
+            if (this.minimizedModals.has(modalId)) {
+                // 如果是最小化状态，恢复窗口
+                this.restoreModal(modalId);
+            } else {
+                // 普通打开模态窗口(先显示模态窗口但设置为不可见，以便获取正确的尺寸)
+                modal.classList.add('is-active');
+                modalCard.style.visibility = 'hidden';
+                modalCard.style.position = 'absolute';
+                modalCard.style.transform = 'none';
+                modalCard.style.margin = '0';
                 
-                // 设置初始位置在屏幕中心
-                modalCard.style.left = `${Math.max(0, (viewportWidth - modalWidth) / 2)}px`;
-                modalCard.style.top = `${Math.max(0, (viewportHeight - modalHeight) / 2)}px`;
-                modalCard.style.visibility = 'visible';
-            });
+                // 确保模态窗口内容可以滚动
+                modalCard.style.maxHeight = '90vh';
+                modalCard.style.overflowY = 'auto';
+                
+                // 等待下一帧以确保尺寸计算正确
+                requestAnimationFrame(() => {
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    const modalWidth = modalCard.offsetWidth;
+                    const modalHeight = modalCard.offsetHeight;
+                    
+                    // 设置初始位置在屏幕中心
+                    modalCard.style.left = `${Math.max(0, (viewportWidth - modalWidth) / 2)}px`;
+                    modalCard.style.top = `${Math.max(0, (viewportHeight - modalHeight) / 2)}px`;
+                    modalCard.style.visibility = 'visible';
+                });
+            }			
+
+            // 激活对应的工具栏按钮
+            if (toolbarButton) {
+                toolbarButton.classList.add('is-active');
+            }
+
+            this.activeModals.set(modalId, { isMinimized: false });
         }
     },
 
+    // 最小化窗口
+    minimize(modalId) {
+        const modal = document.getElementById(modalId);
+        const modalCard = modal.querySelector('.modal-card');
+        const toolbarButton = this.getToolbarButton(modalId);
+        
+        if (modal && toolbarButton) {
+            // 保存当前窗口位置和大小
+            const rect = modalCard.getBoundingClientRect();
+            this.activeModals.set(modalId, {
+                isMinimized: true,
+                rect: rect
+            });
+
+            // 获取工具栏按钮的位置
+            const buttonRect = toolbarButton.getBoundingClientRect();
+            
+            // 使用 transform3d 触发 GPU 加速
+            modalCard.style.transform = `translate3d(0, 0, 0)`;
+            modalCard.classList.add('minimizing');
+            
+            requestAnimationFrame(() => {
+                const scaleX = buttonRect.width / rect.width;
+                const scaleY = buttonRect.height / rect.height;
+                const translateX = buttonRect.left - rect.left;
+                const translateY = buttonRect.top - rect.top;
+
+                modalCard.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scaleX}, ${scaleY})`;
+                modalCard.style.opacity = '0';
+            });
+
+            setTimeout(() => {
+                modal.classList.remove('is-active');
+                modalCard.classList.remove('minimizing');
+                this.minimizedModals.add(modalId);
+            }, 300);
+        }
+    },
+
+    // 还原窗口
+    restoreModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const modalCard = modal.querySelector('.modal-card');
+        const savedState = this.activeModals.get(modalId);
+        
+        if (modal && savedState && savedState.rect) {
+            modal.classList.add('is-active');
+            modalCard.classList.add('minimizing');
+            
+            const toolbarButton = this.getToolbarButton(modalId);
+            const buttonRect = toolbarButton.getBoundingClientRect();
+            
+            requestAnimationFrame(() => {
+                modalCard.style.transform = `translate3d(${buttonRect.left - savedState.rect.left}px, ${buttonRect.top - savedState.rect.top}px, 0) scale(${buttonRect.width / savedState.rect.width}, ${buttonRect.height / savedState.rect.height})`;
+                modalCard.style.opacity = '0';
+                
+                // 强制重排
+                modalCard.offsetHeight;
+                
+                requestAnimationFrame(() => {
+                    modalCard.style.transform = 'translate3d(0, 0, 0)';
+                    modalCard.style.opacity = '1';
+                });
+            });
+            
+            setTimeout(() => {
+                modalCard.classList.remove('minimizing');
+                this.minimizedModals.delete(modalId);
+            }, 300);
+        }
+    },
+
+    // 关闭窗口
     close(modalId) {
         const modal = document.getElementById(modalId);
         if (modal) {
             modal.classList.remove('is-active');
+            const toolbarButton = this.getToolbarButton(modalId);
+            if (toolbarButton) {
+                toolbarButton.classList.remove('is-active');
+            }
         }
         this.activeModals.delete(modalId);
+		this.minimizedModals.delete(modalId);
+    },
+	
+    getToolbarButton(modalId) {
+        // 获取对应的工具栏按钮
+        const buttonMap = {
+            'duplicateModal': '[onclick*="openDuplicateModal"]',
+            'jackettModal': '[onclick*="openJackettModal"]',
+            'wtlModal': '[onclick*="openWtlModal"]',
+            'thunderModal': '[onclick*="openThunderModal"]',
+            'embyModal': '[onclick*="openEmbyModal"]'
+        };
+        return document.querySelector(buttonMap[modalId]);
     }
 };
+
+// 最小化模态框
+function minimizeModal(modalId) {
+    ModalManager.minimize(modalId);
+}
 
 // 延迟加载非关键CSS
 function loadDeferredStyles() {
@@ -619,11 +772,12 @@ function makeDraggable(modal) {
     const modalCard = modal.querySelector('.modal-card');
     const modalHead = modal.querySelector('.modal-card-head');
     let isDragging = false;
-    let currentX;
-    let currentY;
     let initialX;
     let initialY;
-
+    let currentX;
+    let currentY;
+    let animationFrameId = null; // 用于requestAnimationFrame
+	
     // 为整个模态框添加点击事件
     modal.addEventListener('mousedown', () => {
         zIndexCounter += 1;
@@ -631,15 +785,25 @@ function makeDraggable(modal) {
         modalCard.style.zIndex = zIndexCounter;
     });
 
-    modalHead.addEventListener('mousedown', dragStart);
-    document.addEventListener('mousemove', drag);
-    document.addEventListener('mouseup', dragEnd);
-
     function dragStart(e) {
-        if (e.target === modalHead) {
+        if (e.target.closest('.modal-card-controls')) {
+            return; // 如果点击的是控制按钮，不启动拖拽
+        }
+		
+        if (e.target === modalHead || e.target.closest('.modal-card-head')) {
             isDragging = true;
-            initialX = e.clientX - modalCard.offsetLeft;
-            initialY = e.clientY - modalCard.offsetTop;
+			
+            // 获取当前位置
+            const rect = modalCard.getBoundingClientRect();
+            currentX = rect.left;
+            currentY = rect.top;
+            
+            initialX = e.clientX - currentX;
+            initialY = e.clientY - currentY;
+
+            // 添加拖拽时的样式
+            modalCard.classList.add('dragging');
+            document.body.style.cursor = 'move';
 
             zIndexCounter += 1;
             modal.style.zIndex = zIndexCounter;
@@ -648,25 +812,57 @@ function makeDraggable(modal) {
     }
 
     function drag(e) {
-        if (isDragging) {
-            e.preventDefault();
+        if (!isDragging) return;
+        e.preventDefault();
 
-            const newX = e.clientX - initialX;
-            const newY = e.clientY - initialY;
-			
-            modalCard.style.position = 'absolute';
+        // 计算新位置
+        const newX = e.clientX - initialX;
+        const newY = e.clientY - initialY;
+
+        // 保存当前位置
+        currentX = newX;
+        currentY = newY;
+
+        // 使用 requestAnimationFrame 更新位置
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+        }
+
+        animationFrameId = requestAnimationFrame(() => {
+            modalCard.style.position = 'fixed'; // 使用 fixed 定位
             modalCard.style.left = `${newX}px`;
             modalCard.style.top = `${newY}px`;
-            modalCard.style.transform = 'none';
-            
-            currentX = newX;
-            currentY = newY;
-        }
+        });
     }
 
-    function dragEnd(e) {
+    function dragEnd() {
+        if (!isDragging) return;
         isDragging = false;
+
+        // 清除拖拽时的样式
+        document.body.style.cursor = '';
+        modalCard.classList.remove('dragging');
+
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
     }
+	
+    // 使用 passive 选项优化事件监听
+    modalHead.addEventListener('mousedown', dragStart, { passive: false });
+    document.addEventListener('mousemove', drag, { passive: false });
+    document.addEventListener('mouseup', dragEnd, { passive: true });
+
+    // 清理函数
+    return function cleanup() {
+        modalHead.removeEventListener('mousedown', dragStart);
+        document.removeEventListener('mousemove', drag);
+        document.removeEventListener('mouseup', dragEnd);
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+        }
+    };
 }
 
 // 为每个模态框添加拖拽功能
@@ -686,10 +882,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-
 // 查重核对相关代码
 function openDuplicateModal() {
-    ModalManager.open('duplicateModal');
+    if (ModalManager.minimizedModals.has('duplicateModal')) {
+        ModalManager.restoreModal('duplicateModal');
+    } else {
+        ModalManager.open('duplicateModal');
+    }
 }
 
 function closeDuplicateModal() {
@@ -749,12 +948,13 @@ function checkDuplicates() {
     });
 }
 
-
-
-
 // Emby搜索相关代码
 function openEmbyModal() {
-    ModalManager.open('embyModal');
+    if (ModalManager.minimizedModals.has('embyModal')) {
+        ModalManager.restoreModal('embyModal');
+    } else {
+        ModalManager.open('embyModal');
+    }
 }
 
 function closeEmbyModal() {
@@ -830,10 +1030,13 @@ function formatRuntime(ticks) {
         `${remainingMinutes}分钟`;
 }
 
-
 function openJackettModal() {
-    ModalManager.open('jackettModal');
-    document.querySelector('#jackettModal iframe').src = `${serviceConfig.jackett_url}/UI/Dashboard#search`;
+    if (ModalManager.minimizedModals.has('jackettModal')) {
+        ModalManager.restoreModal('jackettModal');
+    } else {
+        ModalManager.open('jackettModal');
+        document.querySelector('#jackettModal iframe').src = `${serviceConfig.jackett_url}/UI/Dashboard#search`;
+    }
 }
 
 function closeJackettModal() {
@@ -841,21 +1044,27 @@ function closeJackettModal() {
 }
 
 function openThunderModal() {
-    ModalManager.open('thunderModal');
-    document.querySelector('#thunderModal iframe').src = serviceConfig.thunder_url;
+    if (ModalManager.minimizedModals.has('thunderModal')) {
+        ModalManager.restoreModal('thunderModal');
+    } else {
+        ModalManager.open('thunderModal');
+        document.querySelector('#thunderModal iframe').src = serviceConfig.thunder_url;
+    }
 }
-
 
 function closeThunderModal() {
     ModalManager.close('thunderModal');
 }
 
-
 // What's the link?查询相关代码
 function openWtlModal() {
-    ModalManager.open('wtlModal');
-    document.getElementById('wtl-input').value = '';
-    document.getElementById('wtl-results').innerHTML = '';
+    if (ModalManager.minimizedModals.has('wtlModal')) {
+        ModalManager.restoreModal('wtlModal');
+    } else {
+        ModalManager.open('wtlModal');
+        document.getElementById('wtl-input').value = '';
+        document.getElementById('wtl-results').innerHTML = '';
+    }
 }
 
 function closeWtlModal() {
