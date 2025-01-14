@@ -83,7 +83,7 @@ def init_db():
             
             # 预设评分维度
             default_dimensions = [
-                "颜值", "身材", "皮肤", "演技", "摄影"
+                "颜值", "身材", "皮肤", "演技", "画面"
             ]
             
             # 插入预设标签
@@ -304,6 +304,90 @@ def check_duplicates():
     except Exception as e:
         #logging.error(f"查重核对出错: {str(e)}")
         return jsonify({"success": False, "message": str(e)}), 500
+
+# 设置功能相关代码
+@app.route("/add_tag", methods=["POST"])
+def add_tag():
+    try:
+        data = request.get_json()
+        name = data.get('name', '').strip()
+        
+        if not name:
+            return jsonify({"success": False, "message": "标签名称不能为空"}), 400
+            
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO tags (name) VALUES (%s)", (name,))
+            conn.commit()
+            
+        return jsonify({"success": True})
+    except mysql.connector.Error as err:
+        if err.errno == 1062:  # 重复键错误
+            return jsonify({"success": False, "message": "标签名称已存在"}), 400
+        return jsonify({"success": False, "message": str(err)}), 500
+
+@app.route("/update_tag", methods=["POST"])
+def update_tag():
+    try:
+        data = request.get_json()
+        old_name = data.get('old_name', '').strip()
+        new_name = data.get('new_name', '').strip()
+        
+        if not old_name or not new_name:
+            return jsonify({"success": False, "message": "标签名称不能为空"}), 400
+            
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE tags SET name = %s WHERE name = %s", (new_name, old_name))
+            conn.commit()
+            
+        return jsonify({"success": True})
+    except mysql.connector.Error as err:
+        if err.errno == 1062:  # 重复键错误
+            return jsonify({"success": False, "message": "标签名称已存在"}), 400
+        return jsonify({"success": False, "message": str(err)}), 500
+
+@app.route("/add_rating_dimension", methods=["POST"])
+def add_rating_dimension():
+    try:
+        data = request.get_json()
+        name = data.get('name', '').strip()
+        
+        if not name:
+            return jsonify({"success": False, "message": "评分维度名称不能为空"}), 400
+            
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO ratings_dimensions (name) VALUES (%s)", (name,))
+            conn.commit()
+            
+        return jsonify({"success": True})
+    except mysql.connector.Error as err:
+        if err.errno == 1062:  # 重复键错误
+            return jsonify({"success": False, "message": "评分维度名称已存在"}), 400
+        return jsonify({"success": False, "message": str(err)}), 500
+
+@app.route("/update_rating_dimension", methods=["POST"])
+def update_rating_dimension():
+    try:
+        data = request.get_json()
+        old_name = data.get('old_name', '').strip()
+        new_name = data.get('new_name', '').strip()
+        
+        if not old_name or not new_name:
+            return jsonify({"success": False, "message": "评分维度名称不能为空"}), 400
+            
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("UPDATE ratings_dimensions SET name = %s WHERE name = %s", (new_name, old_name))
+            conn.commit()
+            # 这里没有检查是否真的更新了记录
+            
+        return jsonify({"success": True})
+    except mysql.connector.Error as err:
+        if err.errno == 1062:  # 重复键错误
+            return jsonify({"success": False, "message": "评分维度名称已存在"}), 400
+        return jsonify({"success": False, "message": str(err)}), 500
 
 
 if __name__ == "__main__":
