@@ -1228,3 +1228,109 @@ th.resizing {
 .tags-filter .tag.is-selected:hover {
 	background-color: #2366d1;
 }
+
+
+
+/*----------------------------------------
+  设置模态框样式
+----------------------------------------*/
+/* 标题和设置按钮布局 */
+.subtitle-with-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.subtitle-with-controls .subtitle {
+    margin-bottom: 0;
+}
+
+/* 设置按钮样式 */
+.settings-button {
+    border: none;
+    padding: 0.5rem;
+    height: auto;
+    transition: background-color 0.2s ease;
+}
+
+.settings-button:hover {
+    background-color: #f0f0f0;
+}
+
+.settings-button .icon {
+    color: #666;
+}
+
+/* 设置模态框样式 */
+.settings-modal .modal-card {
+    max-width: 480px;
+}
+
+.settings-tabs {
+    margin-bottom: 1.5rem;
+}
+
+.settings-content {
+    min-height: 300px;
+}
+
+.settings-list {
+    margin-bottom: 1rem;
+}
+
+.settings-list-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid #dbdbdb;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    background-color: #fff;
+}
+
+.settings-list-item:hover {
+    background-color: #f8f8f8;
+}
+
+.settings-list-item .item-content {
+    flex-grow: 1;
+}
+
+.settings-list-item .item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.add-item-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.add-item-form .input {
+    flex-grow: 1;
+}
+
+.edit-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.edit-form .input {
+    flex-grow: 1;
+}
+
+/* 修改模态框层级样式 */
+.settings-modal.is-active {
+    pointer-events: auto;
+}
+
+.settings-modal .modal-background {
+    pointer-events: auto;
+}
+
+.settings-modal .modal-card {
+    pointer-events: auto;
+}
