@@ -1,0 +1,1140 @@
+/* 移动端响应式布局 */
+@media screen and (max-width: 1200px) {
+	.columns {
+		margin: 0;
+	}
+	.column {
+		padding: 1.5rem;
+	}
+
+
+	/* 移动端元素放大 */
+	.title {
+		font-size: 2.5rem !important;
+	}
+	.subtitle {
+		font-size: 2rem !important;
+	}
+	.input, .textarea {
+		font-size: 1.5rem !important;
+		height: 3.5em;
+		padding: 1rem;
+	}
+	.button {
+		font-size: 1.5rem !important;
+		height: 3.5em;
+		padding: 0 2rem;
+	}
+	.tag {
+		font-size: 1.4rem !important;
+		height: 2.8em !important;
+		padding: 0.7em 1.2em !important;
+	}
+	.label {
+		font-size: 1.5rem !important;
+		margin-bottom: 1rem;
+	}
+	.radio {
+		font-size: 1.5rem;
+		margin: 0.8em 0;
+	}
+	.field:not(:last-child) {
+		margin-bottom: 1.5rem;
+	}
+	
+	
+	/* 工具栏按钮内图标尺寸 */
+	.function-tools .buttons .icon {
+		width: 4.5rem;
+		height: 4.5rem;
+	}
+
+
+	/* 调整Emby搜索界面 */
+	#embyModal .columns.is-multiline .column.is-one-fifth {
+		width: 50% !important;
+		padding: 0.5rem;
+	}
+	.movie-card .card-content {
+		padding: 0.6rem;
+	}
+	
+	.movie-card .card-content .title.is-6 {
+		font-size: 1.3rem !important;
+	}
+	
+	.movie-card .image .runtime-badge {
+		padding: 0.5rem 0.8rem !important;
+		font-size: 1.3rem !important;
+	}
+
+
+
+	/* 查重核对结果框字体 */
+	#check-result .notification p {
+		font-size: 1.2rem;
+	}
+	#check-result .notification strong {
+		font-size: 1.4rem;
+	}
+
+
+
+	/* 导航栏样式 */
+	.navbar-brand {
+		justify-content: center;  
+	}
+	.navbar-brand .title {
+		text-align: center;  
+	}
+
+
+    /* 评价和标签相关样式 */
+    .review-cell:hover::after,
+    .tags-cell:hover::after {
+        display: none;
+    }
+	
+	
+	/* 添加触摸优化 */
+    .button, .tag {
+        -webkit-tap-highlight-color: transparent;
+    }
+	
+	
+    /* 增加点击区域 */
+    .table td, .button {
+        min-height: 44px;
+    }
+	
+	
+	/* 评分星星样式 */
+    .rating span {
+        font-size: 1rem;
+    }
+}
+
+.message { 
+	margin: 10px 0; 
+}
+
+/* 工具提示支持 */
+[data-tooltip] {
+	position: relative;
+	cursor: default;
+}
+
+
+
+/*----------------------------------------
+  What's the link?查询截图样式
+----------------------------------------*/
+.screenshots {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: 1rem;
+	margin-top: 1rem;
+}
+.screenshot-item {
+	text-align: center;
+}
+.screenshot-item img {
+	max-width: 100%;
+	border-radius: 4px;
+}
+
+
+
+/*----------------------------------------
+  Emby搜索封面样式
+----------------------------------------*/
+.movie-card {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+.movie-card .card-content {
+	padding: 0.8rem;
+}
+.movie-title {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	margin-bottom: 0 !important;
+	line-height: 1.4;
+	height: 2.8em;
+}
+.runtime-badge {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	background: rgba(0, 0, 0, 0.7);
+	color: white;
+	padding: 0.3rem 0.6rem;
+	font-weight: bold;
+	border-top-left-radius: 4px;
+}
+.image.is-2by3 {
+	position: relative;
+}
+.columns.is-multiline .column.is-one-fifth {
+	width: 16.666% !important;
+}
+
+
+
+/*----------------------------------------
+  查重核对相关样式
+----------------------------------------*/
+#duplicateModal .textarea {
+	font-family: monospace;
+	resize: vertical;
+	min-height: 200px;
+}
+
+#duplicateModal .button {
+	min-width: 120px;
+	width: 100%;
+}
+
+.duplicate-result {
+	margin-top: 10px;
+	padding: 10px;
+	border-radius: 4px;
+	background-color: #f5f5f5;
+	font-size: 0.9em;
+}
+
+#check-result {
+	min-height: 100px;
+	padding: 1rem;
+	border-radius: 4px;
+	background: #f5f5f5;
+	flex-grow: 1;
+	margin-bottom: 1rem;
+}
+
+#check-result .notification {
+	padding: 1rem;
+	margin-bottom: 0;
+}
+
+#check-result .notification p {
+	font-size: 1rem;
+}
+
+#check-result .notification strong {
+	font-size: 1.1rem;
+}
+
+#duplicateModal .columns {
+	margin-bottom: 1rem;
+}
+
+#duplicateModal .column.is-4 {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+
+
+/*----------------------------------------
+  标签相关样式
+----------------------------------------*/
+.tag:hover {
+	background-color: #b5b5b5;
+}
+.tag.is-selected {
+	background-color: #3273dc;
+	color: white;
+}
+
+
+
+/*----------------------------------------
+  功能区样式 - 必要样式在index中
+----------------------------------------*/
+.function-tools .button:hover {
+	transform: translateY(-2px);
+}
+
+
+
+/*----------------------------------------
+  评价和标签相关样式
+----------------------------------------*/
+.review-cell {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tags-cell {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 评论和标签单元格 */
+.review-cell, .tags-cell {
+    position: relative;
+}
+
+.review-cell:hover::after,
+.tags-cell:hover::after {
+	display: none;
+    content: attr(title);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 1000;
+    width: auto;
+    min-width: 100%;
+    max-width: 300px;
+    padding: 5px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.tag-group { 
+	margin-bottom: 10px; 
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px;
+}
+.tag { 
+	cursor: pointer; 
+	transition: all 0.3s ease;
+	background-color: #d3d3d3;
+	color: #4a4a4a;
+}
+
+
+
+/*----------------------------------------
+  折叠框样式 - 必要样式在index中
+----------------------------------------*/
+.collapse-icon:not(.collapsed) {
+    transform: rotate(0deg);
+}
+.box-content.expanded {
+    border-top: 1px solid #dbdbdb;
+    display: block;
+}
+
+
+
+/*----------------------------------------
+  评分框通用样式 - 必要样式在index中
+----------------------------------------*/
+.ratings-box-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #363636;
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
+    border-bottom: 1px solid #eee;
+}
+
+/*----------------------------------------
+  编辑电影框中的评分样式
+----------------------------------------*/
+/* 评分框标题 */
+#editModal .ratings-box-title {
+    position: static;
+}
+
+/* 评分维度三列布局 */
+#editModal #edit-ratings-container {
+    display: flex;
+    flex-wrap: wrap;
+	align-items: baseline;
+	padding-left: 0.1rem;
+}
+
+#editModal .ratings-box .field {
+    display: flex;
+    align-items: center;
+    padding-right: 1rem;
+    padding-bottom: 0.2rem;
+	margin-bottom: 0rem;
+}
+
+/* 维度名称样式 */
+#editModal .ratings-box .field label:first-child {
+    transform: translateY(5px);
+    padding-right: 2px !important;
+    min-width: 2.8em !important;
+}
+
+/*----------------------------------------
+  折叠框中的评分样式
+----------------------------------------*/
+/* 评分框容器 */
+.collapsible-box .ratings-box {
+    position: relative;
+}
+
+/* 评分框标题 */
+.collapsible-box .ratings-box-title {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 0.5rem;
+    background: white;
+    z-index: 1;
+    border-radius: 4px;
+    margin: 0;
+    border: none;
+}
+
+/* 评分维度两列布局 */
+.collapsible-box .ratings-box .field {
+    display: flex;
+    align-items: center;
+    padding: 0.2rem;
+}
+
+/* 维度名称样式 */
+.collapsible-box .ratings-box .field label:first-child {
+    transform: translateY(14px);
+    padding-right: 2px !important;
+    min-width: 2.8em !important;
+}
+
+/* 评分维度容器布局 */
+.collapsible-box #edit-ratings-container,
+.collapsible-box #add-ratings-container {
+    display: grid;
+	grid-template-columns: 50% 50%;
+	align-items: baseline;
+}
+
+
+
+/*----------------------------------------
+  编辑电影框中的星星样式
+----------------------------------------*/
+#editModal .rating {
+    margin: 0;
+    height: auto;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+    user-select: none;
+    gap: 2px;
+}
+
+#editModal .rating input {
+    display: none;
+}
+
+#editModal .rating span {
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #ddd;
+}
+
+#editModal .rating input:checked + span,
+#editModal .rating input:checked + span ~ span,
+#editModal .rating span:hover,
+#editModal .rating span:hover ~ span {
+    color: #ffd700;
+}
+
+/*----------------------------------------
+  折叠框中的星星样式
+----------------------------------------*/
+.collapsible-box .rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    margin: 0;
+    height: auto;
+    user-select: none;
+    gap: 2px;
+}
+
+.collapsible-box .rating input {
+    display: none;
+}
+
+.collapsible-box .rating span {
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #ddd;
+}
+
+.collapsible-box .rating input:checked ~ span,
+.collapsible-box .rating span:hover,
+.collapsible-box .rating span:hover ~ span {
+    color: #ffd700;
+}
+
+
+
+/*----------------------------------------
+  评分框和标签框通用样式 - 必要样式在index中 
+----------------------------------------*/
+.ratings-box-title,
+.tags-box-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #363636;
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
+    border-bottom: 1px solid #eee;
+	padding-left: 0.3rem;
+}
+
+/*----------------------------------------
+  评分框特有样式
+----------------------------------------*/
+.ratings-box .field {
+    display: flex;
+    align-items: baseline;
+    padding-left: 0.2rem;
+    padding-right: 1rem;
+	flex-wrap: wrap;
+}
+
+.ratings-box .field:first-child {
+    padding-top: 0.2rem;
+}
+
+.ratings-box .control {
+    flex: 1;
+    justify-content: flex-start;
+    padding: 0;
+}
+
+.ratings-box .field label:first-child {
+    min-width: 3.5em;
+    margin-right: 0.2rem;
+	font-size: 0.9rem;
+	font-weight: normal;
+}
+
+.ratings-box label.radio {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    height: 1.5rem;
+}
+
+.ratings-box label.radio input {
+    margin-right: 0.3rem;
+}
+
+.ratings-box label.radio:hover {
+    color: #3273dc;
+}
+
+.ratings-box .label {
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+/*----------------------------------------
+  标签框特有样式
+----------------------------------------*/
+.tags-box .tag-group {
+    margin: 0;
+    padding: 0.3rem 0;
+}
+
+.tags-box .tag {
+    margin: 0.15rem;
+    padding: 0 0.5em;
+    height: 1.8em;
+    font-size: 0.85rem;
+}
+
+.tags-box .tag.is-selected {
+    background-color: #3273dc;
+    color: white;
+}
+
+/*----------------------------------------
+  移动端响应式样式
+----------------------------------------*/
+@media screen and (max-width: 1200px) {
+    .ratings-box {
+        grid-template-columns: 1fr;
+    }
+    
+    .ratings-box .field {
+        width: 100%;
+    }
+    
+    .ratings-box .field label:first-child {
+        min-width: 3em;
+        font-size: 0.9rem;
+    }
+}
+
+
+/*----------------------------------------
+  查看评分下拉菜单样式
+----------------------------------------*/
+/* 评分下拉菜单基础样式 */
+.dropdown {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+/* 下拉菜单内容区域 */
+.dropdown-content {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 0.5rem;
+}
+
+/* 评分项样式 */
+.rating-item {
+    padding-right: 0.5rem;
+	padding-bottom: 0.5rem;
+	padding-left: 0.5rem;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+/* 评分维度名称 */
+.dimension-name {
+    font-weight: normal;
+    min-width: 2.8rem;
+    color: #4a4a4a;
+}
+
+/* 星星评分样式 */
+.stars {
+    color: #ffd700;
+}
+
+/* 悬浮显示下拉菜单 */
+.dropdown.is-hoverable:hover .dropdown-menu {
+    display: block;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 1200px) {
+    /* 评分项间距调整 */
+    .rating-item {
+        padding: 0.8rem;
+    }
+
+    /* 维度名称字体调整 */
+    .dimension-name {
+        font-size: 1.4rem;
+        min-width: 5rem;
+    }
+
+    /* 星星大小调整 */
+    .stars {
+        font-size: 1.4rem;
+    }
+
+    /* 下拉触发按钮样式 */
+    .dropdown-trigger button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* 移动端下拉菜单定位 */
+    .dropdown-menu {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    /* 表格中下拉菜单宽度 */
+    .table td .dropdown {
+        width: 100%;
+    }
+}
+
+
+
+/*----------------------------------------
+  查看评分单元格样式
+----------------------------------------*/
+/* 评分单元格样式 */
+.ratings-cell {
+    position: relative;
+    overflow: visible !important;
+}
+/* 评分下拉菜单样式 */
+.ratings-cell .dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.ratings-cell .dropdown-menu {
+  position: absolute;
+  z-index: 1000;
+  display: none;
+  min-width: 9rem;
+  background-color: white;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+  box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+}
+
+.ratings-cell .dropdown.is-active .dropdown-menu,
+.ratings-cell .dropdown.is-hoverable:hover .dropdown-menu {
+  display: block;
+}
+
+/* 评分下拉菜单单元格特殊处理 */
+.table td.ratings-cell {
+    overflow: visible;
+    white-space: normal;
+}
+
+/* 覆盖 Bulma 的默认样式 */
+.ratings-cell .dropdown-content {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0.5rem;
+}
+
+
+
+/*----------------------------------------
+  1. 模态框基础样式
+----------------------------------------*/
+/* 模态框容器 */
+.modal-card {
+    position: absolute;
+    overflow: auto;
+    min-width: 300px;
+    min-height: 200px;
+    transform-origin: top left;
+    margin: 0;
+    border: 1px solid #dbdbdb;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    background-color: white;
+    pointer-events: auto;
+    resize: both;
+    will-change: transform, opacity;
+    transition: transform var(--transition-timing) cubic-bezier(0.4, 0, 0.2, 1);
+    --modal-padding: 0rem;
+    --modal-border-radius: 8px;
+    padding: var(--modal-padding);
+    border-radius: var(--modal-border-radius);
+}
+
+/* 模态框背景 */
+.modal-background {
+    display: none;
+}
+
+/* 模态框头部 */
+.modal-card-head {
+    cursor: grab;
+    user-select: none;
+    background-color: #f5f5f5;
+    border-bottom: 2px solid #dbdbdb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.modal-card-head .delete {
+    flex-shrink: 0; /* 防止按钮被压缩 */
+}
+.modal-card-head:active {
+	cursor: grabbing;
+}
+
+/* 模态框标题 */
+.modal-card-title {
+    pointer-events: none;
+    max-width: calc(100% - 40px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 10px;
+}
+
+/* 模态框内容区 */
+.modal-card-body {
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+.modal-card-body iframe {
+	flex: 1;
+	width: 100%;
+	height: 100%;
+	min-height: 300px;
+}
+
+/* 模态框底部 */
+.modal-card-foot {
+    background-color: #f5f5f5;
+    border-top: 2px solid #dbdbdb;
+}
+
+.modal.stacked {
+	z-index: 1000 !important; /* 或任何足够大的值 */
+}
+
+/*----------------------------------------
+  2. 特定模态框样式
+----------------------------------------*/
+/* Emby模态框 */
+#embyModal .modal-card {
+    width: 30%;
+    height: 30vh;
+}
+
+/* WTL模态框 */
+#wtlModal .modal-card {
+    width: 30%;
+    height: 30vh;
+}
+
+/* 查重模态框 */
+#duplicateModal .modal-card {
+    width: 40%;
+    height: 45vh;
+}
+
+/* Jackett模态框 */
+#jackettModal .modal-card {
+    width: 65%;
+    height: 80vh;
+}
+
+/* 迅雷模态框 */
+#thunderModal .modal-card {
+    width: 50%;
+    height: 50vh;
+}
+/* 迅雷模态框添加滚动条 */
+#thunderModal .modal-card-body {
+	overflow-x: auto;
+}
+
+/* 编辑模态框 */
+#editModal .modal-card {
+    width: 30%;
+    height: 60vh;
+}
+
+/*----------------------------------------
+  3. 响应式样式
+----------------------------------------*/
+@media screen and (max-width: 1200px) {
+    /* 通用模态框响应式样式 */
+    .modal-card {
+        margin: 10px;
+        max-height: calc(100vh - 20px);
+    }
+    
+    .modal-card-title {
+        font-size: 2rem !important;
+    }
+    
+    /* 特定模态框响应式宽度 */
+    #embyModal .modal-card,
+    #wtlModal .modal-card,
+    #jackettModal .modal-card {
+        width: 90% !important;
+        height: 90% !important;
+    }
+    
+    #duplicateModal .modal-card {
+        width: 90% !important;
+        height: 30vh !important;
+    }
+    
+    #thunderModal .modal-card {
+        width: 90% !important;
+        height: 50vh !important;
+    }
+    
+    #editModal .modal-card {
+        width: 90% !important;
+        height: 45vh !important;
+    }
+    
+    /* 关闭按钮样式 */
+    .modal .delete {
+        width: 40px !important;
+        height: 40px !important;
+        max-width: none !important;
+        max-height: none !important;
+        position: relative !important;
+    }
+    
+    .modal .delete::before,
+    .modal .delete::after {
+        background-color: currentColor !important;
+        content: "" !important;
+        display: block !important;
+        left: 50% !important;
+        position: absolute !important;
+        top: 50% !important;
+        transform: translateX(-50%) translateY(-50%) rotate(45deg) !important;
+        transform-origin: center center !important;
+        width: 25px !important;
+        height: 2px !important;
+    }
+    
+    .modal .delete::after {
+        transform: translateX(-50%) translateY(-50%) rotate(-45deg) !important;
+    }
+}
+
+
+
+/*----------------------------------------
+  表格相关样式 - 必要样式在index中
+----------------------------------------*/
+/* 表格基础样式 */
+.table {
+    width: 100%;
+    table-layout: fixed;
+    background: none;
+}
+
+.table td {
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0.5em 0.75em;
+}
+
+/* 评价和标签的特殊处理 */
+.table td.review-cell {
+    white-space: normal;
+    max-width: 300px;
+}
+
+.table td.tags-cell {
+    max-width: 150px;
+}
+
+/* 可调整列宽功能 */
+.table.resizable {
+    table-layout: fixed;
+}
+
+.table th {
+    position: relative;
+    user-select: none;
+}
+
+.column-resizer {
+    position: absolute;
+    right: -3px;
+    top: 0;
+    height: 100%;
+    width: 6px;
+    cursor: col-resize;
+    background: transparent;
+    z-index: 1;
+}
+
+/* 悬浮提示功能 */
+.table td[data-tooltip] {
+    position: relative;
+}
+
+.table td[data-tooltip]:hover::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 1000;
+    width: auto;
+    min-width: 100%;
+    max-width: 300px;
+    padding: 8px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* 表格单元格悬浮提示样式 */
+.table td.hoverable {
+    position: relative;
+}
+.table td.hoverable:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 1000;
+    width: auto;
+    min-width: 100%;
+    max-width: 300px;
+    padding: 8px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* 特定列的悬浮提示 */
+.table td.ellipsis:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 1000;
+    width: auto;
+    min-width: 100%;
+    max-width: 300px;
+    padding: 5px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    white-space: normal;
+}
+
+.column-resizer:hover,
+th.resizing .column-resizer {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+th.resizing {
+    background: rgba(0, 0, 0, 0.05);
+}
+.table th::after {
+	content: '';
+	position: absolute;
+	right: 0;
+	top: 0;
+	height: 100%;
+	width: 5px;
+	background: transparent;
+	cursor: col-resize;
+}
+
+.table th:hover::after {
+	background: rgba(0, 0, 0, 0.1);
+}
+
+/* 所有需要缩略的单元格通用样式 */
+.table td.ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 0; /* 关键属性，确保文本会被截断 */
+}
+
+/* 移动端响应式布局 */
+@media screen and (max-width: 1200px) {
+    .table {
+        display: block;
+        background: none;
+        border: none;
+    }
+	.table-container {
+		margin: 1rem -1.5rem;
+		padding: 0 1.5rem;
+	}
+
+    .table thead {
+        display: none;
+    }
+
+    .table tbody {
+        display: block;
+    }
+
+    .table tr {
+        display: block;
+        background: white;
+        padding: 0.8rem;
+        margin-bottom: 0.8rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .table td {
+        display: flex;
+        align-items: baseline;
+        padding: 0.5rem 0;
+        border: none;
+        font-size: 1.4rem;
+        line-height: 1.4;
+        gap: 0.5rem;
+        max-width: none;
+        white-space: normal;
+    }
+
+    .table td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        min-width: 3em;
+        margin-right: 0.5rem;
+        color: #666;
+        flex-shrink: 0;
+    }
+	
+	.table td.review-cell {
+		flex-direction: column;
+	}
+
+	.table td.tags-cell {
+		flex-direction: column;
+		white-space: normal;
+	}
+	
+	/* 评价和标签的特殊处理 */
+	.table td.review-cell > :last-child {
+		width: 100%;
+		margin-top: 0.3rem;
+	}
+	.table td.tags-cell > :last-child {
+		width: 100%;
+		margin-top: 0.3rem;
+	}
+	.table td.tags-cell > :last-child {
+		width: 100%;
+		margin-top: 0.3rem;
+		overflow: visible;
+		text-overflow: clip;
+		word-break: break-all;
+	}
+	
+	/* 操作按钮优化 */
+	.table td:last-child {
+		justify-content: flex-end;
+		padding: 0.5rem 0;
+	}
+	.table td:last-child .button {
+		font-size: 1.8rem !important;
+		height: 3em !important;
+		padding: 0 1rem !important;
+		width: 5em !important;
+	}
+}
