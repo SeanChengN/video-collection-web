@@ -94,21 +94,21 @@
     .tags-cell:hover::after {
         display: none;
     }
-	
-	
-	/* 添加触摸优化 */
+
+
+    /* 添加触摸优化 */
     .button, .tag {
         -webkit-tap-highlight-color: transparent;
     }
-	
-	
+
+
     /* 增加点击区域 */
     .table td, .button {
         min-height: 44px;
     }
-	
-	
-	/* 评分星星样式 */
+
+
+    /* 评分星星样式 */
     .rating span {
         font-size: 1rem;
     }
@@ -1138,10 +1138,10 @@ th.resizing {
         background: none;
         border: none;
     }
-	.table-container {
-		margin: 1rem -1.5rem;
-		padding: 0 1.5rem;
-	}
+    .table-container {
+        margin: 1rem -1.5rem;
+        padding: 0 1.5rem;
+    }
 
     .table thead {
         display: none;
@@ -1181,43 +1181,43 @@ th.resizing {
         flex-shrink: 0;
     }
 	
-	.table td.review-cell {
-		flex-direction: column;
-	}
+    .table td.review-cell {
+        flex-direction: column;
+    }
 
-	.table td.tags-cell {
-		flex-direction: column;
-		white-space: normal;
-	}
-	
-	/* 评价和标签的特殊处理 */
-	.table td.review-cell > :last-child {
-		width: 100%;
-		margin-top: 0.3rem;
-	}
-	.table td.tags-cell > :last-child {
-		width: 100%;
-		margin-top: 0.3rem;
-	}
-	.table td.tags-cell > :last-child {
-		width: 100%;
-		margin-top: 0.3rem;
-		overflow: visible;
-		text-overflow: clip;
-		word-break: break-all;
-	}
-	
-	/* 操作按钮优化 */
-	.table td:last-child {
-		justify-content: flex-end;
-		padding: 0.5rem 0;
-	}
-	.table td:last-child .button {
-		font-size: 1.8rem !important;
-		height: 3em !important;
-		padding: 0 1rem !important;
-		width: 5em !important;
-	}
+    .table td.tags-cell {
+        flex-direction: column;
+        white-space: normal;
+    }
+
+    /* 评价和标签的特殊处理 */
+    .table td.review-cell > :last-child {
+        width: 100%;
+        margin-top: 0.3rem;
+    }
+    .table td.tags-cell > :last-child {
+        width: 100%;
+        margin-top: 0.3rem;
+    }
+    .table td.tags-cell > :last-child {
+        width: 100%;
+        margin-top: 0.3rem;
+        overflow: visible;
+        text-overflow: clip;
+        word-break: break-all;
+    }
+
+    /* 操作按钮优化 */
+    .table td:last-child {
+        justify-content: flex-end;
+        padding: 0.5rem 0;
+    }
+    .table td:last-child .button {
+        font-size: 1.8rem !important;
+        height: 3em !important;
+        padding: 0 1rem !important;
+        width: 5em !important;
+    }
 }
 
 
