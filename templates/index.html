@@ -1104,7 +1104,8 @@ function searchMovies() {
                     return;
                 }
 
-                currentPage = 1;
+                // 不再默认回到首页
+                //currentPage = 1;
                 displayCurrentPage();
                 messageDiv.innerHTML = ''; 
             } else {
@@ -1492,11 +1493,55 @@ async function loadEditRatings() {
     }
 }
 
+// 搜索状态的全局函数
+let searchState = {
+    page: 1,
+    title: '',
+    ratingDimension: '',
+    minRating: '',
+    selectedTags: []
+};
+
+// 保存搜索状态的函数
+function saveSearchState() {
+    searchState = {
+        page: currentPage,
+        title: document.getElementById('search-input').value.trim(),
+        ratingDimension: document.getElementById('rating-dimension-filter').value,
+        minRating: document.getElementById('min-rating-filter').value,
+        selectedTags: Array.from(document.querySelectorAll('#tags-filter .tag.is-selected'))
+                          .map(tag => tag.textContent)
+    };
+}
+
+// 恢复搜索状态的函数
+function restoreSearchState() {
+    // 恢复搜索关键词
+    document.getElementById('search-input').value = searchState.title;
+	
+	// 恢复评分过滤状态
+    document.getElementById('rating-dimension-filter').value = searchState.ratingDimension;
+    document.getElementById('min-rating-filter').value = searchState.minRating;
+    
+    // 恢复标签选择状态
+    const tagElements = document.querySelectorAll('#tags-filter .tag');
+    tagElements.forEach(tag => {
+        if (searchState.selectedTags.includes(tag.textContent)) {
+            tag.classList.add('is-selected');
+        }
+    });
+    
+    currentPage = searchState.page;
+}
+
 // 更新电影信息
 function updateMovie() {
-	const form = document.getElementById('edit-movie-form')
+    const form = document.getElementById('edit-movie-form')
     const title = document.getElementById('edit-title').value;
     
+    // 保存当前的搜索状态
+    saveSearchState();
+
     const data = {
         title: title,
         recommended: form.querySelector('[name="edit-recommended"]:checked').value === '1',
@@ -1516,6 +1561,9 @@ function updateMovie() {
     .then(result => {
         if (result.message) {
             document.getElementById('editModal').classList.remove('is-active');
+            
+            // 恢复搜索状态并重新搜索
+            restoreSearchState();
             searchMovies();
         } else {
             alert(result.error || '更新失败');
