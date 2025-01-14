@@ -771,9 +771,6 @@
     justify-content: space-between;
     padding-right: 0.5rem;
 }
-.modal-card-head .delete {
-    flex-shrink: 0; /* 防止按钮被压缩 */
-}
 .modal-card-head:active {
     cursor: grabbing;
 }
@@ -809,20 +806,43 @@
     gap: 0.5rem;
     margin-right: 0.5rem;
 }
-.modal-control-button {
-    background: none;
+.modal-control-button, .delete {
+    width: 20px;
+    height: 20px;
+    position: relative;
     border: none;
+    border-radius: 50%;
+    padding: 0;
+    background-color: #dbdbdb;
     cursor: pointer;
-    padding: 4px;
-    width: 24px;
-    height: 24px;
+    transition: background-color 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    flex-shrink: 0; /* 防止按钮被压缩 */
 }
+.modal-control-button.minimize::before {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 2px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 1px;
+}
+
+/* 悬停效果 */
 .modal-control-button:hover {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: #b5b5b5;
+}
+.delete:hover {
+    background-color: #ff3860;
+}
+/* 修改原有的 delete 按钮样式以保持一致性 */
+.delete::before, .delete::after {
+    width: 2px;
+    height: 50%;
+    left: 50%;
+    top: 25%;
 }
 
 /* 模态框动画 */
