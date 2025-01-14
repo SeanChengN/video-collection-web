@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="电影收藏管理系统">
+	<meta name="keywords" content="电影,收藏,管理">
+	<!-- 资源预加载 -->
+	<link rel="preconnect" href="https://cdn.jsdelivr.net">
+	<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+	<link rel="preload" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" as="style">
+    <title>电影收藏</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+	<link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+    <style>
+		/*----------------------------------------
+		  折叠框样式 - 必要样式
+		----------------------------------------*/
+		/* 整体样式 */
+		.collapsible-box {
+			border: 1px solid #dbdbdb;
+			border-radius: 6px;
+			margin: 0.5rem 0;
+		}
+		/* 标题样式 */
+		.box-header {
+			user-select: none;
+			padding: 0.3rem;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			cursor: pointer;
+			background-color: white;
+			border-radius: 4px;
+		}
+		.box-title {
+			font-weight: bold;
+			font-size: 1rem;
+		}
+		.collapse-icon {
+			width: 0;
+			height: 0;
+			border-left: 6px solid transparent;
+			border-right: 6px solid transparent;
+			border-top: 6px solid #666;
+			transition: transform 0.3s ease;
+			transform: rotate(-90deg); /* 默认为折叠状态 */
+		}
+		.collapse-icon.collapsed {
+			transform: rotate(-90deg);
+		}
+		.box-content {
+			padding: 0.5rem;
+			display: none;
+		}
+
+		
+		/*----------------------------------------
+		  功能区样式 - 必要样式
+		----------------------------------------*/
+		.function-tools {
+			background: white;
+			padding: 1rem;
+			border-radius: 6px;
+			margin-bottom: 1.5rem;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		}
+		.function-tools .buttons {
+			display: flex;
+			gap: 1rem;
+		}
+		.function-tools .button {
+			flex: 1;
+			transition: transform 0.2s ease;
+		}
+
+        /* 工具栏按钮内图标尺寸 */
+		.function-tools .buttons .icon {
+			width: 3.5rem;
+		}
+
+
+        /* 导航栏样式 - 必要样式 */
+	    .navbar-brand {
+			width: 100%;
+			justify-content: flex-start;  
+		}
+	
+		.navbar-brand .title {
+			text-align: left;  
+			padding: 1rem 0;
+			padding-left: 1rem;
+		}
+		
+		
+		/* 搜索结果相关样式 - 必要样式 */
+		#search-results { 
+			margin-top: 20px; 
+		}
+		
+		
+		/* 模态框统一样式 - 必要样式 */
+		.modal {
+			pointer-events: none;
+		}
+		
+		
+		/* 表格容器样式 - 必要样式 */
+		.table-container {
+			overflow: visible !important;
+		}
+		
+		
+		/*----------------------------------------
+		  评分框通用样式 - 必要样式
+		----------------------------------------*/
+		.ratings-box {
+			border: 1px solid #e0e0e0;
+			border-radius: 6px;
+			padding: 0.5rem;
+			background: #fff;
+			box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+		}
+		
+		
+		/*----------------------------------------
+		  标签框通用样式 - 必要样式
+		----------------------------------------*/
+		.tags-box {
+			border: 1px solid #e0e0e0;
+			border-radius: 6px;
+			padding: 0.5rem;
+			background: #fff;
+			box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+		}		
+    </style>
+    <!-- 异步加载非关键CSS -->
+    <link rel="preload" href="/static/non-critical.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="/static/non-critical.css">
+    </noscript>
+</head>
+<body>
+
+<nav class="navbar is-light mb-5" role="navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <h1 class="navbar-item title is-4 mb-0">Video Collection</h1>
+        </div>
+    </div>
+</nav>
+
+<section class="section" style="padding-top: 0;">
+    <div class="container">
+        <div class="columns is-desktop">
+            <div class="column is-two-thirds-desktop">
+				<div class="function-tools">
+					<div class="buttons">
+						<a href="#" class="button is-info is-light" onclick="openDuplicateModal(); return false;">
+							<span class="icon"><img src="/static/duplicate-icon.svg" height="32" width="32" alt="查重核对"></span>
+						</a>
+						<a href="#" class="button is-info is-light" onclick="openJackettModal(); return false;">
+							<span class="icon"><img src="/static/jackett-icon.svg" height="32" width="32" alt="Jackett"></span>
+						</a>
+						<a href="#" class="button is-info is-light" onclick="openWtlModal(); return false;">
+							<span class="icon"><img src="/static/wtl-icon.svg" height="32" width="32" alt="What's the link"></span>
+						</a>
+						<a href="#" class="button is-info is-light" onclick="openThunderModal(); return false;">
+							<span class="icon"><img src="/static/thunder-icon.svg" height="32" width="32" alt="迅雷"></span>
+						</a>
+						<a href="#" class="button is-info is-light" onclick="openEmbyModal(); return false;">
+							<span class="icon"><img src="/static/emby-icon.svg" height="32" width="32" alt="Emby"></span>
+						</a>
+					</div>
+				</div>
+                <div class="box">
+                    <h2 class="subtitle">搜索电影</h2>
+                    <div class="field has-addons">
+                        <div class="control is-expanded">
+                            <input class="input" type="text" id="search-input" placeholder="输入电影名称">
+                        </div>
+                        <div class="control">
+                            <button class="button is-info" id="search-button">搜索</button>
+                        </div>
+                    </div>
+                    <div id="search-message"></div>
+                    <div id="search-results" class="table-container"></div>
+					<div id="pagination" class="mt-4"></div>
+                </div>
+            </div>
+
+            <div class="column is-one-third-desktop">
+                <div class="box">
+                    <h2 class="subtitle">添加电影</h2>
+                    <form id="add-movie-form">
+                        <div class="field">
+                            <input class="input" type="text" name="title" placeholder="电影名称" required>
+                        </div>
+                        <div class="field">
+							<label class="label">推荐</label>
+                            <label class="radio">
+                                <input type="radio" name="recommended" value="1" checked> ✅
+                            </label>
+                            <label class="radio">
+                                <input type="radio" name="recommended" value="0"> ❌
+                            </label>
+                        </div>
+                        <div class="field">
+                            <textarea class="textarea" name="review" placeholder="评价"></textarea>
+                        </div>
+						<div class="collapsible-box tags-box">
+							<div class="box-header">
+								<span class="box-title">标签</span>
+								<div class="collapse-icon collapsed"></div>
+							</div>
+							<div class="box-content">
+								<div class="tag-group" id="add-tags"></div>
+							</div>
+						</div>
+						<div class="collapsible-box ratings-box">
+							<div class="box-header">
+								<span class="box-title">评分</span>
+								<div class="collapse-icon collapsed"></div>
+							</div>
+							<div class="box-content">
+								<div id="add-ratings-container"></div>
+							</div>
+						</div>
+						<button class="button is-primary" type="submit">添加</button>
+                    </form>
+                    <div id="add-movie-message"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- 编辑电影模态框 -->
+<div class="modal" id="editModal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">编辑电影</p>
+            <button class="delete" onclick="closeModal()"></button>
+        </header>
+        <section class="modal-card-body">
+            <form id="edit-movie-form">
+                <div class="field">
+                    <input type="hidden" id="edit-title">
+                </div>
+                <div class="field">
+                    <label class="label">推荐</label>
+                    <div class="control">
+                        <label class="radio">
+                            <input type="radio" name="edit-recommended" value="1"> ✅
+                        </label>
+                        <label class="radio">
+                            <input type="radio" name="edit-recommended" value="0"> ❌
+                        </label>
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">评价</label>
+                    <textarea class="textarea" id="edit-review"></textarea>
+                </div>
+				<div class="field">
+					<div class="tags-box">
+						<div class="tags-box-title">标签</div>
+						<div class="tag-group" id="edit-tags"></div>
+					</div>
+				</div>
+                <div id="edit-ratings-container"></div>
+            </form>
+        </section>
+        <footer class="modal-card-foot">
+            <button class="button is-success" onclick="updateMovie()">保存</button>
+            <button class="button" onclick="closeModal()">取消</button>
+        </footer>
+    </div>
+</div>
+<!-- What's the link?查询模态框 -->
+<div class="modal" id="wtlModal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">What's the link?</p>
+            <button class="delete" onclick="closeWtlModal()"></button>
+        </header>
+        <section class="modal-card-body">
+            <div class="field has-addons">
+                <div class="control is-expanded">
+                    <input class="input" type="text" id="wtl-input" placeholder="输入链接">
+                </div>
+                <div class="control">
+                    <button class="button is-info" onclick="searchWtl()">搜索</button>
+                </div>
+            </div>
+            <div id="wtl-results"></div>
+        </section>
+    </div>
+</div>
+<!-- Jackett模态框 -->
+<div class="modal" id="jackettModal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Jackett</p>
+            <button class="delete" onclick="closeJackettModal()"></button>
+        </header>
+        <section class="modal-card-body" style="padding: 0;">
+            <iframe style="width: 100%; height: 80vh; border: none;"></iframe>
+        </section>
+    </div>
+</div>
+
+<!-- 迅雷模态框 -->
+<div class="modal" id="thunderModal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">迅雷下载</p>
+            <button class="delete" onclick="closeThunderModal()"></button>
+        </header>
+        <section class="modal-card-body" style="padding: 0; overflow-x: auto;">
+            <iframe style="width: 100%; height: 80vh; border: none;"></iframe>
+        </section>
+    </div>
+</div>
+
+<!-- Emby搜索模态框 -->
+<div class="modal" id="embyModal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Emby</p>
+            <button class="delete" onclick="closeEmbyModal()"></button>
+        </header>
+        <section class="modal-card-body">
+            <div class="field has-addons">
+                <div class="control is-expanded">
+                    <input class="input" type="text" id="emby-search-input" placeholder="搜索电影">
+                </div>
+                <div class="control">
+                    <button class="button is-info" onclick="searchEmby()">搜索</button>
+                </div>
+            </div>
+            <div id="emby-results" class="mt-4"></div>
+        </section>
+    </div>
+</div>
+
+<!-- 查重核对模态框 -->
+<div class="modal" id="duplicateModal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">查重核对</p>
+            <button class="delete" onclick="closeDuplicateModal()"></button>
+        </header>
+		<section class="modal-card-body">
+			<div class="columns">
+				<div class="column is-8">
+					<textarea class="textarea" id="duplicate-input" placeholder="每行一个电影名称" rows="10"></textarea>
+				</div>
+				<div class="column is-4 is-flex is-flex-direction-column">
+					<div id="check-result" class="has-text-grey-light has-text-centered">
+						等待核对...
+					</div>
+					<div class="mt-auto">
+						<button class="button is-info" onclick="checkDuplicates()">开始核对</button>
+					</div>
+				</div>
+			</div>
+		</section>
+    </div>
+</div>
+
+
+<script>
+// 全局错误处理
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+    console.error('Error: ', msg, '\nURL: ', url, '\nLine: ', lineNo, '\nColumn: ', columnNo, '\nError object: ', error);
+    return false;
+};
+
+// API 请求错误处理封装
+async function safeApiFetch(url, options = {}) {
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('API request failed:', error);
+        throw error;
+    }
+}
+
+// 缓存优化
+const cache = new Map();
+
+async function cachedFetch(url, options = {}) {
+    const cacheKey = url + JSON.stringify(options);
+    if (cache.has(cacheKey)) {
+        return cache.get(cacheKey);
+    }
+    
+    const response = await safeApiFetch(url, options);
+    cache.set(cacheKey, response);
+    return response;
+}
+
+
+// 图片懒加载观察器
+const imageObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const img = entry.target;
+            if (!img.src || img.src === 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') {
+                img.src = img.dataset.src;
+                observer.unobserve(img);
+            }
+        }
+    });
+}, {
+    rootMargin: '50px 0px', // 提前50px加载
+    threshold: 0.1
+});
+
+
+// 模态框管理器
+const ModalManager = {
+    activeModals: new Set(),
+
+    open(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            const modalCard = modal.querySelector('.modal-card');
+			
+            // 获取当前最高的 z-index 值
+            const modals = document.querySelectorAll('.modal');
+            let maxZIndex = Math.max(...Array.from(modals).map(m => 
+                parseInt(window.getComputedStyle(m).zIndex) || 0
+            ));
+            // 设置新的 z-index 值，确保比当前最高值大
+            modal.style.zIndex = maxZIndex + 1;
+			
+            // 先显示模态窗口但设置为不可见，以便获取正确的尺寸
+            modal.classList.add('is-active');
+            modalCard.style.visibility = 'hidden';
+            modalCard.style.position = 'absolute';
+            modalCard.style.transform = 'none';
+            modalCard.style.margin = '0';
+            
+            // 确保模态窗口内容可以滚动
+            modalCard.style.maxHeight = '90vh';
+            modalCard.style.overflowY = 'auto';
+			
+            // 等待下一帧以确保尺寸计算正确
+            requestAnimationFrame(() => {
+                // 计算屏幕中心位置
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                const modalWidth = modalCard.offsetWidth;
+                const modalHeight = modalCard.offsetHeight;
+                
+                // 设置初始位置在屏幕中心
+                modalCard.style.left = `${Math.max(0, (viewportWidth - modalWidth) / 2)}px`;
+                modalCard.style.top = `${Math.max(0, (viewportHeight - modalHeight) / 2)}px`;
+                modalCard.style.visibility = 'visible';
+            });
+        }
+    },
+
+    close(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('is-active');
+        }
+        this.activeModals.delete(modalId);
+    }
+};
+
+// 延迟加载非关键CSS
+function loadDeferredStyles() {
+    const stylesheets = [
+        '/static/non-critical.css',
+        'https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css'
+    ];
+    
+    stylesheets.forEach(href => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        document.head.appendChild(link);
+    });
+}
+
+// 在页面加载完成后执行
+if (window.addEventListener) {
+    window.addEventListener('load', loadDeferredStyles);
+} else {
+    window.attachEvent('onload', loadDeferredStyles);
+}
+
+
+const itemsPerPage = 10; // 每页显示10条
+let currentPage = 1;
+let totalPages = 0;
+let allMovies = []; // 存储所有搜索结果
+
+const DEFAULT_COLUMN_WIDTHS = {
+    'title': '20%',
+    'recommended': '8%',
+    'review': '35%',
+    'tags': '20%',
+    'date': '12%',
+    'action': '5%'
+};
+
+// 定义全局配置变量
+let serviceConfig = {};
+
+// 页面加载时获取所有服务配置
+fetch('/get_services_config')
+    .then(response => response.json())
+    .then(config => {
+        serviceConfig = config;
+    });
+
+
+// 窗口拖拽相关代码
+let zIndexCounter = 1000;
+
+function makeDraggable(modal) {
+    const modalCard = modal.querySelector('.modal-card');
+    const modalHead = modal.querySelector('.modal-card-head');
+    let isDragging = false;
+    let currentX;
+    let currentY;
+    let initialX;
+    let initialY;
+
+    // 为整个模态框添加点击事件
+    modal.addEventListener('mousedown', () => {
+        zIndexCounter += 1;
+        modal.style.zIndex = zIndexCounter;
+        modalCard.style.zIndex = zIndexCounter;
+    });
+
+    modalHead.addEventListener('mousedown', dragStart);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', dragEnd);
+
+    function dragStart(e) {
+        if (e.target === modalHead) {
+            isDragging = true;
+            initialX = e.clientX - modalCard.offsetLeft;
+            initialY = e.clientY - modalCard.offsetTop;
+
+            zIndexCounter += 1;
+            modal.style.zIndex = zIndexCounter;
+            modalCard.style.zIndex = zIndexCounter;
+        }
+    }
+
+    function drag(e) {
+        if (isDragging) {
+            e.preventDefault();
+
+            const newX = e.clientX - initialX;
+            const newY = e.clientY - initialY;
+			
+            modalCard.style.position = 'absolute';
+            modalCard.style.left = `${newX}px`;
+            modalCard.style.top = `${newY}px`;
+            modalCard.style.transform = 'none';
+            
+            currentX = newX;
+            currentY = newY;
+        }
+    }
+
+    function dragEnd(e) {
+        isDragging = false;
+    }
+}
+
+// 为每个模态框添加拖拽功能
+document.addEventListener('DOMContentLoaded', () => {
+    const modals = [
+        'duplicateModal',
+        'jackettModal',
+        'wtlModal',
+        'thunderModal',
+        'embyModal',
+        'editModal'
+    ];
+    
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        makeDraggable(modal);
+    });
+});
+
+
+// 查重核对相关代码
+function openDuplicateModal() {
+    ModalManager.open('duplicateModal');
+}
+
+function closeDuplicateModal() {
+    ModalManager.close('duplicateModal');
+}
+
+function checkDuplicates() {
+    const input = document.getElementById('duplicate-input');
+    const resultDiv = document.getElementById('check-result');
+    const movies = input.value.split('\n').filter(line => line.trim());
+    
+    if (movies.length === 0) {
+        resultDiv.innerHTML = '<span class="has-text-danger">请输入电影列表</span>';
+        return;
+    }
+    
+    const button = document.querySelector('#duplicateModal .button');
+    const originalText = button.textContent;
+    button.textContent = '核对中...';
+    button.disabled = true;
+    resultDiv.innerHTML = '<span class="has-text-info">正在核对...</span>';
+    
+    const movieTitles = movies.map(line => line.trim().split(' ')[0]);
+    
+    fetch('/check_duplicates', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ titles: movieTitles })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            const duplicateCount = result.duplicates.length;
+            const newLines = movies.filter((line, index) => 
+                !result.duplicates.includes(movieTitles[index])
+            );
+            input.value = newLines.join('\n');
+            
+            resultDiv.innerHTML = `
+                <div class="notification is-success">
+                    <p>核对完成！</p>
+                    <p>发现 <strong>${duplicateCount}</strong> 个重复项</p>
+                    <p>剩余 <strong>${newLines.length}</strong> 个未收录项</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        resultDiv.innerHTML = '<div class="notification is-danger is-light">核对过程出错，请重试</div>';
+        console.error('Error:', error);
+    })
+    .finally(() => {
+        button.textContent = originalText;
+        button.disabled = false;
+    });
+}
+
+
+
+
+// Emby搜索相关代码
+function openEmbyModal() {
+    ModalManager.open('embyModal');
+}
+
+function closeEmbyModal() {
+    ModalManager.close('embyModal');
+}
+
+function searchEmby() {
+    const query = document.getElementById('emby-search-input').value;
+    const resultsDiv = document.getElementById('emby-results');
+    
+    if (!query.trim()) {
+        resultsDiv.innerHTML = '<div class="notification is-warning">请输入搜索内容</div>';
+        return;
+    }
+    
+    resultsDiv.innerHTML = '<div class="notification is-info">正在搜索...</div>';
+    
+    fetch(`${serviceConfig.emby_server_url}/emby/Items?Recursive=true&IncludeItemTypes=Movie&NameStartsWith=${encodeURIComponent(query)}&api_key=${serviceConfig.emby_api_key}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.Items.length === 0) {
+                resultsDiv.innerHTML = '<div class="notification is-info">未找到相关影片</div>';
+                return;
+            }
+            
+            const fragment = document.createDocumentFragment();
+            const container = document.createElement('div');
+            container.className = 'columns is-multiline';
+            
+            data.Items.forEach(movie => {
+                const column = document.createElement('div');
+                column.className = 'column is-one-fifth';
+                column.innerHTML = `
+                    <div class="card movie-card">
+                        <div class="card-image">
+                            <figure class="image is-2by3">
+                                <img data-src="${serviceConfig.emby_server_url}/emby/Items/${movie.Id}/Images/Primary?tag=${movie.ImageTags.Primary}&api_key=${serviceConfig.emby_api_key}" 
+                                     alt="${movie.Name}"
+                                     src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+                                <div class="runtime-badge">${formatRuntime(movie.RunTimeTicks)}</div>
+                            </figure>
+                        </div>
+                        <div class="card-content fixed-height">
+                            <p class="title is-6 movie-title" data-full-title="${movie.Name}">${movie.Name}</p>
+                        </div>
+                    </div>
+                `;
+                
+                // 为新加载的图片添加懒加载观察
+                const img = column.querySelector('img');
+                imageObserver.observe(img);
+                
+                container.appendChild(column);
+            });
+            
+            fragment.appendChild(container);
+            resultsDiv.innerHTML = '';
+            resultsDiv.appendChild(fragment);
+        })
+        .catch(error => {
+            resultsDiv.innerHTML = '<div class="notification is-danger">搜索出错，请稍后重试</div>';
+            console.error('Search error:', error);
+        });
+}
+
+function formatRuntime(ticks) {
+    if (!ticks) return '';
+    const minutes = Math.floor(ticks / (10000000 * 60));
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return hours > 0 ? 
+        `${hours}时${remainingMinutes}分` : 
+        `${remainingMinutes}分钟`;
+}
+
+
+function openJackettModal() {
+    ModalManager.open('jackettModal');
+    document.querySelector('#jackettModal iframe').src = `${serviceConfig.jackett_url}/UI/Dashboard#search`;
+}
+
+function closeJackettModal() {
+    ModalManager.close('jackettModal');
+}
+
+function openThunderModal() {
+    ModalManager.open('thunderModal');
+    document.querySelector('#thunderModal iframe').src = serviceConfig.thunder_url;
+}
+
+
+function closeThunderModal() {
+    ModalManager.close('thunderModal');
+}
+
+
+// What's the link?查询相关代码
+function openWtlModal() {
+    ModalManager.open('wtlModal');
+    document.getElementById('wtl-input').value = '';
+    document.getElementById('wtl-results').innerHTML = '';
+}
+
+function closeWtlModal() {
+    ModalManager.close('wtlModal');
+}
+
+function searchWtl() {
+    const query = document.getElementById('wtl-input').value;
+    const resultsDiv = document.getElementById('wtl-results');
+    
+    if (!query.trim()) {
+        resultsDiv.innerHTML = '<div class="notification is-warning">请输入链接</div>';
+        return;
+    }
+    
+    resultsDiv.innerHTML = '<div class="notification is-info">正在查询...</div>';
+    
+    fetch(`https://whatslink.info/api/v1/link?url=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            resultsDiv.innerHTML = `
+                <div class="box">
+                    <div class="content">
+                        <p><strong>文件类型:</strong> ${data.file_type}</p>
+                        <p><strong>资源名称:</strong> ${data.name}</p>
+                        <p><strong>总文件大小:</strong> ${formatFileSize(data.size)}</p>
+                        <p><strong>文件数量:</strong> ${data.count}</p>
+                    </div>
+                    ${renderScreenshots(data.screenshots)}
+                </div>
+            `;
+        })
+        .catch(error => {
+            resultsDiv.innerHTML = '<div class="notification is-danger">查询失败，请检查链接是否正确</div>';
+        });
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function renderScreenshots(screenshots) {
+    if (!screenshots || screenshots.length === 0) return '';
+    
+    return `
+        <div class="screenshots">
+            ${screenshots.map(shot => `
+                <div class="screenshot-item">
+                    <img src="${shot.screenshot}" alt="截图">
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+
+// 获取保存的列宽设置
+function getStoredColumnWidths() {
+    const stored = localStorage.getItem('tableColumnWidths');
+    return stored ? JSON.parse(stored) : {
+        'title': '20%',
+        'recommended': '8%',
+        'review': '45%',
+        'tags': '22%',
+        'ratings': '8%',
+        'action': '7%'
+    };
+}
+
+// 回车键搜索支持
+document.getElementById('wtl-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        searchWtl();
+    }
+});
+
+document.getElementById('emby-search-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        searchEmby();
+    }
+});
+
+// Ctrl+Enter 触发查重核对
+document.getElementById('duplicate-input').addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'Enter') {
+        checkDuplicates();
+    }
+});
+
+function loadTags() {
+    fetch('/get_tags')
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                const addTagsDiv = document.getElementById('add-tags');
+                addTagsDiv.innerHTML = '';
+                result.data.forEach(tag => {
+                    const tagSpan = document.createElement('span');
+                    tagSpan.className = 'tag';
+                    tagSpan.textContent = tag;
+                    tagSpan.onclick = () => toggleTag(tagSpan);
+                    addTagsDiv.appendChild(tagSpan);
+                });
+            }
+        });
+}
+
+function toggleTag(tagElement) {
+    tagElement.classList.toggle('is-selected');
+}
+
+const debounce = (func, wait) => {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+};
+
+function searchMovies() {
+    const title = document.getElementById('search-input').value.trim();
+    const messageDiv = document.getElementById('search-message');
+    const resultsDiv = document.getElementById('search-results');
+    
+    // 清空之前的结果
+    //messageDiv.innerHTML = '<div class="notification is-info">正在搜索...</div>';
+    //resultsDiv.innerHTML = '';
+    
+    // 构建搜索URL - 当输入为空时不添加title参数
+    const searchUrl = title ? `/search?title=${encodeURIComponent(title)}` : '/search';
+    
+    fetch(searchUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(result => {
+            if (!result) {
+                throw new Error('No result returned from server');
+            }
+
+            if (result.success) {
+                if (!Array.isArray(result.data)) {
+                    result.data = [];
+                }
+                
+                allMovies = result.data;
+                totalPages = Math.ceil(allMovies.length / itemsPerPage);
+                
+                if (allMovies.length === 0) {
+                    messageDiv.innerHTML = '<div class="notification is-info">未找到电影</div>';
+                    resultsDiv.innerHTML = '';
+                    document.getElementById('pagination').innerHTML = '';
+                    return;
+                }
+
+                currentPage = 1;
+                displayCurrentPage();
+                messageDiv.innerHTML = ''; 
+            } else {
+                messageDiv.innerHTML = `<div class="notification is-warning">${result.message || '搜索失败'}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('Search error:', error);
+            messageDiv.innerHTML = `<div class="notification is-danger">搜索出错: ${error.message}</div>`;
+            resultsDiv.innerHTML = '';
+            document.getElementById('pagination').innerHTML = '';
+        });
+}
+
+function displayPagination() {
+    const paginationHtml = `
+        <nav class="pagination is-centered" role="navigation" aria-label="pagination">
+            <a class="pagination-previous" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">上一页</a>
+            <a class="pagination-next" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">下一页</a>
+            <ul class="pagination-list">
+                ${generatePaginationItems()}
+            </ul>
+        </nav>
+    `;
+    
+    document.getElementById('pagination').innerHTML = paginationHtml;
+}
+
+function generatePaginationItems() {
+    let items = [];
+    
+    // 显示当前页码前后2页
+    for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+        items.push(`
+            <li>
+                <a class="pagination-link ${i === currentPage ? 'is-current' : ''}" 
+                   onclick="changePage(${i})">${i}</a>
+            </li>
+        `);
+    }
+    
+    return items.join('');
+}
+
+function changePage(page) {
+    if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        displayCurrentPage();
+    }
+}
+
+// 使表格可调整列宽
+function makeTableResizable() {
+    const table = document.querySelector('.table');
+    if (!table) return;
+    
+    const headers = table.querySelectorAll('th');
+    let isResizing = false;
+    let currentHeader;
+    let startX;
+    let startWidth;
+    
+    headers.forEach((header, index) => {
+        // 添加调整手柄
+        const resizer = document.createElement('div');
+        resizer.className = 'column-resizer';
+        header.appendChild(resizer);
+        
+        // 鼠标按下开始调整
+        resizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            currentHeader = header;
+            startX = e.pageX;
+            startWidth = header.offsetWidth;
+            
+            // 添加调整时的视觉效果
+            document.body.style.cursor = 'col-resize';
+            currentHeader.classList.add('resizing');
+        });
+    });
+    
+    // 鼠标移动时调整列宽
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        
+        const width = startWidth + (e.pageX - startX);
+        if (width > 50) { // 最小宽度限制
+            currentHeader.style.width = `${width}px`;
+        }
+    });
+    
+    // 鼠标释放时保存设置
+    document.addEventListener('mouseup', () => {
+        if (!isResizing) return;
+        
+        isResizing = false;
+        document.body.style.cursor = '';
+        if (currentHeader) {
+            currentHeader.classList.remove('resizing');
+            
+            // 保存列宽设置
+            const columnWidths = {};
+            headers.forEach((header, index) => {
+                columnWidths[header.dataset.column] = header.style.width;
+            });
+            localStorage.setItem('tableColumnWidths', JSON.stringify(columnWidths));
+        }
+    });
+}
+
+function closeModal() {
+    ModalManager.close('editModal');
+}
+
+document.getElementById('search-input').addEventListener('input', debounce(searchMovies, 300));
+
+// 动态加载非关键资源
+function loadNonCriticalResources() {
+    // 只加载实际存在的资源文件
+    const resources = [
+        // 示例: 如果有额外的JavaScript文件
+        // { type: 'script', src: '/static/extra-features.js' },
+        // 示例: 如果有额外的CSS文件
+        // { type: 'style', href: '/static/extra-styles.css' }
+    ];
+    
+    // 如果没有需要延迟加载的资源，可以直接返回
+    if (resources.length === 0) return;
+    
+    resources.forEach(resource => {
+        if (resource.type === 'script') {
+            const script = document.createElement('script');
+            script.src = resource.src;
+            script.async = true;
+            document.body.appendChild(script);
+        } else if (resource.type === 'style') {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = resource.href;
+            document.head.appendChild(link);
+        }
+    });
+}
+
+// 页面加载完成后执行
+document.addEventListener('DOMContentLoaded', () => {
+    loadTags();
+    loadNonCriticalResources();
+	loadRatingsDimensions();
+	setupDropdownPositioning();
+});
+
+// 全局变量
+let ratingsDimensions = [];
+
+// 加载评分维度
+function loadRatingsDimensions() {
+    fetch('/get_ratings_dimensions')
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                ratingsDimensions = result.dimensions;
+                // 创建评分表单
+                createRatingForms();
+            }
+        });
+}
+
+// 创建评分表单
+function createRatingForms() {
+    // 编辑表单的评分区域
+    const editRatingsBox = document.createElement('div');
+    editRatingsBox.className = 'ratings-box';
+    editRatingsBox.style.display = 'block';
+    
+    const editBoxTitle = document.createElement('div');
+    editBoxTitle.className = 'ratings-box-title';
+    editBoxTitle.textContent = '评分';
+    
+    const editRatingsContainer = document.createElement('div');
+    editRatingsContainer.id = 'edit-ratings-container';
+    editRatingsContainer.style.display = 'block';
+    
+    // 添加表单的评分区域
+    const addRatingsContainer = document.getElementById('add-ratings-container');
+    
+    ratingsDimensions.forEach(dimension => {
+        // 为编辑表单创建评分字段
+        const editField = createRatingField(dimension, true);
+        editRatingsContainer.appendChild(editField);
+        
+        // 为添加表单创建评分字段
+        const addField = createRatingField(dimension, false);
+        addRatingsContainer.appendChild(addField);
+    });
+    
+    editRatingsBox.appendChild(editBoxTitle);
+    editRatingsBox.appendChild(editRatingsContainer);
+    
+    // 插入到编辑表单中
+    const editForm = document.querySelector('#editModal .modal-card-body form');
+    editForm.appendChild(editRatingsBox);
+}
+
+
+// 创建评分字段
+function createRatingField(dimension, isEdit) {
+    const prefix = isEdit ? 'edit-' : '';
+    const field = document.createElement('div');
+    field.className = 'field';
+    field.innerHTML = `
+        <label class="label">${dimension.name}</label>
+        <div class="control">
+            <div class="rating" data-dimension-id="${dimension.id}">
+                <input type="radio" id="${prefix}rating-${dimension.id}-5" name="${prefix}rating-${dimension.id}" value="5">
+                <span title="5分">★</span>
+                <input type="radio" id="${prefix}rating-${dimension.id}-4" name="${prefix}rating-${dimension.id}" value="4">
+                <span title="4分">★</span>
+                <input type="radio" id="${prefix}rating-${dimension.id}-3" name="${prefix}rating-${dimension.id}" value="3">
+                <span title="3分">★</span>
+                <input type="radio" id="${prefix}rating-${dimension.id}-2" name="${prefix}rating-${dimension.id}" value="2">
+                <span title="2分">★</span>
+                <input type="radio" id="${prefix}rating-${dimension.id}-1" name="${prefix}rating-${dimension.id}" value="1">
+                <span title="1分">★</span>
+            </div>
+        </div>
+    `;
+    // 为新创建的评分字段绑定点击事件
+    const stars = field.querySelectorAll('.rating span');
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const input = this.previousElementSibling;
+            if (input) {
+                input.checked = true;
+                input.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+
+    return field;
+}
+
+// 收集评分数据
+function collectRatings(isEdit = false) {
+    const prefix = isEdit ? 'edit-' : '';
+    const ratings = [];
+    
+    ratingsDimensions.forEach(dimension => {
+        const checkedInput = document.querySelector(`input[name="${prefix}rating-${dimension.id}"]:checked`);
+        if (checkedInput) {
+            ratings.push(`${dimension.id}:${checkedInput.value}`);
+        }
+    });
+    
+    return ratings.join(',');
+}
+
+// 打开编辑模态框
+function openModal(movie) {
+    document.querySelector('.modal-card-title').textContent = `编辑电影：${movie.title}`;
+    const modal = document.getElementById('editModal');
+    
+    // 清除旧的日期显示
+    const oldDateField = document.querySelector('#edit-movie-form div:has(> p.has-text-grey)');
+    if (oldDateField) {
+        oldDateField.remove();
+    }
+	
+    // 设置基本信息
+    document.getElementById('edit-title').value = movie.title;
+    
+    // 添加新日期显示
+    const dateField = document.createElement('div');
+    dateField.className = 'field';
+    dateField.innerHTML = `
+        <p class="has-text-grey">
+            添加日期: ${formatDate(movie.added_date)}
+        </p>
+    `;
+    // 将日期字段插入到表单开头
+    const form = document.getElementById('edit-movie-form');
+    form.insertBefore(dateField, form.firstChild);
+	
+    // 设置推荐状态
+    const recommendedRadio = document.querySelector(`input[name="edit-recommended"][value="${movie.recommended ? '1' : '0'}"]`);
+    if (recommendedRadio) {
+        recommendedRadio.checked = true;
+    }
+    
+    // 设置评价
+    document.getElementById('edit-review').value = movie.review || '';
+    
+    // 加载标签
+    loadEditTags().then(() => {
+        // 设置已选中的标签
+        const tagElements = document.querySelectorAll('#edit-tags .tag');
+        const movieTags = movie.tag_names ? movie.tag_names.split(', ') : [];
+        tagElements.forEach(tag => {
+            tag.classList.toggle('is-selected', movieTags.includes(tag.textContent.trim()));
+        });
+    });
+    
+    // 加载评分维度
+    loadEditRatings().then(() => {
+        // 设置评分
+        if (movie.ratings) {
+            const ratings = movie.ratings.split(',');
+            ratings.forEach(ratingPair => {
+                const [dimensionId, value] = ratingPair.split(':');
+                const ratingInput = document.querySelector(`input[name="edit-rating-${dimensionId}"][value="${value}"]`);
+                if (ratingInput) {
+                    ratingInput.checked = true;
+                }
+            });
+        }
+    });
+    
+    // 显示模态框
+    ModalManager.open('editModal');
+}
+
+// 加载编辑标签
+async function loadEditTags() {
+    try {
+        const response = await fetch('/get_tags');
+        const result = await response.json();
+        if (result.success) {
+            const editTagsDiv = document.getElementById('edit-tags');
+            editTagsDiv.innerHTML = '';
+            result.data.forEach(tag => {
+                const tagSpan = document.createElement('span');
+                tagSpan.className = 'tag';
+                tagSpan.textContent = tag;
+                tagSpan.onclick = () => toggleTag(tagSpan);
+                editTagsDiv.appendChild(tagSpan);
+            });
+        }
+    } catch (error) {
+        console.error('加载标签失败:', error);
+    }
+}
+
+// 加载编辑评分
+async function loadEditRatings() {
+    try {
+        const response = await fetch('/get_ratings_dimensions');
+        const result = await response.json();
+        if (result.success) {
+            // 创建评分框容器
+            const ratingsBox = document.createElement('div');
+            ratingsBox.className = 'ratings-box';
+            
+            // 添加标题
+            const boxTitle = document.createElement('div');
+            boxTitle.className = 'ratings-box-title';
+            boxTitle.textContent = '评分';
+            ratingsBox.appendChild(boxTitle);
+            
+            // 创建评分容器
+            const editRatingsContainer = document.createElement('div');
+            editRatingsContainer.id = 'edit-ratings-container';
+            
+            // 添加评分维度
+            result.dimensions.forEach(dimension => {
+                const field = createRatingField(dimension, true);
+                editRatingsContainer.appendChild(field);
+            });
+            
+            ratingsBox.appendChild(editRatingsContainer);
+            
+            // 插入到表单中
+            const form = document.querySelector('#editModal .modal-card-body form');
+            const tagsField = form.querySelector('.field:last-of-type');
+            
+            // 移除旧的评分框
+            const oldRatingsBox = form.querySelector('.ratings-box');
+            if (oldRatingsBox) {
+                oldRatingsBox.remove();
+            }
+            
+            form.insertBefore(ratingsBox, tagsField.nextSibling);
+        }
+    } catch (error) {
+        console.error('加载评分维度失败:', error);
+    }
+}
+
+// 更新电影信息
+function updateMovie() {
+	const form = document.getElementById('edit-movie-form')
+    const title = document.getElementById('edit-title').value;
+    
+    const data = {
+        title: title,
+        recommended: form.querySelector('[name="edit-recommended"]:checked').value === '1',
+        review: form.querySelector('[id="edit-review"]').value,
+        tags: Array.from(document.querySelectorAll('#edit-tags .tag.is-selected')).map(tag => tag.textContent).join(','),
+        ratings: collectRatings(true)
+    };
+
+    fetch(`/api/movies/${encodeURIComponent(title)}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.message) {
+            document.getElementById('editModal').classList.remove('is-active');
+            searchMovies();
+        } else {
+            alert(result.error || '更新失败');
+        }
+    })
+    .catch(error => {
+        alert(`更新失败: ${error}`);
+    });
+}
+
+// 搜索结果显示
+function displayCurrentPage() {
+    const resultsDiv = document.getElementById('search-results');
+    resultsDiv.innerHTML = '';
+    
+    if (allMovies.length === 0) {
+        resultsDiv.innerHTML = '<div class="notification is-info">没有找到电影</div>';
+        document.getElementById('pagination').innerHTML = '';
+        return;
+    }
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageItems = allMovies.slice(start, end);
+
+    // 创建表格容器
+    const tableContainer = document.createElement('div');
+    tableContainer.className = 'table-container';
+
+    // 创建表格
+    const table = document.createElement('table');
+    table.className = 'table is-fullwidth is-striped is-hoverable';
+
+    // 创建表头
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    
+    // 应用保存的列宽
+    const columnWidths = getStoredColumnWidths();
+    headerRow.innerHTML = `
+        <th data-column="title" style="width: ${columnWidths.title}">电影名称</th>
+        <th data-column="recommended" style="width: ${columnWidths.recommended}">推荐</th>
+        <th data-column="review" style="width: ${columnWidths.review}">评价</th>
+        <th data-column="tags" style="width: ${columnWidths.tags}">标签</th>
+        <th data-column="ratings" style="width: ${columnWidths.ratings}">评分</th>
+        <th data-column="action" style="width: ${columnWidths.action}">操作</th>
+    `;
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // 创建表格主体
+    const tbody = document.createElement('tbody');
+    
+    // 遍历当前页的数据
+    pageItems.forEach(movie => {
+        const tr = document.createElement('tr');
+        
+        // 解析并过滤评分
+        const movieRatings = movie.ratings ? movie.ratings.split(',').map(r => {
+            const [dimensionId, value] = r.split(':');
+            return {
+                dimensionId: dimensionId.toString(), // 确保ID为字符串类型
+                value: parseInt(value)
+            };
+        }).filter(r => r.value > 0) : [];
+        
+        // 只有存在非零评分时才创建评分下拉内容
+        const ratingsHtml = movieRatings.length > 0 ? 
+            movieRatings.map(rating => {
+                // 确保使用字符串比较
+                const dimension = ratingsDimensions.find(d => d.id.toString() === rating.dimensionId);
+                if (dimension) {
+                    return `
+                        <div class="rating-item">
+                            <span class="dimension-name">${dimension.name}:</span>
+                            <span class="stars">${renderStars(rating.value)}</span>
+                        </div>
+                    `;
+                }
+                return '';
+            }).join('') : '';
+
+        // 根据是否有评分决定显示内容
+        const ratingsCell = movieRatings.length > 0 ? 
+            `<div class="dropdown is-hoverable">
+                <div class="dropdown-trigger">
+                    <button class="button is-small">
+                        <span>查看评分</span>
+                    </button>
+                </div>
+                <div class="dropdown-menu" role="menu">
+                    <div class="dropdown-content">
+                        ${ratingsHtml}
+                    </div>
+                </div>
+            </div>` :
+            '<button class="button is-small" disabled>暂无评分</button>';
+
+        tr.innerHTML = `
+            <td class="hoverable" title="${movie.title}">${movie.title}</td>
+            <td>${movie.recommended ? '✅' : '❌'}</td>
+            <td class="hoverable" title="${movie.review || ''}">${movie.review || ''}</td>
+            <td class="hoverable" title="${movie.tag_names || ''}">${movie.tag_names || ''}</td>
+            <td class="ratings-cell">${ratingsCell}</td>
+            <td>
+                <button class="button is-small is-info" onclick='openModal(${JSON.stringify(movie)})'>
+                    编辑
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    tableContainer.appendChild(table);
+    resultsDiv.appendChild(tableContainer);
+
+    updatePagination();
+    makeTableResizable();
+    setupDropdownPositioning();
+}
+
+function setupDropdownPositioning() {
+    document.addEventListener('mouseover', function(e) {
+        const dropdown = e.target.closest('.dropdown');
+        if (!dropdown) return;
+
+        const menu = dropdown.querySelector('.dropdown-menu');
+        if (!menu) return;
+
+        // 获取视口和元素位置信息
+        const viewportHeight = window.innerHeight;
+        const dropdownRect = dropdown.getBoundingClientRect();
+        const menuHeight = menu.offsetHeight;
+
+        // 计算下方剩余空间
+        const spaceBelow = viewportHeight - dropdownRect.bottom;
+        
+        // 重置之前的样式
+        menu.style.bottom = 'auto';
+        menu.style.top = 'auto';
+
+        // 根据可用空间决定显示位置
+        if (spaceBelow < menuHeight && dropdownRect.top > menuHeight) {
+            // 如果下方空间不足且上方空间足够，向上显示
+            menu.style.bottom = '100%';
+            menu.style.marginBottom = '5px';
+        } else {
+            // 否则向下显示
+            menu.style.top = '100%';
+            menu.style.marginTop = '5px';
+        }
+
+        // 确保水平对齐
+        menu.style.left = '0';
+        menu.style.right = 'auto';
+        
+        // 防止菜单超出右侧边界
+        const menuRect = menu.getBoundingClientRect();
+        if (menuRect.right > window.innerWidth) {
+            menu.style.left = 'auto';
+            menu.style.right = '0';
+        }
+    });
+}
+
+// 辅助函数：日期格式
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    }).replace(/\//g, '-');
+}
+
+// 辅助函数：渲染星星
+function renderStars(rating) {
+    const fullStar = '★';
+    const emptyStar = '☆';
+    return fullStar.repeat(rating) + emptyStar.repeat(5 - rating);
+}
+
+// 更新分页控件
+function updatePagination() {
+    const paginationDiv = document.getElementById('pagination');
+    if (!paginationDiv) return;
+
+    let paginationHtml = '<nav class="pagination is-centered" role="navigation" aria-label="pagination">';
+    
+    // 上一页按钮
+    paginationHtml += `
+        <a class="pagination-previous" ${currentPage <= 1 ? 'disabled' : ''} 
+           onclick="${currentPage > 1 ? 'changePage(' + (currentPage - 1) + ')' : ''}"}>
+           上一页
+        </a>
+    `;
+
+    // 下一页按钮
+    paginationHtml += `
+        <a class="pagination-next" ${currentPage >= totalPages ? 'disabled' : ''} 
+           onclick="${currentPage < totalPages ? 'changePage(' + (currentPage + 1) + ')' : ''}"}>
+           下一页
+        </a>
+    `;
+
+    // 页码列表
+    paginationHtml += '<ul class="pagination-list">';
+    
+    // 显示页码的逻辑
+    const delta = 2; // 当前页前后显示的页码数
+    
+    // 始终显示第一页
+    if (currentPage > delta + 1) {
+        paginationHtml += `
+            <li><a class="pagination-link" onclick="changePage(1)">1</a></li>
+            ${currentPage > delta + 2 ? '<li><span class="pagination-ellipsis">&hellip;</span></li>' : ''}
+        `;
+    }
+
+    // 显示当前页附近的页码
+    for (let i = Math.max(1, currentPage - delta); i <= Math.min(totalPages, currentPage + delta); i++) {
+        if (i === currentPage) {
+            paginationHtml += `<li><a class="pagination-link is-current" aria-current="page">${i}</a></li>`;
+        } else {
+            paginationHtml += `<li><a class="pagination-link" onclick="changePage(${i})">${i}</a></li>`;
+        }
+    }
+
+    // 始终显示最后一页
+    if (currentPage < totalPages - delta) {
+        paginationHtml += `
+            ${currentPage < totalPages - delta - 1 ? '<li><span class="pagination-ellipsis">&hellip;</span></li>' : ''}
+            <li><a class="pagination-link" onclick="changePage(${totalPages})">${totalPages}</a></li>
+        `;
+    }
+    
+    paginationHtml += '</ul></nav>';
+    paginationDiv.innerHTML = paginationHtml;
+}
+
+// 添加电影的表单提交处理
+document.getElementById('add-movie-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const messageDiv = document.getElementById('add-movie-message');
+    
+    const data = {
+        title: formData.get('title'),
+        recommended: formData.get('recommended') === '1',
+        review: formData.get('review'),
+        tags: Array.from(document.querySelectorAll('#add-tags .tag.is-selected')).map(tag => tag.textContent).join(','),
+        ratings: collectRatings()
+    };
+
+    fetch('/api/movies', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.message) {
+            messageDiv.innerHTML = `<div class="notification is-success">${result.message}</div>`;
+            this.reset();
+            document.querySelectorAll('#add-tags .tag').forEach(tag => tag.classList.remove('is-selected'));
+            //searchMovies(); 不自动搜索电影
+            // 成功消息定时清除
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        } else {
+            messageDiv.innerHTML = `<div class="notification is-danger">${result.error}</div>`;
+        }
+    })
+    .catch(error => {
+        messageDiv.innerHTML = `<div class="notification is-danger">添加失败: ${error}</div>`;
+    });
+});
+
+document.getElementById('search-button').addEventListener('click', searchMovies);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('#add-movie-form');
+    const movieNameInput = form.querySelector('input[name="title"]'); // 修改为正确的选择器
+    const collapsibleBoxes = form.querySelectorAll('.collapsible-box');
+
+    // 点击标题栏控制折叠展开
+    collapsibleBoxes.forEach(box => {
+        const header = box.querySelector('.box-header');
+        header.addEventListener('click', () => {
+            const content = box.querySelector('.box-content');
+            const icon = box.querySelector('.collapse-icon');
+            
+            content.classList.toggle('expanded');
+            icon.classList.toggle('collapsed');
+        });
+    });
+
+    // 监听输入框变化
+    if (movieNameInput) {  // 添加检查
+        movieNameInput.addEventListener('input', function() {
+            const hasContent = this.value.trim() !== '';
+            collapsibleBoxes.forEach(box => {
+                const content = box.querySelector('.box-content');
+                const icon = box.querySelector('.collapse-icon');
+                
+                if (hasContent) {
+                    content.classList.add('expanded');
+                    icon.classList.remove('collapsed');
+                } else {
+                    content.classList.remove('expanded');
+                    icon.classList.add('collapsed');
+                }
+            });
+        });
+    }
+});
+</script>
+</body>
+</html>
