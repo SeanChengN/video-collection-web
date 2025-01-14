@@ -181,7 +181,30 @@
 			transition: all 0.3s ease;
 			background-color: #d3d3d3;
 			color: #4a4a4a;
-		}
+        }
+        /*----------------------------------------
+        设置功能相关样式 - 必要样式
+        ----------------------------------------*/
+        .settings-button .icon {
+            color: #666;
+        }
+        /* 设置按钮样式 */
+        .settings-button {
+            border: none;
+            padding: 0.5rem;
+            height: auto;
+            transition: background-color 0.2s ease;
+        }
+        /* 标题和设置按钮布局 */
+        .subtitle-with-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        .subtitle {
+            font-weight: bold !important;
+        }
     </style>
     <!-- 异步加载非关键CSS -->
     <link rel="preload" href="/static/non-critical.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -499,22 +522,42 @@
             </div>
             
             <div class="settings-content" id="tagsSettings">
-                <div class="add-item-form">
+                <div class="add-item-form mb-3">
                     <input type="text" class="input" id="newTagInput" placeholder="输入新标签名称">
                     <button class="button is-primary" onclick="addNewTag()">添加</button>
                 </div>
-                <div class="settings-list" id="tagsList">
-                    <!-- 标签列表将通过 JavaScript 动态填充 -->
+                <div class="table-container">
+                    <table class="table is-fullwidth is-striped is-hoverable">
+                        <thead>
+                            <tr>
+                                <th>标签名称</th>
+                                <th style="width: 100px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tagsList">
+                            <!-- 标签列表将通过 JavaScript 动态填充 -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
             
             <div class="settings-content" id="ratingsSettings" style="display: none;">
-                <div class="add-item-form">
+                <div class="add-item-form mb-3">
                     <input type="text" class="input" id="newRatingInput" placeholder="输入新评分维度名称">
                     <button class="button is-primary" onclick="addNewRating()">添加</button>
                 </div>
-                <div class="settings-list" id="ratingsList">
-                    <!-- 评分维度列表将通过 JavaScript 动态填充 -->
+                <div class="table-container">
+                    <table class="table is-fullwidth is-striped is-hoverable">
+                        <thead>
+                            <tr>
+                                <th>维度名称</th>
+                                <th style="width: 100px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ratingsList">
+                            <!-- 评分维度列表将通过 JavaScript 动态填充 -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </section>
@@ -1193,9 +1236,9 @@ function loadSettings() {
 
 // 开始编辑
 function startEdit(button) {
-    const item = button.closest('.settings-list-item');
-    const nameDiv = item.querySelector('.tag-name, .rating-name');
-    const editForm = item.querySelector('.edit-form');
+    const tr = button.closest('tr');  // 现在是找最近的 tr 元素
+    const nameDiv = tr.querySelector('.tag-name, .rating-name');
+    const editForm = tr.querySelector('.edit-form');
     
     nameDiv.style.display = 'none';
     editForm.style.display = 'flex';
@@ -1204,9 +1247,9 @@ function startEdit(button) {
 
 // 取消编辑
 function cancelEdit(button) {
-    const item = button.closest('.settings-list-item');
-    const nameDiv = item.querySelector('.tag-name, .rating-name');
-    const editForm = item.querySelector('.edit-form');
+    const tr = button.closest('tr');  // 现在是找最近的 tr 元素
+    const nameDiv = tr.querySelector('.tag-name, .rating-name');
+    const editForm = tr.querySelector('.edit-form');
     
     nameDiv.style.display = 'block';
     editForm.style.display = 'none';
@@ -1214,10 +1257,10 @@ function cancelEdit(button) {
 
 // 保存标签编辑
 function saveTagEdit(button, oldName) {
-    const item = button.closest('.settings-list-item');
-    const input = item.querySelector('input');
+    const tr = button.closest('tr');  // 现在是找最近的 tr 元素
+    const input = tr.querySelector('input');
     const newName = input.value.trim();
-    const nameDiv = item.querySelector('.tag-name');
+    const nameDiv = tr.querySelector('.tag-name');
     
     if (!newName || newName === oldName) {
         cancelEdit(button);
@@ -1237,17 +1280,15 @@ function saveTagEdit(button, oldName) {
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            // 只更新设置界面中的显示
+            // 只更新表格中的显示
             nameDiv.textContent = newName;
             // 更新编辑表单中的值
             input.value = newName;
-            // 更新按钮的 onclick 属性
-            const saveButton = item.querySelector('.edit-form button');
+            // 更新按钮的 onclick 属性以使用新名称
+            const saveButton = tr.querySelector('.edit-form button');
             saveButton.setAttribute('onclick', `saveTagEdit(this, '${newName}')`);
             // 隐藏编辑表单
             cancelEdit(button);
-            // 重新加载设置界面的标签列表
-            loadSettingsTags();
         } else {
             alert(result.message || '更新失败');
         }
@@ -1260,10 +1301,10 @@ function saveTagEdit(button, oldName) {
 
 // 保存评分维度编辑
 function saveRatingEdit(button, oldName) {
-    const item = button.closest('.settings-list-item');
-    const input = item.querySelector('input');
+    const tr = button.closest('tr');  // 现在是找最近的 tr 元素
+    const input = tr.querySelector('input');
     const newName = input.value.trim();
-    const nameDiv = item.querySelector('.rating-name');
+    const nameDiv = tr.querySelector('.rating-name');
     
     if (!newName || newName === oldName) {
         cancelEdit(button);
@@ -1283,17 +1324,15 @@ function saveRatingEdit(button, oldName) {
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            // 只更新设置界面中的显示
+            // 只更新表格中的显示
             nameDiv.textContent = newName;
             // 更新编辑表单中的值
             input.value = newName;
-            // 更新按钮的 onclick 属性
-            const saveButton = item.querySelector('.edit-form button');
+            // 更新按钮的 onclick 属性以使用新名称
+            const saveButton = tr.querySelector('.edit-form button');
             saveButton.setAttribute('onclick', `saveRatingEdit(this, '${newName}')`);
             // 隐藏编辑表单
             cancelEdit(button);
-            // 重新加载设置界面的评分维度列表
-            loadSettingsRatingDimensions();
         } else {
             alert(result.message || '更新失败');
         }
@@ -1377,19 +1416,21 @@ function loadSettingsTags() {
             if (result.success) {
                 const tagsList = document.getElementById('tagsList');
                 tagsList.innerHTML = result.data.map(tag => `
-                    <div class="settings-list-item">
-                        <div class="item-content">
-                            <div class="tag-name">${tag}</div>
-                            <div class="edit-form" style="display: none;">
-                                <input type="text" class="input" value="${tag}">
-                                <button class="button is-success is-small" onclick="saveTagEdit(this, '${tag}')">保存</button>
-                                <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
+                    <tr>
+                        <td>
+                            <div class="item-content">
+                                <div class="tag-name">${tag}</div>
+                                <div class="edit-form">
+                                    <input type="text" class="input" value="${tag}">
+                                    <button class="button is-success is-small" onclick="saveTagEdit(this, '${tag}')">保存</button>
+                                    <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="item-actions">
+                        </td>
+                        <td>
                             <button class="button is-small is-info" onclick="startEdit(this)">编辑</button>
-                        </div>
-                    </div>
+                        </td>
+                    </tr>
                 `).join('');
             }
         });
@@ -1403,19 +1444,21 @@ function loadSettingsRatingDimensions() {
             if (result.success) {
                 const ratingsList = document.getElementById('ratingsList');
                 ratingsList.innerHTML = result.dimensions.map(dimension => `
-                    <div class="settings-list-item">
-                        <div class="item-content">
-                            <div class="rating-name">${dimension.name}</div>
-                            <div class="edit-form" style="display: none;">
-                                <input type="text" class="input" value="${dimension.name}">
-                                <button class="button is-success is-small" onclick="saveRatingEdit(this, '${dimension.name}')">保存</button>
-                                <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
+                    <tr>
+                        <td>
+                            <div class="item-content">
+                                <div class="rating-name">${dimension.name}</div>
+                                <div class="edit-form">
+                                    <input type="text" class="input" value="${dimension.name}">
+                                    <button class="button is-success is-small" onclick="saveRatingEdit(this, '${dimension.name}')">保存</button>
+                                    <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="item-actions">
+                        </td>
+                        <td>
                             <button class="button is-small is-info" onclick="startEdit(this)">编辑</button>
-                        </div>
-                    </div>
+                        </td>
+                    </tr>
                 `).join('');
             }
         });
