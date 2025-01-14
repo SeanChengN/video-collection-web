@@ -256,11 +256,35 @@
 /*----------------------------------------
   功能区样式 - 必要样式在index中
 ----------------------------------------*/
+/* 工具栏按钮悬停效果 */
 .function-tools .button:hover {
-	transform: translateY(-2px);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+.function-tools .button.is-active:hover {
+    transform: scale(1.05) translateY(-1px);
+}
 
+/* 工具栏按钮激活状态 */
+.function-tools .button.is-active {
+    background-color: #f0f7ff; /* 更浅的背景色 */
+    border-color: #485fc7; /* 更深的边框色 */
+    box-shadow: 0 0 0 2px rgba(72, 95, 199, 0.4); /* 更明显的阴影 */
+    transform: scale(1.05); /* 轻微放大效果 */
+    animation: button-pulse 2s infinite;
+}
+@keyframes button-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(72, 95, 199, 0.6); /* 更强的初始阴影 */
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(72, 95, 199, 0); /* 更大的扩散范围 */
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(72, 95, 199, 0);
+    }
+}
 
 /*----------------------------------------
   评价和标签相关样式
@@ -716,19 +740,15 @@
 ----------------------------------------*/
 /* 模态框容器 */
 .modal-card {
-    position: absolute;
     overflow: auto;
     min-width: 300px;
     min-height: 200px;
     transform-origin: top left;
-    margin: 0;
     border: 1px solid #dbdbdb;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     background-color: white;
     pointer-events: auto;
     resize: both;
-    will-change: transform, opacity;
-    transition: transform var(--transition-timing) cubic-bezier(0.4, 0, 0.2, 1);
     --modal-padding: 0rem;
     --modal-border-radius: 8px;
     padding: var(--modal-padding);
@@ -749,12 +769,13 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding-right: 0.5rem;
 }
 .modal-card-head .delete {
     flex-shrink: 0; /* 防止按钮被压缩 */
 }
 .modal-card-head:active {
-	cursor: grabbing;
+    cursor: grabbing;
 }
 
 /* 模态框标题 */
@@ -765,6 +786,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     margin-right: 10px;
+    flex-grow: 1;
 }
 
 /* 模态框内容区 */
@@ -775,10 +797,55 @@
     flex-direction: column;
 }
 .modal-card-body iframe {
-	flex: 1;
-	width: 100%;
-	height: 100%;
-	min-height: 300px;
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+}
+
+/* 模态框控制 */
+.modal-card-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-right: 0.5rem;
+}
+.modal-control-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+.modal-control-button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* 模态框动画 */
+.modal-card {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity; /* 提示浏览器需要优化的属性 */
+    position: fixed; /* 确保使用 fixed 定位 */
+    margin: 0; /* 移除可能影响定位的边距 */
+}
+
+.modal-card.minimizing {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: top left;
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+
+/* 拖拽时禁用过渡效果 */
+.modal-card.dragging {
+    transition: none !important;
+    will-change: left, top;
 }
 
 /* 模态框底部 */
@@ -820,8 +887,8 @@
 
 /* 迅雷模态框 */
 #thunderModal .modal-card {
-    width: 50%;
-    height: 50vh;
+    width: 60%;
+    height: 70vh;
 }
 /* 迅雷模态框添加滚动条 */
 #thunderModal .modal-card-body {
