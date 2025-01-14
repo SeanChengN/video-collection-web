@@ -148,11 +148,11 @@
 		.filter-options .label {
 			font-size: 0.9rem;
 			padding-left: 0.2rem;
+			width: 22%;
 		}
 
 		.filter-options .select {
 			width: 80% !important;
-			padding-left: 1rem;
 		}
 
 		.filter-options .column {
@@ -160,7 +160,27 @@
 			display: flex;
 			justify-content: flex-start;
 			align-items: baseline;
-		}		
+		}
+		/* 标签过滤样式 */
+		.tags-filter {
+			padding: 0.3rem;
+			border: 1px solid #dbdbdb;
+			border-radius: 4px;
+			background-color: white;
+			width: 187%;
+		}
+
+		.tags-filter .tag {
+			margin: 0.2rem;
+			cursor: pointer;
+			transition: background-color 0.2s ease;
+		}
+		.tag { 
+			cursor: pointer; 
+			transition: all 0.3s ease;
+			background-color: #d3d3d3;
+			color: #4a4a4a;
+		}
     </style>
     <!-- 异步加载非关键CSS -->
     <link rel="preload" href="/static/non-critical.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -211,7 +231,6 @@
                             <button class="button is-info" id="search-button">搜索</button>
                         </div>
                     </div>
-					
 					<div class="filter-options mt-3">
 						<div class="columns is-multiline">
 							<!-- 评分维度过滤 -->
@@ -224,7 +243,6 @@
 									</select>
 								</div>
 							</div>
-							
 							<!-- 星级过滤 -->
 							<div class="column is-half">
 								<label class="label">最低星级</label>
@@ -239,9 +257,15 @@
 									</select>
 								</div>
 							</div>
+							<!-- 标签过滤 -->
+							<div class="column is-full">
+								<label class="label">标签过滤</label>
+								<div class="tags-filter" id="tags-filter">
+									<!-- 这里的选项将由 JavaScript 动态填充 -->
+								</div>
+							</div>
 						</div>
-					</div>					
-					
+					</div>
                     <div id="search-message"></div>
                     <div id="search-results" class="table-container"></div>
 					<div id="pagination" class="mt-4"></div>
@@ -911,26 +935,6 @@ function getStoredColumnWidths() {
     };
 }
 
-// 回车键搜索支持
-document.getElementById('wtl-input').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        searchWtl();
-    }
-});
-
-document.getElementById('emby-search-input').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        searchEmby();
-    }
-});
-
-// Ctrl+Enter 触发查重核对
-document.getElementById('duplicate-input').addEventListener('keydown', function(e) {
-    if (e.ctrlKey && e.key === 'Enter') {
-        checkDuplicates();
-    }
-});
-
 function loadTags() {
     fetch('/get_tags')
         .then(response => response.json())
@@ -961,20 +965,19 @@ const debounce = (func, wait) => {
     };
 };
 
-// 加载评分维度
-function loadRatingDimensions() {
+// 加载标签和评分维度
+function loadFilters() {
+    // 加载评分维度
     fetch('/get_ratings_dimensions')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 const dimensionSelect = document.getElementById('rating-dimension-filter');
-                // 保留"全部维度"选项
                 dimensionSelect.innerHTML = '<option value="">全部维度</option>';
                 
-                // 添加从后端获取的维度选项
                 data.dimensions.forEach(dimension => {
                     const option = document.createElement('option');
-                    option.value = dimension.name;  // 使用维度名称作为值
+                    option.value = dimension.name;
                     option.textContent = dimension.name;
                     dimensionSelect.appendChild(option);
                 });
@@ -983,19 +986,51 @@ function loadRatingDimensions() {
         .catch(error => {
             console.error('加载评分维度失败:', error);
         });
+
+    // 加载标签
+    fetch('/get_tags')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const tagsFilter = document.getElementById('tags-filter');
+                tagsFilter.innerHTML = ''; // 清空现有标签
+                
+                data.data.forEach(tagName => {
+                    const tagSpan = document.createElement('span');
+                    tagSpan.className = 'tag';
+                    tagSpan.textContent = tagName;
+                    tagSpan.onclick = () => toggleFilterTag(tagSpan);
+                    tagsFilter.appendChild(tagSpan);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('加载标签失败:', error);
+        });
 }
 
+// 切换标签选中状态
+function toggleFilterTag(tagElement) {
+    tagElement.classList.toggle('is-selected');
+    searchMovies(); // 当标签选择变化时自动触发搜索
+}
+
+// 获取已选中的标签
+function getSelectedTags() {
+    const tagsFilter = document.getElementById('tags-filter');
+    return Array.from(tagsFilter.getElementsByClassName('is-selected'))
+                .map(tag => tag.textContent);
+}
+
+// 按要求搜索电影
 function searchMovies() {
     const title = document.getElementById('search-input').value.trim();
     const ratingDimension = document.getElementById('rating-dimension-filter').value;
     const minRating = document.getElementById('min-rating-filter').value;
+    const selectedTags = getSelectedTags();
     const messageDiv = document.getElementById('search-message');
     const resultsDiv = document.getElementById('search-results');
     
-    // 清空之前的结果
-    //messageDiv.innerHTML = '<div class="notification is-info">正在搜索...</div>';
-    //resultsDiv.innerHTML = '';
-
     // 构建搜索参数
     const searchParams = new URLSearchParams();
     if (title) {
@@ -1007,7 +1042,10 @@ function searchMovies() {
     if (minRating) {
         searchParams.append('min_rating', minRating);
     }
-
+    if (selectedTags.length > 0) {
+        searchParams.append('tags', selectedTags.join(','));
+    }
+	
     // 构建搜索URL
     const searchUrl = `/search?${searchParams.toString()}`;
     
@@ -1027,8 +1065,18 @@ function searchMovies() {
             }
 
             if (result.success) {
-                // 处理评分维度过滤
+                // 处理过滤
                 let filteredMovies = result.data;
+                
+				// 标签过滤
+                if (selectedTags.length > 0) {
+                    filteredMovies = filteredMovies.filter(movie => {
+                        const movieTags = movie.tag_names.split(', ');
+                        return selectedTags.every(tag => movieTags.includes(tag));
+                    });
+                }
+				
+				// 评分过滤
                 if (minRating) {
                     const minRatingValue = parseInt(minRating);
                     filteredMovies = filteredMovies.filter(movie => {
@@ -1753,12 +1801,38 @@ document.getElementById('add-movie-form').addEventListener('submit', function(e)
     });
 });
 
-document.getElementById('search-button').addEventListener('click', searchMovies);
-
+// 在页面加载时初始化
 document.addEventListener('DOMContentLoaded', function() {
+	loadFilters();
+	
+	// 添加事件监听
+	document.getElementById('rating-dimension-filter').addEventListener('change', searchMovies);
+    document.getElementById('min-rating-filter').addEventListener('change', searchMovies);	
+	document.getElementById('search-button').addEventListener('click', searchMovies);
 
-	loadRatingDimensions();
+    // 快捷键监听
+    document.getElementById('search-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchMovies();
+        }
+    });
+	document.getElementById('wtl-input').addEventListener('keypress', function(e) {
+		if (e.key === 'Enter') {
+			searchWtl();
+		}
+	});
+	document.getElementById('emby-search-input').addEventListener('keypress', function(e) {
+		if (e.key === 'Enter') {
+			searchEmby();
+		}
+	});
+	document.getElementById('duplicate-input').addEventListener('keydown', function(e) {
+		if (e.ctrlKey && e.key === 'Enter') {
+			checkDuplicates();
+		}
+	});
 
+    // ----  添加电影折叠框相关监听 ---- //
     const form = document.querySelector('#add-movie-form');
     const movieNameInput = form.querySelector('input[name="title"]'); // 修改为正确的选择器
     const collapsibleBoxes = form.querySelectorAll('.collapsible-box');
