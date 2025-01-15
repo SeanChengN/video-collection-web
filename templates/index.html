@@ -54,8 +54,7 @@
             padding: 0.5rem;
             display: none;
         }
-
-        
+ 
         /*----------------------------------------
           功能区样式 - 必要样式
         ----------------------------------------*/
@@ -74,43 +73,32 @@
             flex: 1;
             transition: transform 0.2s ease;
         }
-
         /* 工具栏按钮内图标尺寸 */
         .function-tools .buttons .icon {
             width: 3.5rem;
         }
-
-
         /* 导航栏样式 - 必要样式 */
         .navbar-brand {
             width: 100%;
             justify-content: flex-start;  
         }
-    
         .navbar-brand .title {
             text-align: left;  
             padding: 1rem 0;
             padding-left: 1rem;
         }
-        
-        
         /* 搜索结果相关样式 - 必要样式 */
         #search-results { 
             margin-top: 20px; 
         }
-        
-        
         /* 模态框统一样式 - 必要样式 */
         .modal {
             pointer-events: none;
         }
-        
-        
         /* 表格容器样式 - 必要样式 */
         .table-container {
             overflow: visible !important;
         }
-        
         
         /*----------------------------------------
           评分框通用样式 - 必要样式
@@ -123,7 +111,6 @@
             box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
         }
         
-        
         /*----------------------------------------
           标签框通用样式 - 必要样式
         ----------------------------------------*/
@@ -135,7 +122,6 @@
             box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
         }
         
-        
         /*----------------------------------------
           搜索过滤相关样式 - 必要样式
         ----------------------------------------*/
@@ -145,17 +131,14 @@
             border-radius: 4px;
             border: 1px solid #dbdbdb;
         }
-
         .filter-options .label {
             font-size: 0.9rem;
             padding-left: 0.2rem;
             width: 22%;
         }
-
         .filter-options .select {
             width: 80% !important;
         }
-
         .filter-options .column {
             padding: 0.5rem;
             display: flex;
@@ -170,7 +153,6 @@
             background-color: white;
             width: 187%;
         }
-
         .tags-filter .tag {
             margin: 0.2rem;
             cursor: pointer;
@@ -182,6 +164,7 @@
             background-color: #d3d3d3;
             color: #4a4a4a;
         }
+        
         /*----------------------------------------
         设置功能相关样式 - 必要样式
         ----------------------------------------*/
@@ -259,7 +242,7 @@
                         <div class="columns is-multiline">
                             <!-- 评分维度过滤 -->
                             <div class="column is-half">
-                                <label class="label">评分维度</label>
+                                <label class="label" for="rating-dimension-filter">评分维度</label>
                                 <div class="select is-fullwidth">
                                     <select id="rating-dimension-filter">
                                         <option value="">全部维度</option>
@@ -269,7 +252,7 @@
                             </div>
                             <!-- 星级过滤 -->
                             <div class="column is-half">
-                                <label class="label">最低星级</label>
+                                <label class="label" for="min-rating-filter">最低星级</label>
                                 <div class="select is-fullwidth">
                                     <select id="min-rating-filter">
                                         <option value="">不限</option>
@@ -300,7 +283,7 @@
                 <div class="box">
                     <div class="subtitle-with-controls">
                         <h2 class="subtitle">添加电影</h2>
-                        <button class="button is-light is-small settings-button" onclick="openSettingsModal()">
+                        <button class="button is-light is-small settings-button" onclick="openSettingsModal()" aria-label="打开设置">
                             <span class="icon is-small">
                                 <svg viewBox="0 0 24 24" width="16" height="16">
                                     <path fill="currentColor" d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.65.07-.97 0-.32-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65A.488.488 0 0 0 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98 0 .33.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65z"/>
@@ -520,7 +503,6 @@
                     <li data-tab="ratings"><a>评分维度</a></li>
                 </ul>
             </div>
-            
             <div class="settings-content" id="tagsSettings">
                 <div class="add-item-form mb-3">
                     <input type="text" class="input" id="newTagInput" placeholder="输入新标签名称">
@@ -540,7 +522,6 @@
                     </table>
                 </div>
             </div>
-            
             <div class="settings-content" id="ratingsSettings" style="display: none;">
                 <div class="add-item-form mb-3">
                     <input type="text" class="input" id="newRatingInput" placeholder="输入新评分维度名称">
