@@ -26,7 +26,7 @@
         padding: 0 2rem;
     }
     .tag {
-        font-size: 1.4rem !important;
+        font-size: 1.3rem !important;
         height: 2.8em !important;
         padding: 0.7em 1.2em !important;
     }
@@ -41,12 +41,16 @@
     .field:not(:last-child) {
         margin-bottom: 1.5rem;
     }
-
-
+    
     /* 工具栏按钮内图标尺寸 */
+    .function-tools .button {
+        height: 5rem;
+    }
+    .function-tools .buttons {
+        height: 6rem;
+    }
     .function-tools .buttons .icon {
-        width: 4.5rem;
-        height: 4.5rem;
+        width: 3.5rem;
     }
 
 
@@ -72,10 +76,13 @@
 
     /* 查重核对结果框字体 */
     #check-result .notification p {
-        font-size: 1.2rem;
+        font-size: 1.5rem !important;
     }
     #check-result .notification strong {
-        font-size: 1.4rem;
+        font-size: 1.4rem !important;
+    }
+    #check-result {
+        font-size: 1.8rem;
     }
 
 
@@ -104,13 +111,41 @@
 
     /* 增加点击区域 */
     .table td, .button {
-        min-height: 44px;
+        min-height: 54px;
     }
 
 
     /* 评分星星样式 */
     .rating span {
         font-size: 1rem;
+    }
+    
+    /* 添加电影框评分星星尺寸 */
+    .collapsible-box .rating span {
+        font-size: 2rem !important;
+    }
+    
+    /* 编辑框评分星星尺寸 */
+    #editModal .rating span {
+        font-size: 2.2rem !important;
+    }
+    
+    /* 模态框最小化按钮尺寸 */
+    .modal-control-button, .delete {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    .modal-control-button.minimize::before {
+        width: 21px !important;
+        height: 3px !important;
+    }
+    .modal-card-controls {
+        gap: 2.5rem !important;
+    }
+    
+    /* 设置框标签字体尺寸 */
+    .tabs a {
+        font-size: 1.6rem;
     }
 }
 
@@ -221,7 +256,7 @@
 }
 
 #check-result .notification p {
-    font-size: 1rem;
+    font-size: 0.8rem;
 }
 
 #check-result .notification strong {
@@ -468,6 +503,8 @@
     color: #ffd700;
 }
 
+
+
 /*----------------------------------------
   折叠框中的星星样式
 ----------------------------------------*/
@@ -572,8 +609,8 @@
 .tags-box .tag {
     margin: 0.15rem;
     padding: 0 0.5em;
-    height: 1.8em;
-    font-size: 0.85rem;
+    height: 2em;
+    font-size: 0.9rem;
 }
 
 .tags-box .tag.is-selected {
@@ -596,6 +633,11 @@
     .ratings-box .field label:first-child {
         min-width: 3em;
         font-size: 0.9rem;
+    }
+    
+    .ratings-box-title,
+    .tags-box-title {
+        font-size: 1.6rem;
     }
 }
 
@@ -877,6 +919,8 @@
     z-index: 1000 !important; /* 或任何足够大的值 */
 }
 
+
+
 /*----------------------------------------
   2. 特定模态框样式
 ----------------------------------------*/
@@ -935,6 +979,7 @@
     }
     
     /* 特定模态框响应式宽度 */
+    #settingsModal .modal-card,
     #embyModal .modal-card,
     #wtlModal .modal-card,
     #jackettModal .modal-card {
@@ -944,7 +989,7 @@
     
     #duplicateModal .modal-card {
         width: 90% !important;
-        height: 30vh !important;
+        height: 28vh !important;
     }
     
     #thunderModal .modal-card {
@@ -1138,10 +1183,6 @@ th.resizing {
         background: none;
         border: none;
     }
-    .table-container {
-        margin: 1rem -1.5rem;
-        padding: 0 1.5rem;
-    }
 
     .table thead {
         display: none;
@@ -1166,8 +1207,8 @@ th.resizing {
         padding: 0.5rem 0;
         border: none;
         font-size: 1.4rem;
-        line-height: 1.4;
-        gap: 0.5rem;
+        font-weight: 500;
+        line-height: 1.5;
         max-width: none;
         white-space: normal;
     }
@@ -1175,8 +1216,6 @@ th.resizing {
     .table td:before {
         content: attr(data-label);
         font-weight: bold;
-        min-width: 3em;
-        margin-right: 0.5rem;
         color: #666;
         flex-shrink: 0;
     }
@@ -1213,10 +1252,10 @@ th.resizing {
         padding: 0.5rem 0;
     }
     .table td:last-child .button {
-        font-size: 1.8rem !important;
-        height: 3em !important;
+        font-size: 1.5rem !important;
+        height: 2em !important;
         padding: 0 1rem !important;
-        width: 5em !important;
+        width: 4.5em !important;
     }
 }
 
@@ -1343,3 +1382,29 @@ th.resizing {
 .settings-modal .table tbody tr:hover {
     background-color: #f5f5f5;
 }
+
+
+
+/*----------------------------------------
+  搜索电影相关样式
+----------------------------------------*/
+@media screen and (max-width: 1200px) {
+    .select.is-fullwidth select {
+        height: 150%;
+    }
+    .filter-options .label {
+        width: 28%;
+    }
+    .select select {
+        font-size: 1.3rem !important;
+    }
+
+
+
+/*----------------------------------------
+  添加电影相关样式
+----------------------------------------*/
+@media screen and (max-width: 1200px) {
+    .box-title {
+        font-size: 1.5rem;
+    }
