@@ -768,8 +768,8 @@
     border-bottom: 2px solid #dbdbdb;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding-right: 0.5rem;
+    justify-content: space-between !important;
+    padding: 15px 20px 15px 20px !important;
 }
 .modal-card-head:active {
     cursor: grabbing;
@@ -780,9 +780,7 @@
     pointer-events: none;
     max-width: calc(100% - 40px);
     white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
-    margin-right: 10px;
     flex-grow: 1;
 }
 
@@ -803,8 +801,7 @@
 /* 模态框控制 */
 .modal-card-controls {
     display: flex;
-    gap: 0.5rem;
-    margin-right: 0.5rem;
+    gap: 0.8rem;
 }
 .modal-control-button, .delete {
     width: 20px;
@@ -999,11 +996,12 @@
 }
 
 .table td {
-    vertical-align: middle;
+    vertical-align: middle !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 0.5em 0.75em;
+    padding: 0.5em !important;
+    border-width: 1px !important;
 }
 
 /* 评价和标签的特殊处理 */
@@ -1296,7 +1294,6 @@ th.resizing {
 .edit-form {
     display: flex;
     gap: 0.5rem;
-    margin-top: 0.5rem;
 }
 
 .edit-form .input {
