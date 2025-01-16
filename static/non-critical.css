@@ -194,6 +194,7 @@
 .movie-title {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     margin-bottom: 0 !important;
@@ -1398,6 +1399,7 @@ th.resizing {
     .select select {
         font-size: 1.3rem !important;
     }
+}
 
 
 
@@ -1408,3 +1410,4 @@ th.resizing {
     .box-title {
         font-size: 1.5rem;
     }
+}
