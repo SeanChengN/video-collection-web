@@ -71,7 +71,6 @@
         }
         .function-tools .button {
             flex: 1;
-            transition: transform 0.2s ease;
         }
         /* 工具栏按钮内图标尺寸 */
         .function-tools .buttons .icon {
@@ -189,6 +188,55 @@
         .subtitle {
             font-weight: bold !important;
         }
+
+        /*----------------------------------------
+        特效相关样式 - 必要样式
+        ----------------------------------------*/
+        /* 按钮特效 */
+        .button.is-info {
+            width: 100%;
+            height: 100%;
+            background-color: #2478bd !important;
+            overflow: hidden;
+            border: none;
+            z-index: 0;
+        }
+        .button.is-info::before {
+            width: 100%;
+            height: 325%;
+            position: absolute;
+            content: "";
+            background-color: #2448bd;
+            border-radius: 50%;
+            left: -100%;
+            top: 0;
+            transition-duration: .3s;
+            border: none;
+            z-index: -1;
+        }
+
+        /* 工具栏按钮特效 */
+        .function-tools .button {
+            background: #f3f3f3;
+            border: none;
+            transition: all 0.3s;
+        }
+        .function-tools .button .icon {
+            transition: all 0.3s;
+        }
+        .function-tools {
+            --btn-duplicate: rgb(255, 170, 31);
+            --btn-jackett: rgb(89, 87, 88);
+            --btn-wtl: rgb(103, 104, 255);
+            --btn-thunder: rgb(52, 168, 224);
+            --btn-emby: rgb(82, 172, 75);
+        }
+        /* 为每个按钮设置对应颜色变量 */
+        .function-tools .duplicate-btn { --btn-color: var(--btn-duplicate); }
+        .function-tools .jackett-btn { --btn-color: var(--btn-jackett); }
+        .function-tools .wtl-btn { --btn-color: var(--btn-wtl); }
+        .function-tools .thunder-btn { --btn-color: var(--btn-thunder); }
+        .function-tools .emby-btn { --btn-color: var(--btn-emby); }
     </style>
     <!-- 异步加载非关键CSS -->
     <link rel="preload" href="/static/styles.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -212,19 +260,19 @@
             <div class="column is-two-thirds-desktop">
                 <div class="function-tools">
                     <div class="buttons">
-                        <a href="#" class="button is-info is-light" onclick="openDuplicateModal(); return false;">
+                        <a href="#" class="button tool-btn duplicate-btn" onclick="openDuplicateModal(); return false;">
                             <span class="icon"><img src="/static/duplicate-icon.svg" height="64" width="64" alt="查重核对"></span>
                         </a>
-                        <a href="#" class="button is-info is-light" onclick="openJackettModal(); return false;">
+                        <a href="#" class="button tool-btn jackett-btn" onclick="openJackettModal(); return false;">
                             <span class="icon"><img src="/static/jackett-icon.svg" height="64" width="64" alt="Jackett"></span>
                         </a>
-                        <a href="#" class="button is-info is-light" onclick="openWtlModal(); return false;">
+                        <a href="#" class="button tool-btn wtl-btn" onclick="openWtlModal(); return false;">
                             <span class="icon"><img src="/static/wtl-icon.svg" height="64" width="64" alt="What's the link"></span>
                         </a>
-                        <a href="#" class="button is-info is-light" onclick="openThunderModal(); return false;">
+                        <a href="#" class="button tool-btn thunder-btn" onclick="openThunderModal(); return false;">
                             <span class="icon"><img src="/static/thunder-icon.svg" height="64" width="64" alt="迅雷"></span>
                         </a>
-                        <a href="#" class="button is-info is-light" onclick="openEmbyModal(); return false;">
+                        <a href="#" class="button tool-btn emby-btn" onclick="openEmbyModal(); return false;">
                             <span class="icon"><img src="/static/emby-icon.svg" height="64" width="64" alt="Emby"></span>
                         </a>
                     </div>

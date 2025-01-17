@@ -292,35 +292,51 @@
 /*----------------------------------------
   功能区样式 - 必要样式在index中
 ----------------------------------------*/
-/* 工具栏按钮悬停效果 */
-.function-tools .button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+/* 工具栏按钮特效 */
+.function-tools .button:hover .icon {
+    filter: brightness(0) invert(1);
+    transform: rotate(8deg);
+    transition: all 0.3s;
 }
-
-.function-tools .button.is-active:hover {
-    transform: scale(1.05) translateY(-1px);
-}
-
-/* 工具栏按钮激活状态 */
 .function-tools .button.is-active {
-    background-color: #f0f7ff; /* 更浅的背景色 */
-    border-color: #485fc7; /* 更深的边框色 */
-    box-shadow: 0 0 0 2px rgba(72, 95, 199, 0.4); /* 更明显的阴影 */
-    transform: scale(1.05); /* 轻微放大效果 */
+    background: var(--btn-color);
     animation: button-pulse 2s infinite;
 }
-@keyframes button-pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(72, 95, 199, 0.6); /* 更强的初始阴影 */
-    }
-    70% {
-        box-shadow: 0 0 0 8px rgba(72, 95, 199, 0); /* 更大的扩散范围 */
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(72, 95, 199, 0);
-    }
+.function-tools .button.is-active .icon {
+    filter: brightness(0) invert(1);
 }
+/* 统一悬停效果 */
+.function-tools .tool-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 10px var(--btn-color);
+    transition: all 0.3s;
+    background: var(--btn-color);
+}
+/* 统一激活效果 */
+.function-tools .tool-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 5px var(--btn-color);
+}
+/* 统一脉冲动画 */
+@keyframes button-pulse {
+    0% { box-shadow: 0 0 0 0 var(--btn-color); }
+    70% { box-shadow: 0 0 0 10px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+
+
+/*----------------------------------------
+  按钮样式 - 必要样式在index中
+----------------------------------------*/
+/* 按钮特效 */
+.button.is-info:hover::before {
+    transition-duration: .3s;
+    transform: translate(100%,-50%);
+    border-radius: 0;
+}
+
+
 
 /*----------------------------------------
   评价和标签相关样式
