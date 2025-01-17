@@ -22,6 +22,35 @@ ENV/
 Dockerfile
 .dockerignore
 docker-compose.yml
+dokcer-compose.build.yml
 
 # 系统
 .DS_Store
+
+# Node.js
+node_modules/
+package*.json
+main.js
+non-critical.css
+
+# 数据库
+mysql/
+performance_schema/
+*.0121
+*.1319
+.my-healthcheck.cnf
+aria*
+ib*
+mysql*
+multi-master.info
+movies/
+
+# 设计文件
+*.ai
+*.psd
+favicon.*
+icon.*
+
+# 日志和临时文件
+*.log
+memo.txt
