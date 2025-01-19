@@ -195,6 +195,10 @@
         .button {
             border-radius: 7px !important;
         }
+        .button.is-small {
+            width: 70px;
+            font-size: 0.9rem !important;
+        }
         /* 搜索按钮特效样式 */
         .search-btn {
             display: flex;
@@ -203,7 +207,18 @@
             transition: all 0.2s;
             background: #4169e1 !important;
         }
-        /* 添加按钮特效样式 */
+        /* 添加/保存按钮特效样式 */
+        /* 设置按钮尺寸，确保特效正常 */
+        .save-btn-small {
+            max-width: 77px;
+            min-width: 77px;
+        }
+        .add-btn {
+            min-width: 83px;
+        }
+
+        .save-btn,
+        .save-btn-small,
         .add-btn {
             display: flex;
             border: none !important;
@@ -212,11 +227,15 @@
             background: #22c55e !important;
         }
         .search-btn span,
+        .save-btn span,
+        .save-btn-small span,
         .add-btn span {
             transition: all 0.3s ease-in-out;
         }
-        .search-btn svg,
-        .add-btn svg {
+        .search-btn img,
+        .save-btn img,
+        .save-btn-small img,
+        .add-btn img {
             display: block;
             transform-origin: center center;
             transition: transform 0.3s ease-in-out;
@@ -371,12 +390,7 @@
                         </div>
                         <div class="control">
                             <button class="button is-info search-btn" id="search-button">
-                                <span class="icon is-small">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                    </svg>
-                                </span>
+                                <span class="icon"><img src="/static/search-btn-icon.svg" height="14" width="14" alt="搜索"></span>
                                 <span>搜索</span>
                             </button>
                         </div>
@@ -471,12 +485,7 @@
                             </div>
                         </div>
                         <button class="button is-primary add-btn" type="submit">
-                            <span class="icon is-small">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                                </svg>
-                            </span>
+                            <span class="icon"><img src="/static/add-btn-icon.svg" height="14" width="14" alt="添加"></span>
                             <span>添加</span>
                         </button>
                     </form>
@@ -525,7 +534,10 @@
             </form>
         </section>
         <footer class="modal-card-foot">
-            <button class="button is-success" onclick="updateMovie()">保存</button>
+            <button class="button is-success save-btn" onclick="updateMovie()">
+                <span class="icon"><img src="/static/save-btn-icon.svg" height="14" width="14" alt="保存"></span>
+                <span>保存</span>
+            </button>
             <button class="button" onclick="closeModal()">取消</button>
         </footer>
     </div>
@@ -550,12 +562,7 @@
                     </div>
                     <div class="control">
                         <button class="button is-info search-btn" onclick="searchWtl()">
-                            <span class="icon is-small">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="11" cy="11" r="8"></circle>
-                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                </svg>
-                            </span>
+                            <span class="icon"><img src="/static/search-btn-icon.svg" height="14" width="14" alt="搜索"></span>
                             <span>搜索</span>
                         </button>
                     </div>
@@ -620,12 +627,7 @@
                     </div>
                     <div class="control">
                         <button class="button is-info search-btn" onclick="searchEmby()">
-                            <span class="icon is-small">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="11" cy="11" r="8"></circle>
-                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                </svg>
-                            </span>
+                            <span class="icon"><img src="/static/search-btn-icon.svg" height="14" width="14" alt="搜索"></span>
                             <span>搜索</span>
                         </button>
                     </div>
@@ -685,12 +687,7 @@
                 <div class="add-item-form mb-3">
                     <input type="text" class="input" id="newTagInput" placeholder="输入新标签名称">
                     <button class="button is-primary add-btn" onclick="addNewTag()">
-                        <span class="icon is-small">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                        </span>
+                        <span class="icon"><img src="/static/add-btn-icon.svg" height="14" width="14" alt="添加"></span>
                         <span>添加</span>
                     </button>
                 </div>
@@ -699,7 +696,7 @@
                         <thead>
                             <tr>
                                 <th>标签名称</th>
-                                <th style="width: 100px;">操作</th>
+                                <th style="width: 87px;">操作</th>
                             </tr>
                         </thead>
                         <tbody id="tagsList">
@@ -712,12 +709,7 @@
                 <div class="add-item-form mb-3">
                     <input type="text" class="input" id="newRatingInput" placeholder="输入新评分维度名称">
                     <button class="button is-primary add-btn" onclick="addNewRating()">
-                        <span class="icon is-small">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                        </span>
+                        <span class="icon"><img src="/static/add-btn-icon.svg" height="14" width="14" alt="添加"></span>
                         <span>添加</span>
                     </button>
                 </div>
@@ -726,7 +718,7 @@
                         <thead>
                             <tr>
                                 <th>维度名称</th>
-                                <th style="width: 100px;">操作</th>
+                                <th style="width: 87px;">操作</th>
                             </tr>
                         </thead>
                         <tbody id="ratingsList">

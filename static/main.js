@@ -885,7 +885,10 @@ function loadSettingsTags() {
                                 <div class="tag-name">${tag}</div>
                                 <div class="edit-form">
                                     <input type="text" class="input" value="${tag}">
-                                    <button class="button is-success is-small" onclick="saveTagEdit(this, '${tag}')">保存</button>
+                                    <button class="button is-success is-small save-btn-small" onclick="saveTagEdit(this, '${tag}')">
+                                        <span class="icon"><img src="/static/save-btn-icon.svg" height="42" width="42" alt="保存"></span>
+                                        <span>保存</span>
+                                    </button>
                                     <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
                                 </div>
                             </div>
@@ -913,7 +916,10 @@ function loadSettingsRatingDimensions() {
                                 <div class="rating-name">${dimension.name}</div>
                                 <div class="edit-form">
                                     <input type="text" class="input" value="${dimension.name}">
-                                    <button class="button is-success is-small" onclick="saveRatingEdit(this, '${dimension.name}')">保存</button>
+                                    <button class="button is-success is-small save-btn-small" onclick="saveRatingEdit(this, '${dimension.name}')">
+                                        <span class="icon"><img src="/static/save-btn-icon.svg" height="42" width="42" alt="保存"></span>
+                                        <span>保存</span>
+                                    </button>
                                     <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
                                 </div>
                             </div>

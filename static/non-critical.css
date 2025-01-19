@@ -360,25 +360,44 @@
   按钮样式 - 必要样式在index中
 ----------------------------------------*/
 /* 按钮特效 */
+.save-btn-small span {
+    padding-right: 0.15rem;
+}
 .search-btn:hover {
     background: #3b55d9 !important;
     box-shadow: 0 6px 16px rgba(67, 97, 238, 0.4) !important;
 }
+.save-btn:hover,
+.save-btn-small:hover,
 .add-btn:hover {
     background: #16a34a !important;
     box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4) !important;
 }
 .search-btn:hover .icon,
+.save-btn:hover .icon,
+.save-btn-small:hover .icon,
 .add-btn:hover .icon {
     animation: fly-1 0.6s ease-in-out infinite alternate;
 }
-.search-btn:hover svg {
-    transform: translateX(1.4em) rotate(10deg) scale(1.5);
+.search-btn:hover img {
+    transform: translateX(1.4em) rotate(90deg) scale(1.5);
 }
-.add-btn:hover svg {
-    transform: translateX(1.4em) rotate(90deg) scale(1.8);
+.save-btn:hover img {
+    transform: translateX(1.4em) rotate(20deg) scale(1.4);
+}
+.save-btn-small img {
+    visibility: hidden;
+}
+.save-btn-small:hover img {
+    visibility: visible;
+    transform: translateX(1.6em) rotate(20deg) scale(3.5);
+}
+.add-btn:hover img {
+    transform: translateX(1.4em) rotate(90deg) scale(1.4);
 }
 .search-btn:hover span,
+.save-btn:hover span,
+.save-btn-small:hover span,
 .add-btn:hover span {
     transform: translateX(5em);
 }
@@ -387,6 +406,8 @@
     background: #2b3eb2 !important;
     box-shadow: 0 2px 8px rgba(67, 97, 238, 0.2) !important;
 }
+.save-btn:active,
+.save-btn-small:active,
 .add-btn:active {
     transform: scale(0.95);
     background: #15803d !important;
@@ -1468,14 +1489,8 @@ th.resizing {
     gap: 0.5rem;
 }
 
-.table td .edit-form .input {
-    height: 2rem;
-    font-size: 0.875rem;
-}
-
 .table td .edit-form .button {
-    height: 2rem;
-    padding: 0 0.75rem;
+    padding: 0rem 1.3rem;
 }
 
 .settings-modal .table thead {
