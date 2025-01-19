@@ -20,7 +20,7 @@
         /* 整体样式 */
         .collapsible-box {
             border: 1px solid #dbdbdb;
-            border-radius: 6px;
+            border-radius: 10px;
             margin: 0.5rem 0;
         }
         /* 标题样式 */
@@ -32,7 +32,7 @@
             align-items: center;
             cursor: pointer;
             background-color: white;
-            border-radius: 4px;
+            border-radius: 10px;
         }
         .box-title {
             font-weight: bold;
@@ -61,7 +61,7 @@
         .function-tools {
             background: white;
             padding: 1rem;
-            border-radius: 6px;
+            border-radius: 10px;
             margin-bottom: 1.5rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
@@ -104,7 +104,7 @@
         ----------------------------------------*/
         .ratings-box {
             border: 1px solid #e0e0e0;
-            border-radius: 6px;
+            border-radius: 10px;
             padding: 0.5rem;
             background: #fff;
             box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
@@ -115,7 +115,7 @@
         ----------------------------------------*/
         .tags-box {
             border: 1px solid #e0e0e0;
-            border-radius: 6px;
+            border-radius: 10px;
             padding: 0.5rem;
             background: #fff;
             box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
@@ -127,7 +127,7 @@
         .filter-options {
             background-color: #fafafa;
             padding: 0.8rem;
-            border-radius: 4px;
+            border-radius: 10px;
             border: 1px solid #dbdbdb;
         }
         .filter-options .label {
@@ -148,7 +148,7 @@
         .tags-filter {
             padding: 0.3rem;
             border: 1px solid #dbdbdb;
-            border-radius: 4px;
+            border-radius: 10px;
             background-color: white;
             width: 187%;
         }
@@ -192,27 +192,24 @@
         /*----------------------------------------
         特效相关样式 - 必要样式
         ----------------------------------------*/
-        /* 按钮特效 */
-        .button.is-info {
-            width: 100%;
-            height: 100%;
-            background-color: #2478bd !important;
-            overflow: hidden;
-            border: none;
-            z-index: 0;
+        /* 按钮特效样式 */
+        .button {
+            border-radius: 7px !important;
         }
-        .button.is-info::before {
-            width: 100%;
-            height: 325%;
-            position: absolute;
-            content: "";
-            background-color: #2448bd;
-            border-radius: 50%;
-            left: -100%;
-            top: 0;
-            transition-duration: .3s;
-            border: none;
-            z-index: -1;
+        .search-btn {
+            display: flex;
+            border: none !important;
+            overflow: hidden;
+            transition: all 0.2s;
+            background: #4169e1 !important;
+        }
+        .search-btn span {
+            transition: all 0.3s ease-in-out;
+        }
+        .search-btn svg {
+            display: block;
+            transform-origin: center center;
+            transition: transform 0.3s ease-in-out;
         }
 
         /* 工具栏按钮特效 */
@@ -237,6 +234,85 @@
         .function-tools .wtl-btn { --btn-color: var(--btn-wtl); }
         .function-tools .thunder-btn { --btn-color: var(--btn-thunder); }
         .function-tools .emby-btn { --btn-color: var(--btn-emby); }
+
+        /* 推荐按钮效果 */
+        .recommend-field label {
+            background-color: white;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 15px 10px 10px;
+            cursor: pointer;
+            user-select: none;
+            border-radius: 10px;
+            box-shadow: rgba(0, 0, 0, 0.1) 0px 8px 24px;
+            color: black;
+        }
+        .recommend-field input {
+            display: none;
+        }
+        .recommend-field input:checked + label svg {
+            fill: rgb(255, 0, 0);
+            stroke: rgb(255, 0, 0);
+            animation: heartButton 1s;
+        }
+        @keyframes heartButton {
+            0% {transform: scale(1);}
+            25% {transform: scale(1.3);}
+            50% {transform: scale(1);}
+            75% {transform: scale(1.3);}
+            100% {transform: scale(1);}
+        }
+        .recommend-field input + label .action {
+            position: relative;
+            overflow: hidden;
+            display: grid;
+        }
+        .recommend-field input + label .action span {
+            grid-column-start: 1;
+            grid-column-end: 1;
+            grid-row-start: 1;
+            grid-row-end: 1;
+            transition: all .5s;
+        }
+        .recommend-field input + label .action span.option-1 {
+            transform: translate(0px,0%);
+            opacity: 1;
+        }
+        .recommend-field input:checked + label .action span.option-1 {
+            transform: translate(0px,-100%);
+            opacity: 0;
+        }
+        .recommend-field input + label .action span.option-2 {
+            transform: translate(0px,100%);
+            opacity: 0;
+        }
+        .recommend-field input:checked + label .action span.option-2 {
+            transform: translate(0px,0%);
+            opacity: 1;
+        }
+
+        /* 输入框效果 */
+        .input,
+        .textarea {
+            padding-left: 0.8em !important;
+            outline: none;
+            overflow: hidden !important;
+            background-color: #F3F3F3 !important;
+            border-radius: 10px !important;
+            transition: all 0.5s;
+        }
+        .input:hover,
+        .input:focus,
+        .textarea:hover,
+        .textarea:focus {
+            border: 1px solid #4A9DEC !important;
+            box-shadow: 0px 0px 0px 5px rgb(74, 157, 236, 20%) !important;
+            background-color: white !important;
+        }
+        .field.has-addons {
+            gap: 1rem;
+        }
     </style>
     <!-- 异步加载非关键CSS -->
     <link rel="preload" href="/static/styles.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -284,7 +360,15 @@
                             <input class="input" type="text" id="search-input" placeholder="输入电影名称">
                         </div>
                         <div class="control">
-                            <button class="button is-info" id="search-button">搜索</button>
+                            <button class="button is-info search-btn" id="search-button">
+                                <span class="icon is-small">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg>
+                                </span>
+                                <span>搜索</span>
+                            </button>
                         </div>
                     </div>
                     <div class="filter-options mt-3">
@@ -327,7 +411,6 @@
                     <div id="pagination" class="mt-4"></div>
                 </div>
             </div>
-
             <div class="column is-one-third-desktop">
                 <div class="box">
                     <div class="subtitle-with-controls">
@@ -344,13 +427,16 @@
                         <div class="field">
                             <input class="input" type="text" name="title" placeholder="电影名称" required>
                         </div>
-                        <div class="field">
-                            <label class="label">推荐</label>
-                            <label class="radio">
-                                <input type="radio" name="recommended" value="1" checked> ✅
-                            </label>
-                            <label class="radio">
-                                <input type="radio" name="recommended" value="0"> ❌
+                        <div class="field recommend-field">
+                            <input type="checkbox" id="recommended" name="recommended" value="1">
+                            <label for="recommended">
+                                <svg height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                </svg>
+                                <div class="action">
+                                    <span class="option-1">不推荐</span>
+                                    <span class="option-2">推荐</span>
+                                </div>
                             </label>
                         </div>
                         <div class="field">
@@ -395,16 +481,17 @@
                 <div class="field">
                     <input type="hidden" id="edit-title">
                 </div>
-                <div class="field">
-                    <label class="label">推荐</label>
-                    <div class="control">
-                        <label class="radio">
-                            <input type="radio" name="edit-recommended" value="1"> ✅
-                        </label>
-                        <label class="radio">
-                            <input type="radio" name="edit-recommended" value="0"> ❌
-                        </label>
-                    </div>
+                <div class="field recommend-field">
+                    <input type="checkbox" id="edit-recommended" name="recommended" value="1">
+                    <label for="edit-recommended">
+                        <svg height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                        <div class="action">
+                            <span class="option-1">不推荐</span>
+                            <span class="option-2">推荐</span>
+                        </div>
+                    </label>
                 </div>
                 <div class="field">
                     <label class="label">评价</label>
@@ -437,15 +524,27 @@
             </div>
         </header>
         <section class="modal-card-body">
-            <div class="field has-addons">
-                <div class="control is-expanded">
-                    <input class="input" type="text" id="wtl-input" placeholder="输入链接">
-                </div>
-                <div class="control">
-                    <button class="button is-info" onclick="searchWtl()">搜索</button>
+            <!-- 固定搜索区域 -->
+            <div class="sticky-search">            
+                <div class="field has-addons">
+                    <div class="control is-expanded">
+                        <input class="input" type="text" id="wtl-input" placeholder="输入链接">
+                    </div>
+                    <div class="control">
+                        <button class="button is-info search-btn" onclick="searchWtl()">
+                            <span class="icon is-small">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                            </span>
+                            <span>搜索</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div id="wtl-results"></div>
+            <!-- 滚动内容区域 -->
+            <div id="wtl-results" class="scroll-content"></div>
         </section>
     </div>
 </div>
@@ -495,15 +594,27 @@
             </div>
         </header>
         <section class="modal-card-body">
-            <div class="field has-addons">
-                <div class="control is-expanded">
-                    <input class="input" type="text" id="emby-search-input" placeholder="搜索电影">
-                </div>
-                <div class="control">
-                    <button class="button is-info" onclick="searchEmby()">搜索</button>
+            <!-- 固定搜索区域 -->
+            <div class="sticky-search">
+                <div class="field has-addons">
+                    <div class="control is-expanded">
+                        <input class="input" type="text" id="emby-search-input" placeholder="搜索电影">
+                    </div>
+                    <div class="control">
+                        <button class="button is-info search-btn" onclick="searchEmby()">
+                            <span class="icon is-small">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                            </span>
+                            <span>搜索</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div id="emby-results" class="mt-4"></div>
+            <!-- 滚动内容区域 -->
+            <div id="emby-results" class="scroll-content"></div>
         </section>
     </div>
 </div>

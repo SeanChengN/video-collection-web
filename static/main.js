@@ -54,50 +54,58 @@ const imageObserver = new IntersectionObserver((entries, observer) => {
 const ModalManager = {
     activeModals: new Map(),
     minimizedModals: new Set(),
+    baseZIndex: 1000, // 基础层级值
 
     open(modalId) {
         const modal = document.getElementById(modalId);
-        if (modal) {
+        if (!modal) return;
+
+        requestAnimationFrame(() => {
             const modalCard = modal.querySelector('.modal-card');
             const toolbarButton = this.getToolbarButton(modalId);
-            
-            // 获取当前最高的 z-index 值
-            const modals = document.querySelectorAll('.modal');
-            let maxZIndex = Math.max(...Array.from(modals).map(m => 
-                parseInt(window.getComputedStyle(m).zIndex) || 0
-            ));
-            // 设置新的 z-index 值，确保比当前最高值大
-            modal.style.zIndex = maxZIndex + 1;
-            
+
+            // 如果窗口最小化状态，则直接还原窗口
             if (toolbarButton && this.minimizedModals.has(modalId)) {
-                // 如果是工具栏按钮且处于最小化状态，恢复窗口
                 this.restoreModal(modalId);
-            } else {
-                // 普通打开模态窗口(先显示模态窗口但设置为不可见，以便获取正确的尺寸)
-                modal.classList.add('is-active');
-                if (modalCard) {
-                    modalCard.style.visibility = 'hidden';
-                    modalCard.style.position = 'absolute';
-                    modalCard.style.transform = 'none';
-                    modalCard.style.margin = '0';
-                
-                    // 确保模态窗口内容可以滚动
-                    modalCard.style.maxHeight = '90vh';
-                    modalCard.style.overflowY = 'auto';
-                
-                    // 等待下一帧以确保尺寸计算正确
-                    requestAnimationFrame(() => {
-                        const viewportWidth = window.innerWidth;
-                        const viewportHeight = window.innerHeight;
-                        const modalWidth = modalCard.offsetWidth;
-                        const modalHeight = modalCard.offsetHeight;
-                    
-                        // 设置初始位置在屏幕中心
-                        modalCard.style.left = `${Math.max(0, (viewportWidth - modalWidth) / 2)}px`;
-                        modalCard.style.top = `${Math.max(0, (viewportHeight - modalHeight) / 2)}px`;
-                        modalCard.style.visibility = 'visible';
-                    });
-                }
+                return;
+            }
+
+            // 获取所有模态框(包括最小化的)的最大z-index
+            const allModals = document.querySelectorAll('.modal');
+            const maxZIndex = Math.max(
+                this.baseZIndex,
+                ...Array.from(allModals).map(m => 
+                    parseInt(window.getComputedStyle(m).zIndex) || 0
+                )
+            );
+
+            // 计算并设置新窗口的z-index
+            const newZIndex = maxZIndex + 10;
+            modal.style.zIndex = newZIndex;
+            modal.classList.add('is-active');
+
+            // 重置模态框位置
+            if (modalCard) {
+                // 清除可能影响定位的样式
+                modalCard.style.visibility = 'hidden';
+                modalCard.style.position = 'absolute';
+                modalCard.style.transform = 'none';
+                modalCard.style.margin = '0';
+
+                // 确保模态窗口内容可以滚动
+                modalCard.style.maxHeight = '90vh';
+                modalCard.style.overflowY = 'auto';
+
+                // 计算窗口位置
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                const modalWidth = modalCard.offsetWidth;
+                const modalHeight = modalCard.offsetHeight;
+
+                // 设置初始位置在屏幕中心
+                modalCard.style.left = `${Math.max(0, (viewportWidth - modalWidth) / 2)}px`;
+                modalCard.style.top = `${Math.max(0, (viewportHeight - modalHeight) / 2)}px`;
+                modalCard.style.visibility = 'visible';                            
             }
 
             // 激活对应的工具栏按钮
@@ -105,8 +113,11 @@ const ModalManager = {
                 toolbarButton.classList.add('is-active');
             }
 
-            this.activeModals.set(modalId, { isMinimized: false });
-        }
+            this.activeModals.set(modalId, { 
+                isMinimized: false,
+                zIndex: newZIndex
+            });
+        });
     },
 
     // 最小化窗口
@@ -155,6 +166,18 @@ const ModalManager = {
         const savedState = this.activeModals.get(modalId);
         
         if (modal && savedState && savedState.rect) {
+            // 计算新的最高层级
+            const allModals = document.querySelectorAll('.modal');
+            const maxZIndex = Math.max(
+                this.baseZIndex,
+                ...Array.from(allModals).map(m => 
+                    parseInt(window.getComputedStyle(m).zIndex) || 0
+                )
+            );
+            const newZIndex = maxZIndex + 10;
+            modal.style.zIndex = newZIndex;
+
+            // 还原窗口动画
             modal.classList.add('is-active');
             modalCard.classList.add('minimizing');
             
@@ -173,10 +196,17 @@ const ModalManager = {
                     modalCard.style.opacity = '1';
                 });
             });
-            
+
             setTimeout(() => {
                 modalCard.classList.remove('minimizing');
                 this.minimizedModals.delete(modalId);
+
+                // 更新状态
+                this.activeModals.set(modalId, {
+                    isMinimized: false,
+                    zIndex: newZIndex,
+                    rect: savedState.rect  // 保留位置信息
+                });
             }, 300);
         }
     },
@@ -1365,7 +1395,7 @@ function openModal(movie) {
     form.insertBefore(dateField, form.firstChild);
     
     // 设置推荐状态
-    const recommendedRadio = document.querySelector(`input[name="edit-recommended"][value="${movie.recommended ? '1' : '0'}"]`);
+    const recommendedRadio = document.getElementById('edit-recommended').checked = movie.recommended === 1;
     if (recommendedRadio) {
         recommendedRadio.checked = true;
     }
@@ -1519,7 +1549,7 @@ function updateMovie() {
 
     const data = {
         title: title,
-        recommended: form.querySelector('[name="edit-recommended"]:checked').value === '1',
+        recommended: document.getElementById('edit-recommended').checked ? 1 : 0,
         review: form.querySelector('[id="edit-review"]').value,
         tags: Array.from(document.querySelectorAll('#edit-tags .tag.is-selected')).map(tag => tag.textContent).join(','),
         ratings: collectRatings(true)

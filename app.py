@@ -116,8 +116,8 @@ def add_movie():
     try:
         data = request.get_json()
         title = data.get('title')
-        recommended = data.get('recommended')
-        review = data.get('review')
+        recommended = 1 if data.get('recommended') else 0
+        review = data.get('review', '')
         tag_names = data.get('tags', '').split(',') # 获取标签名称列表
         ratings = data.get('ratings', '')
 
@@ -150,8 +150,8 @@ def update_movie(title):
     try:
         data = request.get_json()
         title = data.get('title')
-        recommended = data.get('recommended')
-        review = data.get('review')
+        recommended = 1 if data.get('recommended') else 0
+        review = data.get('review', '')
         tag_names = data.get('tags', '').split(',')
         ratings = data.get('ratings', '')
 

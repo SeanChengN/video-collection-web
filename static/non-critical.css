@@ -218,7 +218,37 @@
     width: 16.666% !important;
 }
 
+/* 固定搜索区域样式 */
+.sticky-search {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: inherit;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
 
+/* 滚动内容区域 */
+.scroll-content {
+    margin-top: 1rem;
+    padding: 0 1rem;
+}
+
+/* 模态框特定样式 */
+#embyModal .modal-card-body {
+    padding: 0 !important;
+}
+#wtlModal .modal-card-body {
+    padding: 0 !important;
+}
+#thunderModal .modal-card-body {
+    padding: 0 !important;
+}
+#jackettModal .modal-card-body {
+    padding: 0 !important;
+}
 
 /*----------------------------------------
   查重核对相关样式
@@ -330,10 +360,27 @@
   按钮样式 - 必要样式在index中
 ----------------------------------------*/
 /* 按钮特效 */
-.button.is-info:hover::before {
-    transition-duration: .3s;
-    transform: translate(100%,-50%);
-    border-radius: 0;
+.search-btn:hover {
+    background: #3b55d9 !important;
+    box-shadow: 0 6px 16px rgba(67, 97, 238, 0.4) !important;
+}
+.search-btn:hover .icon {
+    animation: fly-1 0.6s ease-in-out infinite alternate;
+}
+.search-btn:hover svg {
+    transform: translateX(1.4em) rotate(10deg) scale(1.5);
+}
+.search-btn:hover span {
+    transform: translateX(5em);
+}
+.search-btn:active {
+    transform: scale(0.95);
+    background: #2b3eb2 !important;
+    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.2) !important;
+}
+@keyframes fly-1 {
+    from {transform: translateY(0.1em);}
+    to {transform: translateY(-0.1em);}
 }
 
 
@@ -797,21 +844,45 @@
 /*----------------------------------------
   1. 模态框基础样式
 ----------------------------------------*/
+.modal {
+    display: none;
+}
 /* 模态框容器 */
 .modal-card {
-    overflow: auto;
+    /* 基础布局 */
+    overflow: auto; /* 允许内容溢出时滚动 */
+    pointer-events: auto; /* 启用模态框的鼠标事件 */
+    resize: both; /* 允许双向调整大小 */
     min-width: 300px;
     min-height: 200px;
-    transform-origin: top left;
-    border: 1px solid #dbdbdb;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    background-color: white;
-    pointer-events: auto;
-    resize: both;
+
+    transform-origin: top left; /* 动画和最小化的变形原点 */
+    position: fixed;
+    margin: 0;
+
+    /* 边框和圆角 */
     --modal-padding: 0rem;
-    --modal-border-radius: 8px;
+    --modal-border-radius: 12px;
     padding: var(--modal-padding);
     border-radius: var(--modal-border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.4); /* 半透明边框 */
+
+    /* 毛玻璃效果 */
+    backdrop-filter: blur(16px) !important; /* 背景模糊 */
+    -webkit-backdrop-filter: blur(16px) !important; /* Safari支持 */
+    background: rgba(255, 255, 255, 0.4) !important; /* 半透明背景 */
+
+    /* 动画相关 */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), /* 窗口最小化动画 */
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    will-change: transform, opacity; /* 提示浏览器需要优化的属性 */
+    transform: translateZ(0); /* 强制GPU加速 */
+    backface-visibility: hidden; /* 防止3D变换闪烁 */
+    perspective: 1000px; /* 3D空间深度 */
+
+    /* 阴影效果 */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), /* 主阴影 */
+                0 1px 3px rgba(0, 0, 0, 0.08); /* 次阴影 */
 }
 
 /* 模态框背景 */
@@ -823,12 +894,15 @@
 .modal-card-head {
     cursor: grab;
     user-select: none;
-    background-color: #f5f5f5;
     border-bottom: 2px solid #dbdbdb;
     display: flex;
     align-items: center;
     justify-content: space-between !important;
-    padding: 10px 20px 10px 20px !important;
+    padding: 15px 20px !important;
+    /* 毛玻璃效果 */
+    background: rgba(255, 255, 255, 0.4) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 12px 12px 0 0;
 }
 .modal-card-head:active {
     cursor: grabbing;
@@ -847,10 +921,12 @@
 
 /* 模态框内容区 */
 .modal-card-body {
-    flex: 1;
+    flex: 1; /* 占用剩余空间 */
     overflow: auto;
     display: flex;
     flex-direction: column;
+    background: transparent !important;
+    padding: 20px 15px !important;
 }
 .modal-card-body iframe {
     flex: 1;
@@ -904,14 +980,6 @@
 }
 
 /* 模态框动画 */
-.modal-card {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: transform, opacity; /* 提示浏览器需要优化的属性 */
-    position: fixed; /* 确保使用 fixed 定位 */
-    margin: 0; /* 移除可能影响定位的边距 */
-}
-
 .modal-card.minimizing {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
                 opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -928,12 +996,20 @@
 
 /* 模态框底部 */
 .modal-card-foot {
-    background-color: #f5f5f5;
-    border-top: 2px solid #dbdbdb;
+    padding: 15px 20px !important;
+    /* 毛玻璃效果 */
+    background: rgba(255, 255, 255, 0.4) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 0 0 12px 12px;   
 }
 
-.modal.stacked {
-    z-index: 1000 !important; /* 或任何足够大的值 */
+/* 激活时才显示为flex */
+.modal.is-active {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    pointer-events: none;
 }
 
 
