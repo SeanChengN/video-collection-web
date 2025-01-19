@@ -192,10 +192,10 @@
         /*----------------------------------------
         特效相关样式 - 必要样式
         ----------------------------------------*/
-        /* 按钮特效样式 */
         .button {
             border-radius: 7px !important;
         }
+        /* 搜索按钮特效样式 */
         .search-btn {
             display: flex;
             border: none !important;
@@ -203,10 +203,20 @@
             transition: all 0.2s;
             background: #4169e1 !important;
         }
-        .search-btn span {
+        /* 添加按钮特效样式 */
+        .add-btn {
+            display: flex;
+            border: none !important;
+            overflow: hidden;
+            transition: all 0.2s;
+            background: #22c55e !important;
+        }
+        .search-btn span,
+        .add-btn span {
             transition: all 0.3s ease-in-out;
         }
-        .search-btn svg {
+        .search-btn svg,
+        .add-btn svg {
             display: block;
             transform-origin: center center;
             transition: transform 0.3s ease-in-out;
@@ -460,7 +470,15 @@
                                 <div id="add-ratings-container"></div>
                             </div>
                         </div>
-                        <button class="button is-primary" type="submit">添加</button>
+                        <button class="button is-primary add-btn" type="submit">
+                            <span class="icon is-small">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                            </span>
+                            <span>添加</span>
+                        </button>
                     </form>
                     <div id="add-movie-message"></div>
                 </div>
@@ -666,7 +684,15 @@
             <div class="settings-content" id="tagsSettings">
                 <div class="add-item-form mb-3">
                     <input type="text" class="input" id="newTagInput" placeholder="输入新标签名称">
-                    <button class="button is-primary" onclick="addNewTag()">添加</button>
+                    <button class="button is-primary add-btn" onclick="addNewTag()">
+                        <span class="icon is-small">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </span>
+                        <span>添加</span>
+                    </button>
                 </div>
                 <div class="table-container">
                     <table class="table is-fullwidth is-striped is-hoverable">
@@ -685,7 +711,15 @@
             <div class="settings-content" id="ratingsSettings" style="display: none;">
                 <div class="add-item-form mb-3">
                     <input type="text" class="input" id="newRatingInput" placeholder="输入新评分维度名称">
-                    <button class="button is-primary" onclick="addNewRating()">添加</button>
+                    <button class="button is-primary add-btn" onclick="addNewRating()">
+                        <span class="icon is-small">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </span>
+                        <span>添加</span>
+                    </button>
                 </div>
                 <div class="table-container">
                     <table class="table is-fullwidth is-striped is-hoverable">
