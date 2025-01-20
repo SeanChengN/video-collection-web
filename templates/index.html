@@ -93,6 +93,7 @@
         /* 模态框统一样式 - 必要样式 */
         .modal {
             pointer-events: none;
+            display: none;
         }
         /* 表格容器样式 - 必要样式 */
         .table-container {
@@ -194,10 +195,6 @@
         .settings-btn .icon {
             animation: rotate 5s linear infinite;
         }
-        @keyframes rotate {
-            from {transform: rotate(0deg);}
-            to {transform: rotate(360deg);}
-        }
 
         /*----------------------------------------
         特效相关样式 - 必要样式
@@ -211,10 +208,6 @@
         }
         /* 搜索按钮特效样式 */
         /* 设置按钮尺寸，确保特效正常 */
-        .save-btn-small {
-            max-width: 77px;
-            min-width: 77px;
-        }
         .add-btn {
             min-width: 83px;
         }
@@ -297,18 +290,6 @@
         .recommend-field input:not(:checked) + label img {
             transform: rotate(0deg);  /* 未选中时旋转到0度 */
         }
-        .recommend-field input:checked + label img {
-            filter: invert(50%) sepia(100%) saturate(2000%) hue-rotate(360deg) brightness(100%) contrast(100%);
-            animation: thumbUpButton 1s;
-            transform: rotate(180deg); /* 旋转到最终状态 */
-        }
-        @keyframes thumbUpButton {
-            0% {transform: rotate(0deg) scale(1);}
-            25% {transform: rotate(180deg) scale(1.3);}
-            50% {transform: rotate(180deg) scale(1);}
-            75% {transform: rotate(180deg) scale(1.3);}
-            100% {transform: rotate(180deg) scale(1);}
-        }
         .recommend-field input + label .action {
             position: relative;
             overflow: hidden;
@@ -325,35 +306,12 @@
             transform: translate(0px,0%);
             opacity: 1;
         }
-        .recommend-field input:checked + label .action span.option-1 {
-            transform: translate(0px,-100%);
-            opacity: 0;
-        }
         .recommend-field input + label .action span.option-2 {
             transform: translate(0px,100%);
             opacity: 0;
         }
-        .recommend-field input:checked + label .action span.option-2 {
-            transform: translate(0px,0%);
-            opacity: 1;
-        }
-        .recommend-field input:checked + label {
-            background-color: #fff3e0;  /* 浅橙色背景 */
-            border-color: #ffcc80;     /* 浅橙色边框 */
-            color: #f57c00;           /* 深橙色文字 */
-        }
-        .recommend-field label:hover {
-            transform: translateY(-1px);
-            background-color: #fff8e1;
-            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
-        }
-        .recommend-field label:active {
-            transform: translateY(1px);
-            background-color: #fffde7;
-            box-shadow: 0 2px 6px rgba(255, 152, 0, 0.2);
-        }
 
-        /* 输入框效果 */
+        /* 输入框效果 - 必要样式 */
         .input,
         .textarea {
             padding-left: 0.8em !important;
@@ -362,14 +320,6 @@
             background-color: #F3F3F3 !important;
             border-radius: 10px !important;
             transition: all 0.5s;
-        }
-        .input:hover,
-        .input:focus,
-        .textarea:hover,
-        .textarea:focus {
-            border: 1px solid #4A9DEC !important;
-            box-shadow: 0px 0px 0px 5px rgb(74, 157, 236, 20%) !important;
-            background-color: white !important;
         }
         .field.has-addons {
             gap: 1rem;
