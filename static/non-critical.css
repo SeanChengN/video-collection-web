@@ -418,6 +418,47 @@
     to {transform: translateY(-0.1em);}
 }
 
+/* 删除按钮 特效 */
+.delete-btn .bin-top,
+.delete-btn .bin-bottom {
+    position: absolute; /* 必要，使两个图标叠加 */
+    transition: all 0.3s ease-in-out;
+}
+.delete-btn {
+    display: flex;
+    border: none !important;
+    overflow: hidden;
+    transition: all 0.2s;
+    background: #ff3950 !important;
+}
+.delete-btn span {
+    transition: all 0.3s ease-in-out;
+}
+.delete-btn:hover {
+    background: #ef233c !important;
+    box-shadow: 0 6px 16px rgba(241, 70, 104, 0.4) !important;
+}
+.delete-btn:hover .icon {
+    animation: fly-1 0.6s ease-in-out infinite alternate;
+}
+.delete-btn .bin-top {
+    transform-origin: right; /* 垃圾桶翻盖动画 以右侧为中心旋转*/
+}
+.delete-btn:hover .bin-top {
+    transform: translateX(1.4em) scale(1.1) rotate(45deg);
+}
+.delete-btn:hover .bin-bottom {
+    transform: translateX(1.4em) scale(1.1);
+}
+.delete-btn:hover span:not(.icon) {
+    transform: translateX(5em);
+}
+.delete-btn:active {
+    transform: scale(0.95);
+    background: #d90429 !important;
+    box-shadow: 0 2px 8px rgba(241, 70, 104, 0.2) !important;
+}
+
 
 
 /*----------------------------------------
@@ -1047,7 +1088,10 @@
     pointer-events: none;
 }
 
-
+/* 模态框底部 删除按钮靠右 */
+.modal-card-foot .delete-btn {
+    margin-left: auto;
+}
 
 /*----------------------------------------
   2. 特定模态框样式

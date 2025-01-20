@@ -200,14 +200,6 @@
             font-size: 0.9rem !important;
         }
         /* 搜索按钮特效样式 */
-        .search-btn {
-            display: flex;
-            border: none !important;
-            overflow: hidden;
-            transition: all 0.2s;
-            background: #4169e1 !important;
-        }
-        /* 添加/保存按钮特效样式 */
         /* 设置按钮尺寸，确保特效正常 */
         .save-btn-small {
             max-width: 77px;
@@ -216,7 +208,14 @@
         .add-btn {
             min-width: 83px;
         }
-
+        .search-btn {
+            display: flex;
+            border: none !important;
+            overflow: hidden;
+            transition: all 0.2s;
+            background: #4169e1 !important;
+        }
+        /* 添加/保存按钮特效样式 */
         .save-btn,
         .save-btn-small,
         .add-btn {
@@ -534,11 +533,20 @@
             </form>
         </section>
         <footer class="modal-card-foot">
-            <button class="button is-success save-btn" onclick="updateMovie()">
-                <span class="icon"><img src="/static/save-btn-icon.svg" height="14" width="14" alt="保存"></span>
-                <span>保存</span>
+            <div class="btn-group-left">
+                <button class="button is-success save-btn" onclick="updateMovie()">
+                    <span class="icon"><img src="/static/save-btn-icon.svg" height="14" width="14" alt="保存"></span>
+                    <span>保存</span>
+                </button>
+                <button class="button" onclick="closeModal()">取消</button>
+            </div>
+            <button class="button is-danger delete-btn" onclick="deleteMovie()">
+                <span class="icon">
+                    <img class="bin-top" src="/static/delete-btn-top-icon.svg" height="14" width="14" alt="删除">
+                    <img class="bin-bottom" src="/static/delete-btn-bottom-icon.svg" height="14" width="14" alt="删除">
+                </span>
+                <span>删除</span>
             </button>
-            <button class="button" onclick="closeModal()">取消</button>
         </footer>
     </div>
 </div>

@@ -190,7 +190,11 @@ def get_ratings_dimensions():
             cursor.execute("SELECT * FROM ratings_dimensions ORDER BY id")
             dimensions = cursor.fetchall()
             return jsonify({"success": True, "dimensions": dimensions})
+    except mysql.connector.Error as err:
+        print(f"数据库错误: {str(err)}")
+        return jsonify({"success": False, "message": str(err)}), 500
     except Exception as e:
+        print(f"未知错误: {str(e)}")
         return jsonify({"success": False, "message": f"获取评分维度失败: {str(e)}"}), 500
 
 @app.route("/search", methods=["GET"])
@@ -261,8 +265,12 @@ def get_tags():
             cursor.execute("SELECT id, name FROM tags")
             tags = [tag['name'] for tag in cursor.fetchall()]
             return jsonify({"success": True, "data": tags})
+    except mysql.connector.Error as err:
+        print(f"数据库错误: {str(err)}")
+        return jsonify({"success": False, "message": str(err)}), 500
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        print(f"未知错误: {str(e)}")
+        return jsonify({"success": False, "message": "获取标签失败"}), 500
 
 # 从环境变量中读取参数
 @app.route('/get_services_config')
@@ -388,6 +396,29 @@ def update_rating_dimension():
             return jsonify({"success": False, "message": "评分维度名称已存在"}), 400
         return jsonify({"success": False, "message": str(err)}), 500
 
+@app.route("/api/movies/<title>", methods=["DELETE"])
+def delete_movie(title):
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # 首先检查电影是否存在
+            cursor.execute("SELECT title FROM movies WHERE title = %s", (title,))
+            if not cursor.fetchone():
+                return jsonify({"success": False, "message": "电影名称不存在"}), 404
+            
+            # 开始删除操作
+            cursor.execute("DELETE FROM movies WHERE title = %s", (title,))
+            conn.commit()
+            
+            return jsonify({"success": True, "message": "电影删除成功"})
+
+    except mysql.connector.Error as err:
+        print(f"数据库错误: {str(err)}")
+        return jsonify({"success": False, "message": str(err)}), 500
+    except Exception as e:
+        print(f"未知错误: {str(e)}")
+        return jsonify({"success": False, "message": "删除操作失败"}), 500
 
 if __name__ == "__main__":
     if init_db():

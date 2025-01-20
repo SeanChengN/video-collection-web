@@ -662,12 +662,12 @@ function formatTime(seconds) {
 let editingItemId = null;
 
 function openSettingsModal() {
-    document.getElementById('settingsModal').classList.add('is-active');
+    ModalManager.open('settingsModal');
     loadSettings();
 }
 
 function closeSettingsModal() {
-    document.getElementById('settingsModal').classList.remove('is-active');
+    ModalManager.close('settingsModal');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -1502,6 +1502,34 @@ async function loadEditRatings() {
     } catch (error) {
         console.error('加载评分维度失败:', error);
     }
+}
+
+// 删除电影相关代码
+function deleteMovie() {
+    if (!confirm('确定要删除这部电影吗？')) return;
+
+    // 保存当前的搜索状态
+    saveSearchState();
+    
+    const title = document.getElementById('edit-title').value;
+    fetch(`/api/movies/${encodeURIComponent(title)}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            throw new Error(data.message || '删除失败');
+        }
+        closeModal();
+        // 恢复搜索状态并重新搜索
+        restoreSearchState();
+        searchMovies();
+        showToast(data.message || '删除成功', 'success');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast(error.message || '删除失败', 'error');
+    });
 }
 
 // 搜索状态的全局函数
