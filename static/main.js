@@ -1705,7 +1705,13 @@ function displayCurrentPage() {
 
         tr.innerHTML = `
             <td class="hoverable" title="${movie.title}">${movie.title}</td>
-            <td>${movie.recommended ? '✅' : '❌'}</td>
+            <td>
+                <img src="/static/${movie.recommended ? 'recommend-light-icon' : 'recommend-icon'}.svg"
+                    height="20" 
+                    width="20" 
+                    alt="${movie.recommended ? '推荐' : '不推荐'}"
+                >
+            </td>
             <td class="hoverable" title="${movie.review || ''}">${movie.review || ''}</td>
             <td class="hoverable" title="${movie.tag_names || ''}">${movie.tag_names || ''}</td>
             <td class="ratings-cell">${ratingsCell}</td>
