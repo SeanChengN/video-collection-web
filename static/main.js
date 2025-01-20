@@ -232,9 +232,11 @@ const ModalManager = {
             'jackettModal': '[onclick*="openJackettModal"]',
             'wtlModal': '[onclick*="openWtlModal"]',
             'thunderModal': '[onclick*="openThunderModal"]',
-            'embyModal': '[onclick*="openEmbyModal"]'
+            'embyModal': '[onclick*="openEmbyModal"]',
+            'settingsModal': '[onclick*="openSettingsModal"]'
         };
-        return document.querySelector(buttonMap[modalId]);
+        const selector = buttonMap[modalId];
+        return selector ? document.querySelector(selector) : null;
     }
 };
 

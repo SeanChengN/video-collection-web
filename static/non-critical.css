@@ -338,14 +338,14 @@
 /* 统一悬停效果 */
 .function-tools .tool-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 10px var(--btn-color);
+    box-shadow: 0 6px 10px color-mix(in srgb, var(--btn-color) 40%, transparent);
     transition: all 0.3s;
     background: var(--btn-color);
 }
 /* 统一激活效果 */
 .function-tools .tool-btn:active {
     transform: translateY(1px);
-    box-shadow: 0 2px 5px var(--btn-color);
+    box-shadow: 0 2px 5px color-mix(in srgb, var(--btn-color) 40%, transparent);
 }
 /* 统一脉冲动画 */
 @keyframes button-pulse {
@@ -944,9 +944,8 @@
     border: 1px solid rgba(255, 255, 255, 0.4); /* 半透明边框 */
 
     /* 毛玻璃效果 */
-    backdrop-filter: blur(16px) !important; /* 背景模糊 */
-    -webkit-backdrop-filter: blur(16px) !important; /* Safari支持 */
-    background: rgba(255, 255, 255, 0.4) !important; /* 半透明背景 */
+    backdrop-filter: blur(12px) saturate(180%) !important; /* 背景模糊 */
+    background: rgba(255, 255, 255, 0.3) !important; /* 半透明背景 */
 
     /* 动画相关 */
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), /* 窗口最小化动画 */
@@ -957,8 +956,12 @@
     perspective: 1000px; /* 3D空间深度 */
 
     /* 阴影效果 */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), /* 主阴影 */
-                0 1px 3px rgba(0, 0, 0, 0.08); /* 次阴影 */
+    box-shadow: 
+        0 20px 50px 0 rgba(31, 38, 135, 0.25),  /* 主阴影 */
+        0 10px 24px 0 rgba(31, 38, 135, 0.2),   /* 中层阴影 */
+        0 0 0 1px rgba(255, 255, 255, 0.4),      /* 边缘描边 */
+        inset 0 0 60px rgba(255, 255, 255, 0.2), /* 内发光 */
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);/* 顶部高光 */
 }
 
 /* 模态框背景 */
@@ -1445,7 +1448,7 @@ th.resizing {
 /*----------------------------------------
   设置模态框样式 - 必要样式在index中
 ----------------------------------------*/
-.settings-button:hover {
+.settings-btn:hover {
     background-color: #f0f0f0;
 }
 
@@ -1547,6 +1550,39 @@ th.resizing {
 /* 表格行悬停效果 */
 .settings-modal .table tbody tr:hover {
     background-color: #f5f5f5;
+}
+
+/* 设置按钮特效 */
+.settings-btn:hover {
+    transform: translateY(-2px);
+    background: #8034FF !important;
+    box-shadow: 0 6px 16px rgba(151, 71, 255, 0.4) !important;
+}
+.settings-btn:hover .icon,
+.settings-btn.is-active .icon {
+    animation-duration: 1.5s;
+}
+.settings-btn:hover img,
+.settings-btn.is-active img {
+    transform: scale(1.3);
+    filter: brightness(0) invert(1);
+}
+.settings-btn:active{
+    transform: translateY(1px);
+    transform: scale(0.95);
+    background: #712aec !important;
+    box-shadow: 0 2px 8px rgba(113, 42, 136, 0.4) !important;
+}
+.settings-btn.is-active {
+    transform: translateY(1px);
+    transform: scale(0.95);
+    background: #712aec !important;
+    animation: button-pulse-settings-btn 2s infinite;
+}
+@keyframes button-pulse-settings-btn {
+    0% { box-shadow: 0 0 0 0 #712aec; }
+    70% { box-shadow: 0 0 0 10px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
 }
 
 
