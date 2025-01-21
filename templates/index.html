@@ -181,19 +181,22 @@
             font-weight: bold !important;
         }
         /* 特效样式 */
-        .settings-btn {
-            display: flex;
-            border: none !important;
-            overflow: hidden;
-            transition: all 0.2s;
-        }
-        .settings-btn img {
-            display: block;
-            transform-origin: center center;
-            transition: transform 0.3s ease-in-out;
-        }
         .settings-btn .icon {
             animation: rotate 5s linear infinite;
+        }
+        .settings-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.3s;
+            background: radial-gradient(
+                65.28% 65.28% at 50% 100%,
+                rgba(223, 113, 255, 0.8) 0%,
+                rgba(223, 113, 255, 0) 100%
+            ),
+            linear-gradient(0deg, #8034FF, #8034FF);
         }
 
         /*----------------------------------------
@@ -211,14 +214,9 @@
         .add-btn {
             min-width: 83px;
         }
-        .search-btn {
-            display: flex;
-            border: none !important;
-            overflow: hidden;
-            transition: all 0.2s;
-            background: #4169e1 !important;
-        }
-        /* 添加/保存按钮特效样式 */
+        /* 添加/保存/搜索按钮特效样式 */
+        .settings-btn,
+        .search-btn,
         .save-btn,
         .save-btn-small,
         .add-btn {
@@ -226,14 +224,46 @@
             border: none !important;
             overflow: hidden;
             transition: all 0.2s;
-            background: #22c55e !important;
+            background: transparent;
         }
+        .search-btn::before {
+            content: '';
+            inset: 0;
+            position: absolute;
+            z-index: 1;
+            background: radial-gradient(
+                65.28% 65.28% at 50% 100%,
+                rgba(142, 161, 255, 0.8) 0%,
+                rgba(142, 161, 255, 0) 100%
+            ),
+            linear-gradient(0deg, #4169e1, #4169e1);
+            transition: filter 0.3s;
+        }
+        .save-btn::before,
+        .save-btn-small::before,
+        .add-btn::before {
+            content: '';
+            inset: 0;
+            position: absolute;
+            z-index: 1;
+            background: radial-gradient(
+                65.28% 65.28% at 50% 100%,
+                rgba(110, 231, 183, 0.8) 0%,  /* 浅绿色光晕 */
+                rgba(110, 231, 183, 0) 100%
+            ),
+            linear-gradient(0deg, #17a84c, #17a84c);
+            transition: filter 0.3s;
+        }
+        .settings-btn span,
         .search-btn span,
         .save-btn span,
         .save-btn-small span,
         .add-btn span {
+            position: relative;
+            z-index: 2;
             transition: all 0.3s ease-in-out;
         }
+        .settings-btn img,
         .search-btn img,
         .save-btn img,
         .save-btn-small img,
@@ -244,14 +274,6 @@
         }
 
         /* 工具栏按钮特效 */
-        .function-tools .button {
-            background: #f3f3f3;
-            border: none;
-            transition: all 0.3s;
-        }
-        .function-tools .button .icon {
-            transition: all 0.3s;
-        }
         .function-tools {
             --btn-duplicate: rgb(255, 170, 31);
             --btn-jackett: rgb(89, 87, 88);
@@ -265,6 +287,34 @@
         .function-tools .wtl-btn { --btn-color: var(--btn-wtl); }
         .function-tools .thunder-btn { --btn-color: var(--btn-thunder); }
         .function-tools .emby-btn { --btn-color: var(--btn-emby); }
+
+        .function-tools .tool-btn {
+            display: flex;
+            border: none !important;
+            overflow: hidden;
+            transition: all 0.2s;
+            background: transparent;
+            background-color: #f5f5f5;
+        }
+        .function-tools .tool-btn::before {
+            content: '';
+            inset: 0;
+            position: absolute;
+            z-index: 1;
+            opacity: 0;
+            background: radial-gradient(
+                65.28% 65.28% at 50% 100%,
+                rgba(255, 255, 255, 0.3) 0%,
+                rgba(255, 255, 255, 0) 100%
+            ),
+            linear-gradient(0deg, var(--btn-color), var(--btn-color));
+            transition: opacity 0.3s;
+        }
+        .function-tools span {
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s;
+        }
 
         /* 推荐按钮效果 */
         .recommend-field label {
@@ -317,7 +367,7 @@
             padding-left: 0.8em !important;
             outline: none;
             overflow: hidden !important;
-            background-color: #F3F3F3 !important;
+            background-color: #f5f5f5 !important;
             border-radius: 10px !important;
             transition: all 0.5s;
         }

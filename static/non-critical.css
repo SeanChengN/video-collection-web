@@ -323,29 +323,35 @@
   功能区样式 - 必要样式在index中
 ----------------------------------------*/
 /* 工具栏按钮特效 */
-.function-tools .button:hover .icon {
+.function-tools .tool-btn:hover .icon {
     filter: brightness(0) invert(1);
-    transform: rotate(8deg);
+    transform: rotate(10deg);
     transition: all 0.3s;
 }
-.function-tools .button.is-active {
-    background: var(--btn-color);
-    animation: button-pulse 2s infinite;
-}
-.function-tools .button.is-active .icon {
+.function-tools .tool-btn.is-active .icon {
     filter: brightness(0) invert(1);
+    transition: all 0.3s;
 }
-/* 统一悬停效果 */
 .function-tools .tool-btn:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     box-shadow: 0 6px 10px color-mix(in srgb, var(--btn-color) 40%, transparent);
     transition: all 0.3s;
-    background: var(--btn-color);
 }
-/* 统一激活效果 */
+.function-tools .tool-btn:hover::before {
+    opacity: 1;
+}
 .function-tools .tool-btn:active {
-    transform: translateY(1px);
+    transform: scale(0.95) translateY(1px);
     box-shadow: 0 2px 5px color-mix(in srgb, var(--btn-color) 40%, transparent);
+}
+.function-tools .tool-btn.is-active {
+    transform: scale(0.95) translateY(1px);
+    animation: button-pulse 2s infinite;
+}
+.function-tools .tool-btn:active::before,
+.function-tools .tool-btn.is-active::before {
+    opacity: 1;
+    filter: brightness(95%);
 }
 /* 统一脉冲动画 */
 @keyframes button-pulse {
@@ -363,16 +369,40 @@
 .save-btn-small span {
     padding-right: 0.15rem;
 }
+
 .search-btn:hover {
-    background: #3b55d9 !important;
     box-shadow: 0 6px 16px rgba(67, 97, 238, 0.4) !important;
 }
 .save-btn:hover,
 .save-btn-small:hover,
 .add-btn:hover {
-    background: #16a34a !important;
     box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4) !important;
 }
+.delete-btn:hover::before,
+.search-btn:hover::before,
+.save-btn:hover::before,
+.save-btn-small:hover::before,
+.add-btn:hover::before {
+    filter: brightness(90%);
+}
+.search-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.2) !important;
+}
+.save-btn:active,
+.save-btn-small:active,
+.add-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2) !important;
+}
+.delete-btn:active::before,
+.search-btn:active::before,
+.save-btn:active::before,
+.save-btn-small:active::before,
+.add-btn:active::before {
+    filter: brightness(80%);
+}
+.delete-btn:hover .icon,
 .search-btn:hover .icon,
 .save-btn:hover .icon,
 .save-btn-small:hover .icon,
@@ -395,23 +425,12 @@
 .add-btn:hover img {
     transform: translateX(1.4em) rotate(90deg) scale(1.4);
 }
+.delete-btn:hover span:not(.icon),
 .search-btn:hover span,
 .save-btn:hover span,
 .save-btn-small:hover span,
 .add-btn:hover span {
     transform: translateX(5em);
-}
-.search-btn:active {
-    transform: scale(0.95);
-    background: #2b3eb2 !important;
-    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.2) !important;
-}
-.save-btn:active,
-.save-btn-small:active,
-.add-btn:active {
-    transform: scale(0.95);
-    background: #15803d !important;
-    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2) !important;
 }
 @keyframes fly-1 {
     from {transform: translateY(0.1em);}
@@ -429,17 +448,32 @@
     border: none !important;
     overflow: hidden;
     transition: all 0.2s;
-    background: #ff3950 !important;
+    background: transparent;
+}
+.delete-btn::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    z-index: 1;
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(255, 134, 134, 0.8) 0%,  /* 浅红色光晕 */
+        rgba(255, 134, 134, 0) 100%
+    ),
+    linear-gradient(0deg, #ff3950, #ff3950);  /* 深红色底色 */
+    transition: filter 0.3s;
 }
 .delete-btn span {
+    position: relative;
+    z-index: 2;
     transition: all 0.3s ease-in-out;
 }
 .delete-btn:hover {
-    background: #ef233c !important;
     box-shadow: 0 6px 16px rgba(241, 70, 104, 0.4) !important;
 }
-.delete-btn:hover .icon {
-    animation: fly-1 0.6s ease-in-out infinite alternate;
+.delete-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(241, 70, 104, 0.2) !important;
 }
 .delete-btn .bin-top {
     transform-origin: right; /* 垃圾桶翻盖动画 以右侧为中心旋转*/
@@ -449,14 +483,6 @@
 }
 .delete-btn:hover .bin-bottom {
     transform: translateX(1.4em) scale(1.1);
-}
-.delete-btn:hover span:not(.icon) {
-    transform: translateX(5em);
-}
-.delete-btn:active {
-    transform: scale(0.95);
-    background: #d90429 !important;
-    box-shadow: 0 2px 8px rgba(241, 70, 104, 0.2) !important;
 }
 
 
@@ -1552,8 +1578,10 @@ th.resizing {
 /* 设置按钮特效 */
 .settings-btn:hover {
     transform: translateY(-2px);
-    background: #8034FF !important;
     box-shadow: 0 6px 16px rgba(151, 71, 255, 0.4) !important;
+}
+.settings-btn:hover::before {
+    opacity: 1;
 }
 .settings-btn:hover .icon,
 .settings-btn.is-active .icon {
@@ -1564,17 +1592,18 @@ th.resizing {
     transform: scale(1.3);
     filter: brightness(0) invert(1);
 }
-.settings-btn:active{
-    transform: translateY(1px);
-    transform: scale(0.95);
-    background: #712aec !important;
+.settings-btn:active {
+    transform: scale(0.95) translateY(1px);
     box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
 }
 .settings-btn.is-active {
-    transform: translateY(1px);
-    transform: scale(0.95);
-    background: #712aec !important;
+    transform: scale(0.95) translateY(1px);
     animation: button-pulse-settings-btn 2s infinite;
+}
+.settings-btn:active::before,
+.settings-btn.is-active::before {
+    opacity: 1;
+    filter: brightness(90%);
 }
 @keyframes button-pulse-settings-btn {
     0% { box-shadow: 0 0 0 0 #712aec; }
@@ -1718,11 +1747,9 @@ th.resizing {
     box-shadow: 0 6px 16px rgba(151, 71, 255, 0.4) !important;
 }
 .dupStart-btn:active {
-    transform: translateY(1px);
-    transform: scale(0.95);
+    transform: scale(0.95) translateY(1px);
     box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
 }
-
 /* 泡泡特效 */
 .dupStart-btn .points_wrapper {
     overflow: hidden;
