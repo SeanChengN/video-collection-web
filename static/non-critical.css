@@ -1146,10 +1146,6 @@
     width: 60%;
     height: 70vh;
 }
-/* 迅雷模态框添加滚动条 */
-#thunderModal .modal-card-body {
-    overflow-x: auto;
-}
 
 /* 编辑模态框 */
 #editModal .modal-card {
@@ -1223,6 +1219,12 @@
     }
 }
 
+/* 讯雷窗口滚动条 */
+@media screen and (max-width: 815px) {
+    #thunderModal iframe {
+        min-width: 815px;
+    }
+}
 
 
 /*----------------------------------------
