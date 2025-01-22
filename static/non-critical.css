@@ -323,13 +323,13 @@
   功能区样式 - 必要样式在index中
 ----------------------------------------*/
 /* 工具栏按钮特效 */
-.function-tools .tool-btn:hover .icon {
-    filter: brightness(0) invert(1);
+.function-tools .tool-btn:hover svg {
+    fill: #fff;
     transform: rotate(10deg);
     transition: all 0.3s;
 }
-.function-tools .tool-btn.is-active .icon {
-    filter: brightness(0) invert(1);
+.function-tools .tool-btn.is-active svg {
+    fill: #fff;
     transition: all 0.3s;
 }
 .function-tools .tool-btn:hover {
@@ -367,7 +367,7 @@
 ----------------------------------------*/
 /* 按钮特效 */
 .save-btn-small span {
-    padding-right: 0.15rem;
+    padding-left: 0.3rem;
 }
 
 .search-btn:hover {
@@ -409,20 +409,16 @@
 .add-btn:hover .icon {
     animation: fly-1 0.6s ease-in-out infinite alternate;
 }
-.search-btn:hover img {
+.search-btn:hover svg {
     transform: translateX(1.4em) rotate(90deg) scale(1.5);
 }
-.save-btn:hover img {
+.save-btn:hover svg {
     transform: translateX(1.4em) rotate(20deg) scale(1.4);
 }
-.save-btn-small img {
-    visibility: hidden;
+.save-btn-small:hover svg {
+    transform: translateX(1.4em) rotate(20deg) scale(2.0);
 }
-.save-btn-small:hover img {
-    visibility: visible;
-    transform: translateX(1.6em) rotate(20deg) scale(3.5);
-}
-.add-btn:hover img {
+.add-btn:hover svg {
     transform: translateX(1.4em) rotate(90deg) scale(1.4);
 }
 .delete-btn:hover span:not(.icon),
@@ -1587,10 +1583,10 @@ th.resizing {
 .settings-btn.is-active .icon {
     animation-duration: 1.5s;
 }
-.settings-btn:hover img,
-.settings-btn.is-active img {
+.settings-btn:hover svg,
+.settings-btn.is-active svg {
     transform: scale(1.3);
-    filter: brightness(0) invert(1);
+    fill: #fff;
 }
 .settings-btn:active {
     transform: scale(0.95) translateY(1px);
@@ -1655,8 +1651,8 @@ th.resizing {
 }
 
 /* 推荐按钮样式 */
-.recommend-field input:checked + label img {
-    filter: invert(50%) sepia(100%) saturate(2000%) hue-rotate(360deg) brightness(100%) contrast(100%);
+.recommend-field input:checked + label svg {
+    fill: #ff7b00;
     animation: thumbUpButton 1s;
     transform: rotate(180deg); /* 旋转到最终状态 */
 }

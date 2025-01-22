@@ -263,11 +263,11 @@
             z-index: 2;
             transition: all 0.3s ease-in-out;
         }
-        .settings-btn img,
-        .search-btn img,
-        .save-btn img,
-        .save-btn-small img,
-        .add-btn img {
+        .settings-btn svg,
+        .search-btn svg,
+        .save-btn svg,
+        .save-btn-small svg,
+        .add-btn svg {
             display: block;
             transform-origin: center center;
             transition: transform 0.3s ease-in-out;
@@ -333,11 +333,11 @@
         .recommend-field input {
             display: none;
         }
-        .recommend-field label img {
+        .recommend-field label svg {
             transform: rotate(180deg);
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);  /* 弹性过渡效果 */
         }
-        .recommend-field input:not(:checked) + label img {
+        .recommend-field input:not(:checked) + label svg {
             transform: rotate(0deg);  /* 未选中时旋转到0度 */
         }
         .recommend-field input + label .action {
@@ -398,19 +398,39 @@
                 <div class="function-tools">
                     <div class="buttons">
                         <a href="#" class="button tool-btn duplicate-btn" onclick="openDuplicateModal(); return false;">
-                            <span class="icon"><img src="/static/duplicate-icon.svg" height="64" width="64" alt="查重核对"></span>
+                            <span class="icon">
+                                <svg width="64" height="64" fill="#ffaa1f" stroke="none" aria-label="查重核对">
+                                    <use href="/static/sprite.svg#duplicate-icon"></use>
+                                </svg>
+                            </span>
                         </a>
                         <a href="#" class="button tool-btn jackett-btn" onclick="openJackettModal(); return false;">
-                            <span class="icon"><img src="/static/jackett-icon.svg" height="64" width="64" alt="Jackett"></span>
+                            <span class="icon">
+                                <svg width="64" height="64" fill="#595757" stroke="none" aria-label="Jackett">
+                                    <use href="/static/sprite.svg#jackett-icon"></use>
+                                </svg>
+                            </span>
                         </a>
                         <a href="#" class="button tool-btn wtl-btn" onclick="openWtlModal(); return false;">
-                            <span class="icon"><img src="/static/wtl-icon.svg" height="64" width="64" alt="What's the link"></span>
+                            <span class="icon">
+                                <svg width="64" height="64" fill="#6768ff" stroke="none" aria-label="What's the link">
+                                    <use href="/static/sprite.svg#wtl-icon"></use>
+                                </svg>
+                            </span>
                         </a>
                         <a href="#" class="button tool-btn thunder-btn" onclick="openThunderModal(); return false;">
-                            <span class="icon"><img src="/static/thunder-icon.svg" height="64" width="64" alt="迅雷"></span>
+                            <span class="icon">
+                                <svg width="64" height="64" fill="#34a8e0" stroke="none" aria-label="迅雷">
+                                    <use href="/static/sprite.svg#thunder-icon"></use>
+                                </svg>
+                            </span>
                         </a>
                         <a href="#" class="button tool-btn emby-btn" onclick="openEmbyModal(); return false;">
-                            <span class="icon"><img src="/static/emby-icon.svg" height="64" width="64" alt="Emby"></span>
+                            <span class="icon">
+                                <svg width="64" height="64" fill="#52ac4b" stroke="none" aria-label="Emby">
+                                    <use href="/static/sprite.svg#emby-icon"></use>
+                                </svg>
+                            </span>
                         </a>
                     </div>
                 </div>
@@ -422,7 +442,11 @@
                         </div>
                         <div class="control">
                             <button class="button is-info search-btn" id="search-button">
-                                <span class="icon"><img src="/static/search-btn-icon.svg" height="14" width="14" alt="搜索"></span>
+                                <span class="icon">
+                                    <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="搜索">
+                                        <use href="/static/sprite.svg#search-btn-icon"></use>
+                                    </svg>
+                                </span>
                                 <span>搜索</span>
                             </button>
                         </div>
@@ -472,7 +496,11 @@
                     <div class="subtitle-with-controls">
                         <h2 class="subtitle">添加电影</h2>
                         <button class="button is-light is-small settings-btn" onclick="openSettingsModal()" aria-label="打开设置">
-                            <span class="icon"><img src="/static/settings-btn-icon.svg" height="14" width="14" alt="设置"></span>
+                            <span class="icon">
+                                <svg width="14" height="14" fill="#515151" stroke="none" aria-label="设置">
+                                    <use href="/static/sprite.svg#settings-btn-icon"></use>
+                                </svg>
+                            </span>
                         </button>
                     </div>
                     <form id="add-movie-form">
@@ -482,7 +510,9 @@
                         <div class="field recommend-field">
                             <input type="checkbox" id="recommended" name="recommended" value="1">
                             <label for="recommended">
-                                <img src="/static/recommend-icon.svg" height="20" width="20" alt="推荐">
+                                <svg width="20" height="20" fill="#515151" stroke="none" aria-label="推荐">
+                                    <use href="/static/sprite.svg#recommend-icon"></use>
+                                </svg>
                                 <div class="action">
                                     <span class="option-1">不推荐</span>
                                     <span class="option-2">推荐</span>
@@ -511,7 +541,11 @@
                             </div>
                         </div>
                         <button class="button is-primary add-btn" type="submit">
-                            <span class="icon"><img src="/static/add-btn-icon.svg" height="14" width="14" alt="添加"></span>
+                            <span class="icon">
+                                <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="添加">
+                                    <use href="/static/sprite.svg#add-btn-icon"></use>
+                                </svg>
+                            </span>
                             <span>添加</span>
                         </button>
                     </form>
@@ -537,7 +571,9 @@
                 <div class="field recommend-field">
                     <input type="checkbox" id="edit-recommended" name="recommended" value="1">
                     <label for="edit-recommended">
-                        <img src="/static/recommend-icon.svg" height="20" width="20" alt="推荐">
+                        <svg width="20" height="20" fill="currentColor" stroke="none" aria-label="推荐">
+                            <use href="/static/sprite.svg#recommend-icon"></use>
+                        </svg>
                         <div class="action">
                             <span class="option-1">不推荐</span>
                             <span class="option-2">推荐</span>
@@ -560,15 +596,23 @@
         <footer class="modal-card-foot">
             <div class="btn-group-left">
                 <button class="button is-success save-btn" onclick="updateMovie()">
-                    <span class="icon"><img src="/static/save-btn-icon.svg" height="14" width="14" alt="保存"></span>
+                    <span class="icon">
+                        <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="保存">
+                            <use href="/static/sprite.svg#save-btn-icon"></use>
+                        </svg>
+                    </span>
                     <span>保存</span>
                 </button>
                 <button class="button" onclick="closeModal()">取消</button>
             </div>
             <button class="button is-danger delete-btn" onclick="deleteMovie()">
                 <span class="icon">
-                    <img class="bin-top" src="/static/delete-btn-top-icon.svg" height="14" width="14" alt="删除">
-                    <img class="bin-bottom" src="/static/delete-btn-bottom-icon.svg" height="14" width="14" alt="删除">
+                    <svg class="bin-top" width="14" height="14" fill="currentColor" stroke="none" aria-label="删除">
+                        <use href="/static/sprite.svg#delete-btn-top-icon"></use>
+                    </svg>
+                    <svg class="bin-bottom" width="14" height="14" fill="currentColor" stroke="none" aria-label="删除">
+                        <use href="/static/sprite.svg#delete-btn-bottom-icon"></use>
+                    </svg>
                 </span>
                 <span>删除</span>
             </button>
@@ -595,7 +639,11 @@
                     </div>
                     <div class="control">
                         <button class="button is-info search-btn" onclick="searchWtl()">
-                            <span class="icon"><img src="/static/search-btn-icon.svg" height="14" width="14" alt="搜索"></span>
+                            <span class="icon">
+                                <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="搜索">
+                                    <use href="/static/sprite.svg#search-btn-icon"></use>
+                                </svg>
+                            </span>
                             <span>搜索</span>
                         </button>
                     </div>
@@ -660,7 +708,11 @@
                     </div>
                     <div class="control">
                         <button class="button is-info search-btn" onclick="searchEmby()">
-                            <span class="icon"><img src="/static/search-btn-icon.svg" height="14" width="14" alt="搜索"></span>
+                            <span class="icon">
+                                <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="搜索">
+                                    <use href="/static/sprite.svg#search-btn-icon"></use>
+                                </svg>
+                            </span>
                             <span>搜索</span>
                         </button>
                     </div>
@@ -740,7 +792,11 @@
                 <div class="add-item-form mb-3">
                     <input type="text" class="input" id="newTagInput" placeholder="输入新标签名称">
                     <button class="button is-primary add-btn" onclick="addNewTag()">
-                        <span class="icon"><img src="/static/add-btn-icon.svg" height="14" width="14" alt="添加"></span>
+                        <span class="icon">
+                            <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="添加">
+                                <use href="/static/sprite.svg#add-btn-icon"></use>
+                            </svg>
+                        </span>
                         <span>添加</span>
                     </button>
                 </div>
@@ -762,7 +818,11 @@
                 <div class="add-item-form mb-3">
                     <input type="text" class="input" id="newRatingInput" placeholder="输入新评分维度名称">
                     <button class="button is-primary add-btn" onclick="addNewRating()">
-                        <span class="icon"><img src="/static/add-btn-icon.svg" height="14" width="14" alt="添加"></span>
+                        <span class="icon">
+                            <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="添加">
+                                <use href="/static/sprite.svg#add-btn-icon"></use>
+                            </svg>
+                        </span>
                         <span>添加</span>
                     </button>
                 </div>

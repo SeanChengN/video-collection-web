@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="_图层_1" data-name="图层 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 526.29 600">
+<svg id="_图层_1" data-name=" 图层 1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 526.3 600">
   <defs>
     <style>
       .cls-1 {
-        fill: #fff;
+        fill: #000;
         stroke-width: 0px;
       }
     </style>
   </defs>
-  <g id="bin-bottom">
-    <rect class="cls-1" x="98" y="549.64" width="331.15" height="50.36"/>
-    <path class="cls-1" d="M-166.94,320.06h494.53v50.36H-181.94v-35.36c0-8.28,6.72-15,15-15Z" transform="translate(-272.41 418.06) rotate(-90)"/>
-    <rect class="cls-1" x="53.19" y="295.73" width="302.13" height="50.36" transform="translate(-116.65 525.17) rotate(-90)"/>
-    <rect class="cls-1" x="172.68" y="295.73" width="302.13" height="50.36" transform="translate(2.84 644.66) rotate(-90)"/>
-    <path class="cls-1" d="M199.57,320.06h509.53v50.36H214.57c-8.28,0-15-6.72-15-15v-35.36h0Z" transform="translate(109.1 799.57) rotate(-90)"/>
-  </g>
+  <rect class="cls-1" x="179.1" y="169.8" width="50.4" height="302.1"/>
+  <rect class="cls-1" x="298.6" y="169.8" width="50.4" height="302.1"/>
+  <path class="cls-1" d="M429.2,90.5v459.2H98V90.5h-50.4v494.5c0,8.3,6.7,15,15,15h401.9c8.3,0,15-6.7,15-15V90.5h-50.4.1Z"/>
 </svg>

@@ -888,7 +888,11 @@ function loadSettingsTags() {
                                 <div class="edit-form">
                                     <input type="text" class="input" value="${tag}">
                                     <button class="button is-success is-small save-btn-small" onclick="saveTagEdit(this, '${tag}')">
-                                        <span class="icon"><img src="/static/save-btn-icon.svg" height="42" width="42" alt="保存"></span>
+                                        <span class="icon">
+                                            <svg width="10" height="10" fill="currentColor" stroke="none" aria-label="保存">
+                                                <use href="/static/sprite.svg#save-btn-icon"></use>
+                                            </svg>
+                                        </span>
                                         <span>保存</span>
                                     </button>
                                     <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
@@ -919,7 +923,11 @@ function loadSettingsRatingDimensions() {
                                 <div class="edit-form">
                                     <input type="text" class="input" value="${dimension.name}">
                                     <button class="button is-success is-small save-btn-small" onclick="saveRatingEdit(this, '${dimension.name}')">
-                                        <span class="icon"><img src="/static/save-btn-icon.svg" height="42" width="42" alt="保存"></span>
+                                        <span class="icon">
+                                            <svg width="10" height="10" fill="currentColor" stroke="none" aria-label="保存">
+                                                <use href="/static/sprite.svg#save-btn-icon"></use>
+                                            </svg>
+                                        </span>
                                         <span>保存</span>
                                     </button>
                                     <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
@@ -1706,11 +1714,9 @@ function displayCurrentPage() {
         tr.innerHTML = `
             <td class="hoverable" title="${movie.title}">${movie.title}</td>
             <td>
-                <img src="/static/${movie.recommended ? 'recommend-light-icon' : 'recommend-icon'}.svg"
-                    height="20" 
-                    width="20" 
-                    alt="${movie.recommended ? '推荐' : '不推荐'}"
-                >
+                <svg width="20" height="20" fill="${movie.recommended ? '#ff7b00' : '#515151'}" stroke="none" aria-label="${movie.recommended ? '推荐' : '不推荐'}">
+                    <use href="/static/sprite.svg#${movie.recommended ? 'recommend-light-icon' : 'recommend-icon'}"></use>
+                </svg>
             </td>
             <td class="hoverable" title="${movie.review || ''}">${movie.review || ''}</td>
             <td class="hoverable" title="${movie.tag_names || ''}">${movie.tag_names || ''}</td>
