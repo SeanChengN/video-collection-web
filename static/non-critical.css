@@ -326,16 +326,15 @@
 .function-tools .tool-btn:hover svg {
     fill: #fff;
     transform: rotate(10deg);
-    transition: all 0.3s;
+    transition: transform 0.3s, background-color 0.3s;
 }
 .function-tools .tool-btn.is-active svg {
     fill: #fff;
-    transition: all 0.3s;
+    transition: transform 0.3s, background-color 0.3s;
 }
 .function-tools .tool-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 10px color-mix(in srgb, var(--btn-color) 40%, transparent);
-    transition: all 0.3s;
 }
 .function-tools .tool-btn:hover::before {
     opacity: 1;
@@ -437,13 +436,13 @@
 .delete-btn .bin-top,
 .delete-btn .bin-bottom {
     position: absolute; /* 必要，使两个图标叠加 */
-    transition: all 0.3s ease-in-out;
+    transition: transform 0.3s ease-in-out;
 }
 .delete-btn {
     display: flex;
     border: none !important;
     overflow: hidden;
-    transition: all 0.2s;
+    transition: transform 0.3s, box-shadow 0.3s;
     background: transparent;
 }
 .delete-btn::before {
@@ -462,7 +461,7 @@
 .delete-btn span {
     position: relative;
     z-index: 2;
-    transition: all 0.3s ease-in-out;
+    transition: transform 0.3s ease-in-out;
 }
 .delete-btn:hover {
     box-shadow: 0 6px 16px rgba(241, 70, 104, 0.4) !important;
@@ -1703,7 +1702,6 @@ th.resizing {
 /* 开始核对按钮样式 */
 .dupStart-btn {
     overflow: hidden;
-    transition: all 0.25s ease;
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
         rgba(223, 113, 255, 0.8) 0%,
@@ -1712,6 +1710,7 @@ th.resizing {
         linear-gradient(0deg, #7a5af8, #7a5af8);
     border: none !important;
     outline: none;
+    transition: background-color 0.3s ease, transform 0.3s, box-shadow 0.3s, position 0.3s, opacity 0.3s;
 }
 .dupStart-btn span {
     z-index: 2;
@@ -1720,7 +1719,6 @@ th.resizing {
 .dupStart-btn::after {
     content: "";
     position: absolute;
-    transition: all 0.5s ease-in-out;
     z-index: 0;
 }
 .dupStart-btn::before {

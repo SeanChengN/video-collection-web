@@ -156,12 +156,12 @@
         .tags-filter .tag {
             margin: 0.3rem;
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.3s ease;
             font-size: 0.9rem;
         }
         .tag { 
             cursor: pointer; 
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease;
             background-color: #d3d3d3;
             color: #4a4a4a;
         }
@@ -223,8 +223,8 @@
             display: flex;
             border: none !important;
             overflow: hidden;
-            transition: all 0.2s;
             background: transparent;
+            transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s, opacity 0.3s, fillter 0.3s;;
         }
         .search-btn::before {
             content: '';
@@ -261,7 +261,7 @@
         .add-btn span {
             position: relative;
             z-index: 2;
-            transition: all 0.3s ease-in-out;
+            transition: transform 0.3s ease-in-out;
         }
         .settings-btn svg,
         .search-btn svg,
@@ -292,9 +292,9 @@
             display: flex;
             border: none !important;
             overflow: hidden;
-            transition: all 0.2s;
             background: transparent;
             background-color: #f5f5f5;
+            transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s, opacity 0.3s, filter 0.3s;
         }
         .function-tools .tool-btn::before {
             content: '';
@@ -313,7 +313,7 @@
         .function-tools span {
             position: relative;
             z-index: 2;
-            transition: all 0.3s;
+            transition: transform 0.3s;
         }
 
         /* 推荐按钮效果 */
@@ -369,7 +369,7 @@
             overflow: hidden !important;
             background-color: #f5f5f5 !important;
             border-radius: 10px !important;
-            transition: all 0.5s;
+            transition: border-color 0.5s, box-shadow 0.5s, background-color 0.5s;
         }
         .field.has-addons {
             gap: 1rem;
