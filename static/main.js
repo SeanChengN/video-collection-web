@@ -1867,8 +1867,49 @@ function initImageUpload() {
     const uploadArea = document.getElementById('image-upload-area');
     const imageInput = document.getElementById('image-input');
     const previewContainer = uploadArea.querySelector('.image-preview-container');
+    const uploadPlaceholder = uploadArea.querySelector('.upload-placeholder');
     let uploadedFiles = []; // 存储文件对象
     
+    // 更新上传区域显示状态
+    function updateUploadArea() {
+        uploadPlaceholder.style.display = uploadedFiles.length > 0 ? 'none' : 'block';
+    }
+
+    // 处理新文件
+    function handleNewFiles(newFiles) {
+        // 图片文件验证
+        const validFiles = newFiles.filter(file => file.type.startsWith('image/'));
+        
+        if (validFiles.length === 0) {
+            alert('请选择图片文件');
+            return;
+        }
+        
+        // 过滤掉重复文件
+        const uniqueFiles = validFiles.filter(file => !uploadedFiles.some(existingFile => 
+            existingFile.name === file.name && 
+            existingFile.size === file.size &&
+            existingFile.type === file.type
+        ));
+        
+        if (uniqueFiles.length === 0) {
+            alert('所选图片已存在');
+            return;
+        }
+        
+        uploadedFiles = [...uploadedFiles, ...uniqueFiles];
+        
+        uniqueFiles.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                addImagePreview(e.target.result);
+                updateUploadArea();
+            };
+            reader.readAsDataURL(file);
+        });
+        updateUploadArea();
+    }
+
     // 删除预览图片的处理
     previewContainer.addEventListener('click', (e) => {
         if (e.target.classList.contains('delete-image')) {
@@ -1879,7 +1920,8 @@ function initImageUpload() {
                 previewItem.remove();
                 // 更新uploadedFiles数组
                 const index = Array.from(previewContainer.children).indexOf(previewItem);
-                uploadedFiles = uploadedFiles.filter((_, i) => i !== index);
+                uploadedFiles.splice(index, 1);
+                updateUploadArea();
             }
         }
     });
@@ -1902,54 +1944,35 @@ function initImageUpload() {
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadArea.classList.remove('dragover');
-        
-        // 图片文件验证
-        const files = Array.from(e.dataTransfer.files).filter(file => 
-            file.type.startsWith('image/'));
-            
-        uploadedFiles = files;
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                addImagePreview(e.target.result);
-            };
-            reader.readAsDataURL(file);
-        });
+        // 排除重复文件
+        handleNewFiles(Array.from(e.dataTransfer.files));
     });
     
     // 文件选择处理
     imageInput.addEventListener('change', () => {
-        // 图片文件验证
-        const files = Array.from(imageInput.files).filter(file => 
-            file.type.startsWith('image/'));
-
-        if (files.length === 0) {
-            alert('请选择图片文件');
-            return;
-        }
-
-        uploadedFiles = files; // 保存文件对象
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                addImagePreview(e.target.result);
-            };
-            reader.readAsDataURL(file);
-        });
+        // 排除重复文件
+        handleNewFiles(Array.from(imageInput.files));
     });
     
+    // 重置函数
+    window.resetImageUpload = () => {
+        uploadedFiles = [];
+        previewContainer.innerHTML = '';
+        uploadPlaceholder.style.display = 'block';
+    };
+
     // 将uploadedFiles暴露给表单使用
     window.getUploadedFiles = () => uploadedFiles;
 }
 
 // 添加预览图片
-function addImagePreview(dataUrl, filename) {
+function addImagePreview(dataUrl) {
     const previewContainer = document.querySelector('.image-preview-container');
     const previewItem = document.createElement('div');
     previewItem.className = 'preview-item';
     previewItem.innerHTML = `
         <img src="${dataUrl}" alt="预览图">
-        <button class="delete-image" data-filename="${filename}">×</button>
+        <button class="delete-image">×</button>
     `;
     previewContainer.appendChild(previewItem);
 }
@@ -2018,7 +2041,7 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
             this.reset();
             document.querySelectorAll('#add-tags .tag').forEach(tag => 
                 tag.classList.remove('is-selected'));
-            document.querySelector('.image-preview-container').innerHTML = '';
+            window.resetImageUpload(); // 重置图片上传区
             //searchMovies(); 不自动搜索电影
             // 成功消息定时清除
             setTimeout(() => {

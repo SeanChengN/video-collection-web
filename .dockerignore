@@ -58,3 +58,6 @@ memo.txt
 # 未合并图标文件
 static/*.svg
 !static/sprite.svg
+
+# 测试文件
+images/
