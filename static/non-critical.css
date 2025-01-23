@@ -536,12 +536,28 @@
 /*----------------------------------------
   折叠框样式 - 必要样式在index中
 ----------------------------------------*/
+.collapse-icon {
+    transition: transform 0.3s ease;
+}
+.collapse-icon.collapsed {
+    transform: rotate(-90deg);
+}
 .collapse-icon:not(.collapsed) {
     transform: rotate(0deg);
 }
-.box-content.expanded {
-    border-top: 1px solid #dbdbdb;
+.collapsible-box .box-content {
+    height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: opacity 0.25s ease, padding 0.25s ease;
     display: block;
+}
+.collapsible-box .box-content.expanded {
+    padding: 0.8rem 0.5rem 0.3rem;
+    height: auto;
+    opacity: 1;
+    border-top: 1px solid #dbdbdb;
+    transition: opacity 0.35s ease, padding 0.35s ease;
 }
 
 

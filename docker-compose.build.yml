@@ -17,6 +17,8 @@ services:
       EMBY_SERVER_URL: http://your-emby-server-address
       JACKETT_URL: http://your-jackett-server-address
       THUNDER_URL: http://your-thunder-server-address
+    volumes:
+      - ./images:/images
 
   db:
     image: mariadb:10.5
