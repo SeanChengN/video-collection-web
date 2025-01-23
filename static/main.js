@@ -1277,6 +1277,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadNonCriticalResources();
     loadRatingsDimensions();
     setupDropdownPositioning();
+    initImageUpload();
 });
 
 // 全局变量
@@ -1861,45 +1862,175 @@ function updatePagination() {
     paginationDiv.innerHTML = paginationHtml;
 }
 
+// 图片上传相关代码
+function initImageUpload() {
+    const uploadArea = document.getElementById('image-upload-area');
+    const imageInput = document.getElementById('image-input');
+    const previewContainer = uploadArea.querySelector('.image-preview-container');
+    let uploadedFiles = []; // 存储文件对象
+    
+    // 删除预览图片的处理
+    previewContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-image')) {
+            e.preventDefault();  // 阻止默认行为
+            e.stopPropagation(); // 阻止事件冒泡
+            const previewItem = e.target.closest('.preview-item');
+            if (previewItem) {
+                previewItem.remove();
+                // 更新uploadedFiles数组
+                const index = Array.from(previewContainer.children).indexOf(previewItem);
+                uploadedFiles = uploadedFiles.filter((_, i) => i !== index);
+            }
+        }
+    });
+
+    // 点击上传
+    uploadArea.addEventListener('click', () => {
+        imageInput.click();
+    });
+
+    // 拖放处理
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        // 图片文件验证
+        const files = Array.from(e.dataTransfer.files).filter(file => 
+            file.type.startsWith('image/'));
+            
+        uploadedFiles = files;
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                addImagePreview(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+    
+    // 文件选择处理
+    imageInput.addEventListener('change', () => {
+        // 图片文件验证
+        const files = Array.from(imageInput.files).filter(file => 
+            file.type.startsWith('image/'));
+
+        if (files.length === 0) {
+            alert('请选择图片文件');
+            return;
+        }
+
+        uploadedFiles = files; // 保存文件对象
+        files.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                addImagePreview(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+    
+    // 将uploadedFiles暴露给表单使用
+    window.getUploadedFiles = () => uploadedFiles;
+}
+
+// 添加预览图片
+function addImagePreview(dataUrl, filename) {
+    const previewContainer = document.querySelector('.image-preview-container');
+    const previewItem = document.createElement('div');
+    previewItem.className = 'preview-item';
+    previewItem.innerHTML = `
+        <img src="${dataUrl}" alt="预览图">
+        <button class="delete-image" data-filename="${filename}">×</button>
+    `;
+    previewContainer.appendChild(previewItem);
+}
+
 // 添加电影的表单提交处理
-document.getElementById('add-movie-form').addEventListener('submit', function(e) {
+document.getElementById('add-movie-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const formData = new FormData(this);
     const messageDiv = document.getElementById('add-movie-message');
     
-    const data = {
-        title: formData.get('title'),
-        recommended: formData.get('recommended') === '1',
-        review: formData.get('review'),
-        tags: Array.from(document.querySelectorAll('#add-tags .tag.is-selected')).map(tag => tag.textContent).join(','),
-        ratings: collectRatings()
-    };
+    try {
+        const files = window.getUploadedFiles() || [];
+        console.log('选择的文件:', files); // 调试输出1
 
-    fetch('/api/movies', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
+        // 上传所有图片并收集文件名
+        const uploadedFiles = [];
+        for(const file of files) {
+            const imageFormData = new FormData();
+            imageFormData.append('image', file);
+            imageFormData.append('title', formData.get('title'));
+            
+            const response = await fetch('/upload_image', {
+                method: 'POST',
+                body: imageFormData
+            });
+            
+            const result = await response.json();
+            console.log('上传结果:', result); // 调试输出2
+
+            if(result.success) {
+                uploadedFiles.push(result.filename);
+            } else {
+                throw new Error(result.message || '图片上传失败');
+            }
+        }
+
+        console.log('收集的文件名:', uploadedFiles); // 调试输出3
+
+        // 构建提交数据
+        const data = {
+            title: formData.get('title'),
+            recommended: formData.get('recommended') === '1',
+            review: formData.get('review'),
+            tags: Array.from(document.querySelectorAll('#add-tags .tag.is-selected'))
+                        .map(tag => tag.textContent).join(','),
+            ratings: collectRatings(),
+            image_filenames: uploadedFiles.join(',')
+        };
+
+        console.log('最终提交的数据:', data); // 调试输出4
+
+        // API提交电影信息
+        const movieResponse = await fetch('/api/movies', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+
+        const result = await movieResponse.json();
+
+        // 清除表单
         if (result.message) {
             messageDiv.innerHTML = `<div class="notification is-success">${result.message}</div>`;
             this.reset();
-            document.querySelectorAll('#add-tags .tag').forEach(tag => tag.classList.remove('is-selected'));
+            document.querySelectorAll('#add-tags .tag').forEach(tag => 
+                tag.classList.remove('is-selected'));
+            document.querySelector('.image-preview-container').innerHTML = '';
             //searchMovies(); 不自动搜索电影
             // 成功消息定时清除
             setTimeout(() => {
                 messageDiv.innerHTML = '';
             }, 3000);
         } else {
-            messageDiv.innerHTML = `<div class="notification is-danger">${result.error}</div>`;
+            messageDiv.innerHTML = `<div class="notification is-danger">${result.error || '添加失败'}</div>`;
         }
-    })
-    .catch(error => {
-        messageDiv.innerHTML = `<div class="notification is-danger">添加失败: ${error}</div>`;
-    });
+    } catch (error) {
+        console.error('Error:', error);
+        messageDiv.innerHTML = `<div class="notification is-danger">添加失败: ${error.message}</div>`;
+    }
 });
 
 // 在页面加载时初始化

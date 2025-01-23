@@ -54,3 +54,7 @@ icon.*
 # 日志和临时文件
 *.log
 memo.txt
+
+# 未合并图标文件
+static/*.svg
+!static/sprite.svg

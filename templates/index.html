@@ -51,7 +51,7 @@
             transform: rotate(-90deg);
         }
         .box-content {
-            padding: 0.5rem;
+            padding: 0.8rem 0.5rem 0.3rem;
             display: none;
         }
  
@@ -101,8 +101,10 @@
         }
         
         /*----------------------------------------
-          评分框通用样式 - 必要样式
+          标签框/评分框通用样式 - 必要样式
         ----------------------------------------*/
+        .tags-box,
+        .image-box,
         .ratings-box {
             border: 1px solid #e0e0e0;
             border-radius: 10px;
@@ -110,18 +112,7 @@
             background: #fff;
             box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
         }
-        
-        /*----------------------------------------
-          标签框通用样式 - 必要样式
-        ----------------------------------------*/
-        .tags-box {
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 0.5rem;
-            background: #fff;
-            box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
-        }
-        
+                
         /*----------------------------------------
           搜索过滤相关样式 - 必要样式
         ----------------------------------------*/
@@ -538,6 +529,28 @@
                             </div>
                             <div class="box-content">
                                 <div id="add-ratings-container"></div>
+                            </div>
+                        </div>
+                        <div class="collapsible-box image-box">
+                            <div class="box-header">
+                                <span class="box-title">图片</span>
+                                <div class="collapse-icon collapsed"></div>
+                            </div>
+                            <div class="box-content">
+                                <div class="image-upload-area" id="image-upload-area">
+                                    <input type="file" id="image-input" accept="image/*" multiple hidden>
+                                    <input type="hidden" id="image-filenames" name="image_filenames">
+                                    <div class="upload-placeholder">
+                                        <svg width="32" height="32" fill="#78c0dd" stroke="none">
+                                            <use href="/static/sprite.svg#upload-icon"></use>
+                                        </svg>
+                                        <p>点击或拖放图片到此处</p>
+                                        <p class="help">支持多选或多次拖放</p>
+                                    </div>
+                                    <div class="image-preview-container">
+                                        <!-- 预览图片将动态插入到这里 -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <button class="button is-primary add-btn" type="submit">

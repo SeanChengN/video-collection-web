@@ -1,12 +1,20 @@
-import os
-from flask import Flask, render_template, request, jsonify
-import mysql.connector
-from contextlib import contextmanager
-from flask_compress import Compress
+import os #文件操作
+import io #处理图像数据流
+import mysql.connector #数据库连接
+import time #时间处理
+import uuid #UUID生成
+from flask import Flask, render_template, request, jsonify, send_from_directory #Flask框架
+from contextlib import contextmanager #上下文管理器
+from flask_compress import Compress #压缩代码
+from PIL import Image #图像处理
 #import logging
 
 app = Flask(__name__)
 Compress(app)
+
+# 图片上传常量
+UPLOAD_FOLDER = '/images'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # 配置压缩选项
 app.config['COMPRESS_MIMETYPES'] = [
@@ -56,6 +64,7 @@ def init_db():
                     review TEXT,
                     tags VARCHAR(255),
 					ratings VARCHAR(255),
+                    image_filename TEXT,
                     added_date DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
@@ -118,8 +127,9 @@ def add_movie():
         title = data.get('title')
         recommended = 1 if data.get('recommended') else 0
         review = data.get('review', '')
-        tag_names = data.get('tags', '').split(',') # 获取标签名称列表
+        tag_names = data.get('tags', '').split(',')
         ratings = data.get('ratings', '')
+        image_filenames = data.get('image_filenames', '')
 
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -137,9 +147,9 @@ def add_movie():
             tags = ','.join(tag_ids)
 
             cursor.execute("""
-                INSERT INTO movies (title, recommended, review, tags, ratings)
-                VALUES (%s, %s, %s, %s, %s)
-            """, (title, recommended, review, tags, ratings))
+                INSERT INTO movies (title, recommended, review, tags, ratings, image_filename)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (title, recommended, review, tags, ratings, image_filenames))
             conn.commit()
         return jsonify({"message": "电影添加成功"}), 200
     except mysql.connector.Error as err:
@@ -419,6 +429,64 @@ def delete_movie(title):
     except Exception as e:
         print(f"未知错误: {str(e)}")
         return jsonify({"success": False, "message": "删除操作失败"}), 500
+
+# 图片访问路由
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+@app.route('/images/<path:filename>')
+def serve_image(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+# 图片文件验证
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def process_image(image_file):
+    # 打开图片
+    img = Image.open(image_file)
+    
+    # 计算等比例缩放尺寸,以720p为基准
+    width, height = img.size
+    target_height = 720
+    # 计算缩放比例并得到新的宽度
+    ratio = target_height / height
+    new_width = int(width * ratio)
+    
+    # 等比例缩放到目标尺寸
+    img = img.resize((new_width, target_height), Image.Resampling.LANCZOS)
+    
+    # 转换为WebP格式并压缩
+    output = io.BytesIO()
+    img.save(output, format='WebP', quality=85, optimize=True)
+    return output.getvalue()
+
+@app.route('/upload_image', methods=['POST'])
+def upload_image():
+    print("开始处理图片上传请求")
+    if 'image' not in request.files:
+        print("没有接收到文件")
+        return jsonify({'success': False, 'message': '没有文件'})
+        
+    file = request.files['image']
+ 
+    if file and allowed_file(file.filename):
+        # 使用timestamp + uuid确保文件名唯一
+        timestamp = int(time.time())
+        unique_id = str(uuid.uuid4())[:8] 
+        filename = f"{timestamp}_{unique_id}.webp"
+        
+        # 处理并保存图片
+        try:
+            processed_image = process_image(file)
+            with open(os.path.join(UPLOAD_FOLDER, filename), 'wb') as f:
+                f.write(processed_image)
+            print(f"图片保存成功: {filename}")
+            return jsonify({
+                'success': True,
+                'filename': filename
+            })
+        except Exception as e:
+            print(f"图片处理失败: {str(e)}")
+            return jsonify({'success': False, 'message': f'图片处理失败: {str(e)}'})
 
 if __name__ == "__main__":
     if init_db():
