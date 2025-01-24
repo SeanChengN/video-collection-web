@@ -607,6 +607,25 @@
                     </div>
                 </div>
                 <div id="edit-ratings-container"></div>
+                <div class="field">
+                    <div class="image-box">
+                        <div class="image-box-title">图片</div>
+                        <div class="image-upload-area" id="edit-image-upload-area">
+                            <input type="file" id="edit-image-input" accept="image/*" multiple hidden>
+                            <input type="hidden" id="edit-image-filenames" name="image_filenames">
+                            <div class="upload-placeholder">
+                                <svg width="32" height="32" fill="#78c0dd" stroke="none">
+                                    <use href="/static/sprite.svg#upload-icon"></use>
+                                </svg>
+                                <p>点击或拖放图片到此处</p>
+                                <p class="help">支持多选或多次拖放</p>
+                            </div>
+                            <div class="image-preview-container">
+                                <!-- 预览图片将动态插入到这里 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </form>
         </section>
         <footer class="modal-card-foot">

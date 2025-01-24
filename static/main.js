@@ -1296,40 +1296,15 @@ function loadRatingsDimensions() {
         });
 }
 
-// 创建评分表单
+// 创建评分表单 - 专用于添加电影中创建评分框
 function createRatingForms() {
-    // 编辑表单的评分区域
-    const editRatingsBox = document.createElement('div');
-    editRatingsBox.className = 'ratings-box';
-    editRatingsBox.style.display = 'block';
-    
-    const editBoxTitle = document.createElement('div');
-    editBoxTitle.className = 'ratings-box-title';
-    editBoxTitle.textContent = '评分';
-    
-    const editRatingsContainer = document.createElement('div');
-    editRatingsContainer.id = 'edit-ratings-container';
-    editRatingsContainer.style.display = 'block';
-    
-    // 添加表单的评分区域
+    // 添加电影 表单的评分区域
     const addRatingsContainer = document.getElementById('add-ratings-container');
-    
     ratingsDimensions.forEach(dimension => {
-        // 为编辑表单创建评分字段
-        const editField = createRatingField(dimension, true);
-        editRatingsContainer.appendChild(editField);
-        
-        // 为添加表单创建评分字段
+        // 为添加电影 表单创建评分字段
         const addField = createRatingField(dimension, false);
         addRatingsContainer.appendChild(addField);
     });
-    
-    editRatingsBox.appendChild(editBoxTitle);
-    editRatingsBox.appendChild(editRatingsContainer);
-    
-    // 插入到编辑表单中
-    const editForm = document.querySelector('#editModal .modal-card-body form');
-    editForm.appendChild(editRatingsBox);
 }
 
 
@@ -1470,12 +1445,16 @@ async function loadEditTags() {
     }
 }
 
-// 加载编辑评分
+// 加载编辑评分 - 专用于编辑窗口中创建评分框
 async function loadEditRatings() {
     try {
         const response = await fetch('/get_ratings_dimensions');
         const result = await response.json();
         if (result.success) {
+            // 创建外层field容器
+            const fieldDiv = document.createElement('div');
+            fieldDiv.className = 'field';
+
             // 创建评分框容器
             const ratingsBox = document.createElement('div');
             ratingsBox.className = 'ratings-box';
@@ -1484,31 +1463,34 @@ async function loadEditRatings() {
             const boxTitle = document.createElement('div');
             boxTitle.className = 'ratings-box-title';
             boxTitle.textContent = '评分';
-            ratingsBox.appendChild(boxTitle);
             
             // 创建评分容器
-            const editRatingsContainer = document.createElement('div');
-            editRatingsContainer.id = 'edit-ratings-container';
+            const ratingsContainer = document.createElement('div');
+            ratingsContainer.id = 'edit-ratings-container';
             
             // 添加评分维度
             result.dimensions.forEach(dimension => {
                 const field = createRatingField(dimension, true);
-                editRatingsContainer.appendChild(field);
+                ratingsContainer.appendChild(field);
             });
             
-            ratingsBox.appendChild(editRatingsContainer);
+            ratingsBox.appendChild(boxTitle);
+            ratingsBox.appendChild(ratingsContainer);
+            fieldDiv.appendChild(ratingsBox);
             
             // 插入到表单中
-            const form = document.querySelector('#editModal .modal-card-body form');
-            const tagsField = form.querySelector('.field:last-of-type');
-            
-            // 移除旧的评分框
-            const oldRatingsBox = form.querySelector('.ratings-box');
-            if (oldRatingsBox) {
-                oldRatingsBox.remove();
-            }
-            
-            form.insertBefore(ratingsBox, tagsField.nextSibling);
+            const form = document.querySelector('#edit-movie-form');
+            const imageBox = form.querySelector('.image-box').closest('.field');
+
+            // 移除所有已存在的评分框
+            const oldRatingsBoxes = form.querySelectorAll('.ratings-box');
+            oldRatingsBoxes.forEach(box => {
+                const fieldParent = box.closest('.field');
+                if (fieldParent) fieldParent.remove();
+            });
+
+            // 插入到图片框之前
+            form.insertBefore(fieldDiv, imageBox);
         }
     } catch (error) {
         console.error('加载评分维度失败:', error);
@@ -1864,8 +1846,16 @@ function updatePagination() {
 
 // 图片上传相关代码
 function initImageUpload() {
-    const uploadArea = document.getElementById('image-upload-area');
-    const imageInput = document.getElementById('image-input');
+    // 为添加和编辑表单分别初始化上传区域
+    initUploadArea('image-upload-area', 'image-input');
+    initUploadArea('edit-image-upload-area', 'edit-image-input');
+}
+
+function initUploadArea(areaId, inputId) {
+    const uploadArea = document.getElementById(areaId);
+    if (!uploadArea) return; // 确保元素存在
+
+    const imageInput = document.getElementById(inputId);
     const previewContainer = uploadArea.querySelector('.image-preview-container');
     const uploadPlaceholder = uploadArea.querySelector('.upload-placeholder');
     let uploadedFiles = []; // 存储文件对象
@@ -1902,7 +1892,7 @@ function initImageUpload() {
         uniqueFiles.forEach(file => {
             const reader = new FileReader();
             reader.onload = (e) => {
-                addImagePreview(e.target.result);
+                addImagePreview(file, uploadArea);
                 updateUploadArea();
             };
             reader.readAsDataURL(file);
@@ -1964,23 +1954,28 @@ function initImageUpload() {
     };
 
     // 将uploadedFiles暴露给表单使用
-    window.getUploadedFiles = () => uploadedFiles;
+    window[`get${areaId}Files`] = () => uploadedFiles;
 }
 
 // 添加预览图片
-function addImagePreview(dataUrl) {
-    const previewContainer = document.querySelector('.image-preview-container');
-    const previewItem = document.createElement('div');
-    previewItem.className = 'preview-item';
-    previewItem.innerHTML = `
-        <img src="${dataUrl}" alt="预览图">
-        <button class="delete-image">
-            <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
-                <use href="/static/sprite.svg#close-icon"></use>
-            </svg>
-        </button>
-    `;
-    previewContainer.appendChild(previewItem);
+function addImagePreview(file, uploadArea) {
+    const previewContainer = uploadArea.querySelector('.image-preview-container');
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        const previewItem = document.createElement('div');
+        previewItem.className = 'preview-item';
+        previewItem.innerHTML = `
+            <img src="${e.target.result}" alt="预览图">
+            <button class="delete-image" onclick="this.parentElement.remove()">
+                <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
+                    <use href="/static/sprite.svg#close-icon"></use>
+                </svg>
+            </button>
+        `;
+        previewContainer.appendChild(previewItem);
+    };
+    reader.readAsDataURL(file);
 }
 
 // 添加电影的表单提交处理
