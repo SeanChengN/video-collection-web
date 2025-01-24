@@ -164,6 +164,7 @@ def update_movie(title):
         review = data.get('review', '')
         tag_names = data.get('tags', '').split(',')
         ratings = data.get('ratings', '')
+        image_filenames = data.get('image_filenames', '')
 
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -176,17 +177,17 @@ def update_movie(title):
                     result = cursor.fetchone()
                     if result:
                         tag_ids.append(str(result[0]))
-            
+
             # 将标签ID用逗号连接
             tags = ','.join(tag_ids)
-			
+
             cursor.execute("""
                 UPDATE movies 
-                SET recommended = %s, review = %s, tags = %s, ratings = %s
+                SET recommended = %s, review = %s, tags = %s, ratings = %s, image_filename = %s
                 WHERE title = %s
-            """, (recommended, review, tags, ratings, title))
-            
-            conn.commit()			
+            """, (recommended, review, tags, ratings, image_filenames, title))
+
+            conn.commit()
 			
         return jsonify({"message": "电影更新成功"}), 200
     except mysql.connector.Error as err:

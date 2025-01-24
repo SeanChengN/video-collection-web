@@ -1567,43 +1567,55 @@ function restoreSearchState() {
 }
 
 // 更新电影信息
-function updateMovie() {
-    const form = document.getElementById('edit-movie-form')
-    const title = document.getElementById('edit-title').value;
-    
-    // 保存当前的搜索状态
-    saveSearchState();
+async function updateMovie() {
+    try {
+        const form = document.getElementById('edit-movie-form')
+        const title = document.getElementById('edit-title').value;
+        
+        // 保存当前的搜索状态
+        saveSearchState();
 
-    const data = {
-        title: title,
-        recommended: document.getElementById('edit-recommended').checked ? 1 : 0,
-        review: form.querySelector('[id="edit-review"]').value,
-        tags: Array.from(document.querySelectorAll('#edit-tags .tag.is-selected')).map(tag => tag.textContent).join(','),
-        ratings: collectRatings(true)
-    };
+        // 处理图片上传
+        const uploadedFiles = window[`getedit-image-upload-areaFiles`]() || [];
+        const uploadResults = await Promise.all(uploadedFiles.map(async file => {
+            const formData = new FormData();
+            formData.append('image', file);
+            const response = await fetch('/upload_image', { method: 'POST', body: formData });
+            return response.json();
+        }));
 
-    fetch(`/api/movies/${encodeURIComponent(title)}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
+        const filenames = uploadResults
+            .filter(result => result.success)
+            .map(result => result.filename)
+            .join(',');
+
+        const data = {
+            title: title,
+            recommended: document.getElementById('edit-recommended').checked ? 1 : 0,
+            review: form.querySelector('[id="edit-review"]').value,
+            tags: Array.from(document.querySelectorAll('#edit-tags .tag.is-selected')).map(tag => tag.textContent).join(','),
+            ratings: collectRatings(true),
+            image_filenames: filenames
+        };
+
+        const response = await fetch(`/api/movies/${encodeURIComponent(title)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
         if (result.message) {
             document.getElementById('editModal').classList.remove('is-active');
-            
             // 恢复搜索状态并重新搜索
             restoreSearchState();
             searchMovies();
         } else {
             alert(result.error || '更新失败');
         }
-    })
-    .catch(error => {
+    } catch (error) {
         alert(`更新失败: ${error}`);
-    });
+    }
 }
 
 // 搜索结果显示
