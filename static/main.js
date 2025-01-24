@@ -1912,17 +1912,19 @@ function initImageUpload() {
 
     // 删除预览图片的处理
     previewContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('delete-image')) {
-            e.preventDefault();  // 阻止默认行为
-            e.stopPropagation(); // 阻止事件冒泡
-            const previewItem = e.target.closest('.preview-item');
-            if (previewItem) {
-                previewItem.remove();
-                // 更新uploadedFiles数组
-                const index = Array.from(previewContainer.children).indexOf(previewItem);
-                uploadedFiles.splice(index, 1);
-                updateUploadArea();
-            }
+        // 检查点击的是否是删除按钮或其子元素(SVG图标)
+        const deleteButton = e.target.closest('.delete-image');
+        if (!deleteButton) return;
+
+        e.preventDefault();  // 阻止默认行为
+        e.stopPropagation(); // 阻止事件冒泡
+        const previewItem = deleteButton.closest('.preview-item');
+        if (previewItem) {
+            previewItem.remove();
+            // 更新uploadedFiles数组
+            const index = Array.from(previewContainer.children).indexOf(previewItem);
+            uploadedFiles.splice(index, 1);
+            updateUploadArea();
         }
     });
 
@@ -1972,7 +1974,11 @@ function addImagePreview(dataUrl) {
     previewItem.className = 'preview-item';
     previewItem.innerHTML = `
         <img src="${dataUrl}" alt="预览图">
-        <button class="delete-image">×</button>
+        <button class="delete-image">
+            <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
+                <use href="/static/sprite.svg#close-icon"></use>
+            </svg>
+        </button>
     `;
     previewContainer.appendChild(previewItem);
 }
