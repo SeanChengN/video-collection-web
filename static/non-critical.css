@@ -725,6 +725,52 @@
 
 
 /*----------------------------------------
+  编辑电影框中的图片上传样式
+----------------------------------------*/
+.existing-images {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.existing-image-item {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.existing-image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.delete-existing-image {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+}
+
+.delete-existing-image:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+
+
+/*----------------------------------------
   编辑电影框中的星星样式
 ----------------------------------------*/
 #editModal .rating {

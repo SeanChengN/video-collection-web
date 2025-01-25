@@ -1371,6 +1371,9 @@ function openModal(movie) {
         oldDateField.remove();
     }
     
+    // 清空旧的图片区域
+    window.resetImageUpload()
+
     // 设置基本信息
     document.getElementById('edit-title').value = movie.title;
     
@@ -1420,6 +1423,29 @@ function openModal(movie) {
         }
     });
     
+    // 检查并显示已有图片
+    const existingImagesContainer = modal.querySelector('.existing-images');
+    existingImagesContainer.innerHTML = ''; // 清空现有内容
+
+    if (movie.image_filename && movie.image_filename.trim()) {
+        const images = movie.image_filename.split(',');
+        images.forEach(filename => {
+            if (filename.trim()) {
+                const imageWrapper = document.createElement('div');
+                imageWrapper.className = 'existing-image-item';
+                imageWrapper.innerHTML = `
+                    <img src="/images/${filename.trim()}" alt="预览图">
+                    <button class="delete-existing-image" data-filename="${filename.trim()}" type="button">
+                        <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
+                            <use href="/static/sprite.svg#close-icon"></use>
+                        </svg>
+                    </button>
+                `;
+                existingImagesContainer.appendChild(imageWrapper);
+            }
+        });
+    }
+
     // 显示模态框
     ModalManager.open('editModal');
 }
