@@ -1372,7 +1372,7 @@ function openModal(movie) {
     }
     
     // 清空旧的图片区域
-    window.resetImageUpload()
+    window['resetedit-image-upload-area']();
 
     // 设置基本信息
     document.getElementById('edit-title').value = movie.title;
@@ -1425,7 +1425,11 @@ function openModal(movie) {
     
     // 检查并显示已有图片
     const existingImagesContainer = modal.querySelector('.existing-images');
+    existingImagesContainer.style.display = movie.image_filename ? 'block' : 'none'; // 如果没有已存在图片，则隐藏容器
     existingImagesContainer.innerHTML = ''; // 清空现有内容
+
+    // 数组存储当前显示的图片文件名
+    const currentImages = new Set();
 
     if (movie.image_filename && movie.image_filename.trim()) {
         const images = movie.image_filename.split(',');
@@ -1441,10 +1445,24 @@ function openModal(movie) {
                         </svg>
                     </button>
                 `;
+
+                // 添加删除按钮点击事件
+                const deleteButton = imageWrapper.querySelector('.delete-existing-image');
+                deleteButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    imageWrapper.remove();
+                    currentImages.delete(filename.trim());
+                });
+
+                currentImages.add(filename.trim());
+
                 existingImagesContainer.appendChild(imageWrapper);
             }
         });
     }
+
+    // 将当前图片集合保存到modal元素中，供updateMovie使用
+    modal.dataset.currentImages = JSON.stringify(Array.from(currentImages));
 
     // 显示模态框
     ModalManager.open('editModal');
@@ -1595,13 +1613,18 @@ function restoreSearchState() {
 // 更新电影信息
 async function updateMovie() {
     try {
-        const form = document.getElementById('edit-movie-form')
+        const form = document.getElementById('edit-movie-form');
         const title = document.getElementById('edit-title').value;
+        const modal = document.getElementById('editModal');
         
         // 保存当前的搜索状态
         saveSearchState();
 
-        // 处理图片上传
+        // 获取当前保留的现有图片
+        const currentImages = Array.from(modal.querySelectorAll('.existing-image-item img'))
+            .map(img => img.src.split('/').pop());
+
+        // 处理新上传的图片
         const uploadedFiles = window[`getedit-image-upload-areaFiles`]() || [];
         const uploadResults = await Promise.all(uploadedFiles.map(async file => {
             const formData = new FormData();
@@ -1610,10 +1633,12 @@ async function updateMovie() {
             return response.json();
         }));
 
-        const filenames = uploadResults
+        // 合并现有图片和新上传图片的文件名
+        const newFilenames = uploadResults
             .filter(result => result.success)
-            .map(result => result.filename)
-            .join(',');
+            .map(result => result.filename);
+
+        const allFilenames = [...currentImages, ...newFilenames].join(',');
 
         const data = {
             title: title,
@@ -1621,7 +1646,9 @@ async function updateMovie() {
             review: form.querySelector('[id="edit-review"]').value,
             tags: Array.from(document.querySelectorAll('#edit-tags .tag.is-selected')).map(tag => tag.textContent).join(','),
             ratings: collectRatings(true),
-            image_filenames: filenames
+            image_filenames: allFilenames,
+            // 原始图片列表，用于后端对比删除的图片
+            original_images: modal.dataset.currentImages
         };
 
         const response = await fetch(`/api/movies/${encodeURIComponent(title)}`, {
@@ -1632,7 +1659,7 @@ async function updateMovie() {
 
         const result = await response.json();
         if (result.message) {
-            document.getElementById('editModal').classList.remove('is-active');
+            ModalManager.close('editModal');
             // 恢复搜索状态并重新搜索
             restoreSearchState();
             searchMovies();
@@ -1985,10 +2012,11 @@ function initUploadArea(areaId, inputId) {
     });
     
     // 重置函数
-    window.resetImageUpload = () => {
+    window[`reset${areaId}`] = () => {
         uploadedFiles = [];
         previewContainer.innerHTML = '';
         uploadPlaceholder.style.display = 'block';
+        imageInput.value = '';
     };
 
     // 将uploadedFiles暴露给表单使用
@@ -2023,7 +2051,7 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
     const messageDiv = document.getElementById('add-movie-message');
     
     try {
-        const files = window.getUploadedFiles() || [];
+        const files = window[`getimage-upload-areaFiles`]() || [];
         console.log('选择的文件:', files); // 调试输出1
 
         // 上传所有图片并收集文件名
@@ -2080,7 +2108,8 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
             this.reset();
             document.querySelectorAll('#add-tags .tag').forEach(tag => 
                 tag.classList.remove('is-selected'));
-            window.resetImageUpload(); // 重置图片上传区
+            // 重置图片上传区
+            window['resetimage-upload-area']();
             //searchMovies(); 不自动搜索电影
             // 成功消息定时清除
             setTimeout(() => {

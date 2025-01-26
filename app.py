@@ -3,6 +3,7 @@ import io #处理图像数据流
 import mysql.connector #数据库连接
 import time #时间处理
 import uuid #UUID生成
+import json #JSON处理
 from flask import Flask, render_template, request, jsonify, send_from_directory #Flask框架
 from contextlib import contextmanager #上下文管理器
 from flask_compress import Compress #压缩代码
@@ -165,6 +166,7 @@ def update_movie(title):
         tag_names = data.get('tags', '').split(',')
         ratings = data.get('ratings', '')
         image_filenames = data.get('image_filenames', '')
+        original_images = json.loads(data.get('original_images', '[]'))
 
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -181,6 +183,24 @@ def update_movie(title):
             # 将标签ID用逗号连接
             tags = ','.join(tag_ids)
 
+            # 处理图片文件删除
+            if original_images:
+                current_images = set(image_filenames.split(',') if image_filenames else [])
+                original_images_set = set(original_images)
+                
+                # 找出需要删除的图片
+                images_to_delete = original_images_set - current_images
+                
+                # 删除不再使用的图片文件
+                for filename in images_to_delete:
+                    try:
+                        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                        if os.path.exists(file_path):
+                            os.remove(file_path)
+                    except Exception as e:
+                        print(f"删除图片文件失败: {filename}, 错误: {str(e)}")
+            
+            # 更新数据库记录
             cursor.execute("""
                 UPDATE movies 
                 SET recommended = %s, review = %s, tags = %s, ratings = %s, image_filename = %s
@@ -192,6 +212,8 @@ def update_movie(title):
         return jsonify({"message": "电影更新成功"}), 200
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/get_ratings_dimensions", methods=["GET"])
 def get_ratings_dimensions():
@@ -411,14 +433,27 @@ def update_rating_dimension():
 def delete_movie(title):
     try:
         with get_db_connection() as conn:
-            cursor = conn.cursor()
+            cursor = conn.cursor(dictionary=True)
             
             # 首先检查电影是否存在
             cursor.execute("SELECT title FROM movies WHERE title = %s", (title,))
             if not cursor.fetchone():
                 return jsonify({"success": False, "message": "电影名称不存在"}), 404
             
-            # 开始删除操作
+            # 获取电影信息，包括图片文件名
+            cursor.execute("SELECT image_filename FROM movies WHERE title = %s", (title,))
+            movie = cursor.fetchone()
+            
+            # 删除关联的图片文件
+            if movie['image_filename']:
+                image_files = movie['image_filename'].split(',')
+                for filename in image_files:
+                    if filename.strip():
+                        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename.strip())
+                        if os.path.exists(file_path):
+                            os.remove(file_path)
+
+            # 删除数据库记录
             cursor.execute("DELETE FROM movies WHERE title = %s", (title,))
             conn.commit()
             

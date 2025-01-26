@@ -651,9 +651,11 @@
 
 
 /*----------------------------------------
-  折叠框中的图片上传样式
+  图片上传框 - 通用样式
 ----------------------------------------*/
+/* 图片预览容器 */
 .image-upload-area {
+    margin-top: 0.5rem;
     border: 2px dashed #dbdbdb;
     border-radius: 10px;
     padding: 15px;
@@ -665,26 +667,31 @@
     border-color: #3273dc;
     background-color: rgba(50, 115, 220, 0.1);
 }
+.image-upload-area:hover {
+    border-color: rgba(50, 115, 220, 0.5);
+    background-color: rgba(50, 115, 220, 0.02);
+}
 .image-upload-area .upload-placeholder {
     color: #666;
 }
 .image-preview-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 10px;
     margin-top: 5px;
 }
+/* 图片预览样式 */
 .preview-item {
     position: relative;
     aspect-ratio: 1;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(50, 115, 220, 0.2);
     border-radius: 8px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
 }
 .preview-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 12px rgba(50, 115, 220, 0.3);
 }
 .preview-item img {
     width: 100%;
@@ -693,6 +700,7 @@
     border-radius: 8px;
     display: block;
 }
+/* 删除按钮样式 */
 .preview-item .delete-image {
     position: absolute;
     top: -8px;
@@ -725,34 +733,39 @@
 
 
 /*----------------------------------------
-  编辑电影框中的图片上传样式
+  编辑电影框中已存在图片样式
 ----------------------------------------*/
+/* 图片预览容器 */
 .existing-images {
-    padding: 0.8rem 0 0.8rem;
+    padding: 0.5rem 0.2rem 0.2rem;
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
 }
-
+/* 图片预览样式 */
 .existing-image-item {
     position: relative;
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
     border-radius: 4px;
     overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-
+.existing-image-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
 .existing-image-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
-
+/* 删除按钮样式 */
 .delete-existing-image {
     position: absolute;
     top: 5px;
     right: 5px;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.3);
     border: none;
     border-radius: 50%;
     width: 24px;
@@ -762,12 +775,16 @@
     justify-content: center;
     cursor: pointer;
     color: white;
+    transition: transform 0.2s ease, background-color 0.2s ease;
 }
-
 .delete-existing-image:hover {
+    transform: scale(1.15);
+    background: rgba(0, 0, 0, 0.5);
+}
+.delete-existing-image:active {
+    transform: scale(0.95);
     background: rgba(0, 0, 0, 0.7);
 }
-
 
 
 /*----------------------------------------
