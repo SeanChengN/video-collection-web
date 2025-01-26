@@ -1425,7 +1425,7 @@ function openModal(movie) {
     
     // 检查并显示已有图片
     const existingImagesContainer = modal.querySelector('.existing-images');
-    existingImagesContainer.style.display = movie.image_filename ? 'block' : 'none'; // 如果没有已存在图片，则隐藏容器
+    existingImagesContainer.style.display = movie.image_filename ? 'flex' : 'none'; // 如果没有已存在图片，则隐藏容器
     existingImagesContainer.innerHTML = ''; // 清空现有内容
 
     // 数组存储当前显示的图片文件名
@@ -1759,8 +1759,19 @@ function displayCurrentPage() {
             </div>` :
             '<button class="button is-small" disabled>暂无评分</button>';
 
-        tr.innerHTML = `
-            <td class="hoverable" title="${movie.title}">${movie.title}</td>
+            tr.innerHTML = `
+            <td class="hoverable">
+                ${movie.image_filename ? `
+                    <div class="movie-title-with-image">
+                        <div class="movie-preview-image">
+                            <img src="/images/${movie.image_filename.split(',')[0]}" alt="预览图">
+                        </div>
+                        <span title="${movie.title}">${movie.title}</span>
+                    </div>
+                ` : `
+                    <span title="${movie.title}">${movie.title}</span>
+                `}
+            </td>
             <td>
                 <svg width="20" height="20" fill="${movie.recommended ? '#ff7b00' : '#515151'}" stroke="none" aria-label="${movie.recommended ? '推荐' : '不推荐'}">
                     <use href="/static/sprite.svg#${movie.recommended ? 'recommend-light-icon' : 'recommend-icon'}"></use>

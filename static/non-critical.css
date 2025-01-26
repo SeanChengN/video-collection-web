@@ -787,6 +787,29 @@
 }
 
 
+
+/*----------------------------------------
+  搜索结果中的图片样式
+----------------------------------------*/
+.movie-title-with-image {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.movie-preview-image {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+}
+.movie-preview-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+
+
 /*----------------------------------------
   编辑电影框中的星星样式
 ----------------------------------------*/
