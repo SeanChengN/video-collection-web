@@ -925,6 +925,38 @@
         </section>
     </div>
 </div>
+<!-- 图片查看器模态框 -->
+<div class="modal" id="imageViewerModal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title"></p>
+            <button class="modal-control-button close" onclick="closeImageViewer()" aria-label="close">
+                <svg aria-label="关闭">
+                    <use href="/static/sprite.svg#close-icon"></use>
+                </svg>
+            </button>
+        </header>
+        <section class="modal-card-body">
+            <div class="image-viewer-container">
+                <img src=" " alt="大图预览" class="viewer-image">
+                <div class="nav-buttons">
+                    <button class="nav-button prev" onclick="showPrevImage()" style="display: none;">
+                        <svg width="24" height="24" fill="currentColor" stroke="none">
+                            <use href="/static/sprite.svg#arrow-left-icon"></use>
+                        </svg>
+                    </button>
+                    <button class="nav-button next" onclick="showNextImage()" style="display: none;">
+                        <svg width="24" height="24" fill="currentColor" stroke="none">
+                            <use href="/static/sprite.svg#arrow-right-icon"></use>
+                        </svg>
+                    </button>
+                </div>
+                <div class="image-counter"></div>
+            </div>
+        </section>
+    </div>
+</div>
 <script src="/static/main.min.js"></script>
 </body>
 </html>

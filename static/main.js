@@ -402,7 +402,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'thunderModal',
         'embyModal',
         'editModal',
-        'settingsModal'
+        'settingsModal',
+        'imageViewerModal'
     ];
     
     modals.forEach(modalId => {
@@ -1763,7 +1764,7 @@ function displayCurrentPage() {
             <td class="hoverable">
                 ${movie.image_filename ? `
                     <div class="movie-title-with-image">
-                        <div class="movie-preview-image">
+                        <div class="movie-preview-image" onclick="openImageViewer('${movie.image_filename}', '${movie.title}')">
                             <img src="/images/${movie.image_filename.split(',')[0]}" alt="预览图">
                         </div>
                         <span title="${movie.title}">${movie.title}</span>
@@ -2053,6 +2054,62 @@ function addImagePreview(file, uploadArea) {
         previewContainer.appendChild(previewItem);
     };
     reader.readAsDataURL(file);
+}
+
+// 添加图片查看器相关函数
+let currentImageIndex = 0;
+let currentImages = [];
+
+function openImageViewer(imageFilenames, movieTitle) {
+    currentImageIndex = 0;
+    currentImages = [];
+    
+    currentImages = imageFilenames.split(',').filter(name => name.trim());
+
+    const modal = document.getElementById('imageViewerModal');
+    modal.querySelector('.modal-card-title').textContent = `查看图片：${movieTitle}`;
+    
+    updateViewerImage();
+    ModalManager.open('imageViewerModal');
+}
+function updateViewerImage() {
+    const modal = document.getElementById('imageViewerModal');
+    const viewer = modal.querySelector('.viewer-image');
+    const prevButton = modal.querySelector('.nav-button.prev');
+    const nextButton = modal.querySelector('.nav-button.next');
+    const counter = modal.querySelector('.image-counter');
+    
+    viewer.src = `/images/${currentImages[currentImageIndex].trim()}`;
+    
+    // 只有多张图片时才显示计数器
+    counter.style.display = currentImages.length > 1 ? 'block' : 'none';
+    
+    // 根据图片位置和数量控制导航按钮
+    prevButton.style.display = currentImages.length > 1 && currentImageIndex > 0 ? 'flex' : 'none';
+    nextButton.style.display = currentImages.length > 1 && currentImageIndex < currentImages.length - 1 ? 'flex' : 'none';
+    
+    if (currentImages.length > 1) {
+        updateImageCounter();
+    }
+}
+function updateImageCounter() {
+    const counter = document.getElementById('imageViewerModal').querySelector('.image-counter');
+    counter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+}
+function closeImageViewer() {
+    ModalManager.close('imageViewerModal');
+}
+function showPrevImage() {
+    if (currentImageIndex > 0) {
+        currentImageIndex--;
+        updateViewerImage();
+    }
+}
+function showNextImage() {
+    if (currentImageIndex < currentImages.length - 1) {
+        currentImageIndex++;
+        updateViewerImage();
+    }
 }
 
 // 添加电影的表单提交处理
