@@ -116,20 +116,17 @@
 
 
     /* 评分星星样式 */
-    .rating span {
-        font-size: 1rem;
+    .rating svg {
+        transform: scale(1.5);
+    }
+    .rating svg:hover {
+        transform: scale(1.6) !important;
+    }
+    .rating {
+        gap: 0 14px !important;
     }
     
-    /* 添加电影框评分星星尺寸 */
-    .collapsible-box .rating span {
-        font-size: 2rem !important;
-    }
-    
-    /* 编辑框评分星星尺寸 */
-    #editModal .rating span {
-        font-size: 2.2rem !important;
-    }
-    
+
     /* 模态框关闭/最小化按钮尺寸 */
     .modal-control-button {
         width: 48px !important;
@@ -600,8 +597,7 @@
 
 /* 维度名称样式 */
 #editModal .ratings-box .field label:first-child {
-    transform: translateY(5px);
-    padding-right: 2px !important;
+    transform: translateY(3px);
     min-width: 2.8em !important;
 }
 
@@ -631,13 +627,6 @@
     display: flex;
     align-items: center;
     padding: 0.2rem;
-}
-
-/* 维度名称样式 */
-.collapsible-box .ratings-box .field label:first-child {
-    transform: translateY(14px);
-    padding-right: 2px !important;
-    min-width: 2.8em !important;
 }
 
 /* 评分维度容器布局 */
@@ -884,36 +873,66 @@
 
 
 /*----------------------------------------
+  评分星星通用样式
+----------------------------------------*/
+/* 评分星星颜色样式 */
+.rating {
+    --star-1: #ff774d;
+    --star-2: #ff9d33;
+    --star-3: #f9d71e;
+    --star-4: #a0d234;
+    --star-5: #20ca20;
+    --star-default: #d3d3d3;
+}
+.rating input {
+    display: none;
+    transition: color 0.3s ease;
+}
+.rating svg {
+    color: var(--star-default); /* 默认未选中的星星颜色 */
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+/* 评分星星颜色 */
+.rating input[value="1"]:checked ~ svg { color: var(--star-1); }
+.rating input[value="2"]:checked ~ svg { color: var(--star-2); }
+.rating input[value="3"]:checked ~ svg { color: var(--star-3); }
+.rating input[value="4"]:checked ~ svg { color: var(--star-4); }
+.rating input[value="5"]:checked ~ svg { color: var(--star-5); }
+
+/* Hover效果 */
+.rating svg:nth-child(10):hover,
+.rating svg:nth-child(10):hover ~ svg { color: var(--star-1) !important; }
+
+.rating svg:nth-child(8):hover,
+.rating svg:nth-child(8):hover ~ svg { color: var(--star-2) !important; }
+
+.rating svg:nth-child(6):hover,
+.rating svg:nth-child(6):hover ~ svg { color: var(--star-3) !important; }
+
+.rating svg:nth-child(4):hover,
+.rating svg:nth-child(4):hover ~ svg { color: var(--star-4) !important; }
+
+.rating svg:nth-child(2):hover,
+.rating svg:nth-child(2):hover ~ svg { color: var(--star-5) !important; }
+
+/* Hover动画效果 */
+.rating svg:hover {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 1px currentColor);
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+/*----------------------------------------
   编辑电影框中的星星样式
 ----------------------------------------*/
 #editModal .rating {
-    margin: 0;
-    height: auto;
     display: flex;
     flex-direction: row-reverse;
     justify-content: flex-start;
     user-select: none;
-    gap: 2px;
+    gap: 0px 6px;
 }
-
-#editModal .rating input {
-    display: none;
-}
-
-#editModal .rating span {
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: #ddd;
-}
-
-#editModal .rating input:checked + span,
-#editModal .rating input:checked + span ~ span,
-#editModal .rating span:hover,
-#editModal .rating span:hover ~ span {
-    color: #ffd700;
-}
-
-
 
 /*----------------------------------------
   折叠框中的星星样式
@@ -922,26 +941,9 @@
     display: flex;
     flex-direction: row-reverse;
     justify-content: flex-end;
-    margin: 0;
-    height: auto;
     user-select: none;
-    gap: 2px;
-}
-
-.collapsible-box .rating input {
-    display: none;
-}
-
-.collapsible-box .rating span {
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: #ddd;
-}
-
-.collapsible-box .rating input:checked ~ span,
-.collapsible-box .rating span:hover,
-.collapsible-box .rating span:hover ~ span {
-    color: #ffd700;
+    gap: 0px 6px;
+    transform: translateY(2px);
 }
 
 
@@ -983,8 +985,7 @@
 }
 
 .ratings-box .field label:first-child {
-    min-width: 3.5em;
-    margin-right: 0.2rem;
+    min-width: 3rem;
     font-size: 0.9rem;
     font-weight: normal;
 }
@@ -1081,17 +1082,15 @@
     align-items: center;
     white-space: nowrap;
 }
+.rating-item .stars  {
+    transform: translateY(2px);
+}
 
 /* 评分维度名称 */
 .dimension-name {
     font-weight: normal;
     min-width: 2.8rem;
     color: #4a4a4a;
-}
-
-/* 星星评分样式 */
-.stars {
-    color: #ffd700;
 }
 
 /* 悬浮显示下拉菜单 */
@@ -1113,8 +1112,8 @@
     }
 
     /* 星星大小调整 */
-    .stars {
-        font-size: 1.4rem;
+    .rating-item .stars {
+        transform: scale(1.4);
     }
 
     /* 下拉触发按钮样式 */

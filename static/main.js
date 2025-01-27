@@ -1319,20 +1319,30 @@ function createRatingField(dimension, isEdit) {
         <div class="control">
             <div class="rating" data-dimension-id="${dimension.id}">
                 <input type="radio" id="${prefix}rating-${dimension.id}-5" name="${prefix}rating-${dimension.id}" value="5">
-                <span title="5分">★</span>
+                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="星级">
+                    <use href="/static/sprite.svg#rating-star-icon"></use>
+                </svg>
                 <input type="radio" id="${prefix}rating-${dimension.id}-4" name="${prefix}rating-${dimension.id}" value="4">
-                <span title="4分">★</span>
+                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
+                    <use href="/static/sprite.svg#rating-star-icon"></use>
+                </svg>
                 <input type="radio" id="${prefix}rating-${dimension.id}-3" name="${prefix}rating-${dimension.id}" value="3">
-                <span title="3分">★</span>
+                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
+                    <use href="/static/sprite.svg#rating-star-icon"></use>
+                </svg>
                 <input type="radio" id="${prefix}rating-${dimension.id}-2" name="${prefix}rating-${dimension.id}" value="2">
-                <span title="2分">★</span>
+                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
+                    <use href="/static/sprite.svg#rating-star-icon"></use>
+                </svg>
                 <input type="radio" id="${prefix}rating-${dimension.id}-1" name="${prefix}rating-${dimension.id}" value="1">
-                <span title="1分">★</span>
+                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
+                    <use href="/static/sprite.svg#rating-star-icon"></use>
+                </svg>
             </div>
         </div>
     `;
     // 为新创建的评分字段绑定点击事件
-    const stars = field.querySelectorAll('.rating span');
+    const stars = field.querySelectorAll('.rating svg');
     stars.forEach(star => {
         star.addEventListener('click', function() {
             const input = this.previousElementSibling;
@@ -1858,9 +1868,22 @@ function formatDate(dateString) {
 
 // 辅助函数：渲染星星
 function renderStars(rating) {
-    const fullStar = '★';
-    const emptyStar = '☆';
-    return fullStar.repeat(rating) + emptyStar.repeat(5 - rating);
+    const stars = [];
+    for(let i = 1; i <= 5; i++) {
+        const starColor = i <= rating ? getStarColor(rating) : '#d3d3d3';
+        stars.push(`
+            <svg width="16" height="16" fill="${starColor}" stroke="none" aria-label="星级">
+                <use href="/static/sprite.svg#rating-star-icon"></use>
+            </svg>
+        `);
+    }
+    return stars.join('');
+}
+// 辅助函数：获取星星颜色
+function getStarColor(rating) {
+    const ratingElement = document.querySelector('.rating');
+    const styles = getComputedStyle(ratingElement);
+    return styles.getPropertyValue(`--star-${rating}`).trim(); // 动态获取变量中保存的颜色
 }
 
 // 更新分页控件
