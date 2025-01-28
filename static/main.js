@@ -428,10 +428,12 @@ function closeDuplicateModal() {
 function checkDuplicates() {
     const input = document.getElementById('duplicate-input');
     const resultDiv = document.getElementById('check-result');
+    const tableDiv = document.getElementById('duplicate-table');
     const movies = input.value.split('\n').filter(line => line.trim());
     
     if (movies.length === 0) {
         resultDiv.innerHTML = '<span class="has-text-danger">请输入电影列表</span>';
+        tableDiv.innerHTML = '';
         return;
     }
     
@@ -441,31 +443,73 @@ function checkDuplicates() {
     button.disabled = true;
     resultDiv.innerHTML = '<span class="has-text-info">正在核对...</span>';
     
-    const movieTitles = movies.map(line => line.trim().split(' ')[0]);
-    
+    // 解析每行内容,分离电影名和其他信息
+    const movieData = movies.map(line => {
+        const parts = line.trim().split(' ');
+        return {
+            title: parts[0],
+            extra: parts.slice(1).join(' ')
+        };
+    });
+
     fetch('/check_duplicates', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ titles: movieTitles })
+        body: JSON.stringify({ titles: movieData.map(m => m.title) })
     })
     .then(response => response.json())
     .then(result => {
         if (result.success) {
             const duplicateCount = result.duplicates.length;
-            const newLines = movies.filter((line, index) => 
-                !result.duplicates.includes(movieTitles[index])
+            const newMovies = movieData.filter(movie => 
+                !result.duplicates.includes(movie.title)
             );
-            input.value = newLines.join('\n');
             
+            // 更新统计信息
             resultDiv.innerHTML = `
                 <div class="notification is-success">
                     <p>核对完成！</p>
                     <p>发现 <strong>${duplicateCount}</strong> 个重复项</p>
-                    <p>剩余 <strong>${newLines.length}</strong> 个未收录项</p>
+                    <p>剩余 <strong>${newMovies.length}</strong> 个未收录项</p>
                 </div>
             `;
+            
+            // 更新表格内容
+            tableDiv.innerHTML = `
+            <table class="table is-fullwidth is-striped is-hoverable">
+                <colgroup>
+                    <col style="width: 20%">
+                    <col style="width: 72%">
+                    <col style="width: 8%">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>电影名称</th>
+                        <th>磁力链接</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${newMovies.map(movie => `
+                        <tr>
+                            <td title="${movie.title}">${movie.title}</td>
+                            <td title="${movie.extra}">${movie.extra}</td>
+                            <td>
+                                <button class="button is-small copy-btn" onclick="copyToClipboard('${movie.extra.replace(/'/g, "\\'")}', this)">
+                                    <span class="icon">
+                                        <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="复制">
+                                            <use href="/static/sprite.svg#copy-btn-icon"></use>
+                                        </svg>
+                                    </span>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
         }
     })
     .catch(error => {
@@ -476,6 +520,36 @@ function checkDuplicates() {
         button.textContent = originalText;
         button.disabled = false;
     });
+}
+
+// 复制内容到剪贴板
+async function copyToClipboard(text, button) {
+    const originalHtml = button.innerHTML;
+
+    // 创建临时文本框
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+
+    try {
+        textarea.select();
+        document.execCommand('copy');
+        // 修改按钮显示成功
+        button.innerHTML = '<span class="icon"><svg width="14" height="14" fill="#00d1b2"><use href="/static/sprite.svg#save-btn-icon"></use></svg></span>';
+    } catch (err) {
+        // 修改按钮显示失败
+        button.innerHTML = '<span class="icon"><svg width="14" height="14" fill="#ff3860"><use href="/static/sprite.svg#close-icon"></use></svg></span>';
+    }
+    
+    // 清理临时元素
+    document.body.removeChild(textarea);
+    
+    // 5秒后恢复按钮原样
+    //setTimeout(() => {
+    //    button.innerHTML = originalHtml;
+    //}, 5000);
 }
 
 // Emby搜索相关代码

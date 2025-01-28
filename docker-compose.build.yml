@@ -36,16 +36,3 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-
-  phpmyadmin:
-    image: phpmyadmin
-    container_name: video-collection-phpmyadmin
-    restart: unless-stopped
-    ports:
-      - 80:80
-    environment:
-      PMA_ARBITRARY: 1
-      PMA_HOST: db
-      PMA_PORT: 3306
-    depends_on:
-      - db
