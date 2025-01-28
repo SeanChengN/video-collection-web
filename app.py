@@ -315,6 +315,14 @@ def get_services_config():
         'thunder_url': os.environ['THUNDER_URL']
     })
 
+# 相似度计算相关代码
+def check_title_match(title1, title2):
+    # 转换为小写进行比较
+    t1 = title1.lower()
+    t2 = title2.lower()
+    # 两者互相包含都算匹配
+    return t1 in t2 or t2 in t1
+
 # 查重核对相关代码
 @app.route("/check_duplicates", methods=["POST"])
 def check_duplicates():
@@ -322,27 +330,34 @@ def check_duplicates():
         data = request.json
         titles = data.get('titles', [])
         
-        #logging.info(f"收到待核对的电影列表: {titles}")
-        
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            placeholders = ','.join(['%s'] * len(titles))
-            query = f"SELECT title FROM movies WHERE title IN ({placeholders})"
+            cursor.execute("SELECT title FROM movies")
+            existing_titles = [row[0] for row in cursor.fetchall()]
             
-            #logging.info(f"执行的SQL查询: {query}")
-            #logging.info(f"查询参数: {titles}")
+            duplicates = []
+            matched_titles = {}
             
-            cursor.execute(query, titles)
-            duplicates = [row[0] for row in cursor.fetchall()]
-            
-            #logging.info(f"数据库中匹配到的电影: {duplicates}")
+            for title in titles:
+                # 检查完全匹配
+                if title in existing_titles:
+                    duplicates.append(title)
+                    matched_titles[title] = title
+                    continue
+                
+                # 检查互相包含匹配
+                for existing in existing_titles:
+                    if check_title_match(title, existing):
+                        duplicates.append(title)
+                        matched_titles[title] = existing
+                        break
             
             return jsonify({
                 "success": True,
-                "duplicates": duplicates
+                "duplicates": duplicates,
+                "matched_titles": matched_titles
             })
     except Exception as e:
-        #logging.error(f"查重核对出错: {str(e)}")
         return jsonify({"success": False, "message": str(e)}), 500
 
 # 设置功能相关代码

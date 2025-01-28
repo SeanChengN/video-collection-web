@@ -471,8 +471,18 @@ function checkDuplicates() {
             const duplicateCount = result.duplicates.length;
             const newMovies = movieData.filter(movie => 
                 !result.duplicates.includes(movie.title)
-            );
-            
+            ).map(movie => ({
+                ...movie,
+                matchedTitle: ''  // 非重复项无匹配名称
+            }));
+
+            const duplicateMovies = movieData
+            .filter(movie => result.duplicates.includes(movie.title))
+            .map(movie => ({
+                ...movie,
+                matchedTitle: result.matched_titles[movie.title] || movie.title
+            }));
+
             // 更新统计信息
             resultDiv.innerHTML = `
                 <div class="notification is-success">
@@ -486,13 +496,15 @@ function checkDuplicates() {
             tableDiv.innerHTML = `
             <table class="table is-fullwidth is-striped is-hoverable">
                 <colgroup>
-                    <col style="width: 20%">
-                    <col style="width: 72%">
+                    <col style="width: 15%">
+                    <col style="width: 15%">
+                    <col style="width: 62%">
                     <col style="width: 8%">
                 </colgroup>
                 <thead>
                     <tr>
                         <th>电影名称</th>
+                        <th>匹配名称</th>
                         <th>磁力链接</th>
                         <th>操作</th>
                     </tr>
@@ -501,6 +513,7 @@ function checkDuplicates() {
                     ${newMovies.map(movie => `
                         <tr>
                             <td title="${movie.title}">${movie.title}</td>
+                            <td title="${movie.matchedTitle || ''}">${movie.matchedTitle || ''}</td>
                             <td title="${movie.extra}">${movie.extra}</td>
                             <td>
                                 <button class="button is-small copy-btn" onclick="copyToClipboard('${movie.extra.replace(/'/g, "\\'")}', this)">
@@ -515,11 +528,12 @@ function checkDuplicates() {
                     `).join('')}
                     ${result.duplicates.length > 0 ? `
                         <tr class="duplicate-separator">
-                            <td colspan="3">以下为重复项</td>
+                            <td colspan="4">以下为重复项</td>
                         </tr>
-                        ${movieData.filter(movie => result.duplicates.includes(movie.title)).map(movie => `
+                        ${duplicateMovies.map(movie => `
                             <tr class="is-duplicate">
                                 <td title="${movie.title}">${movie.title}</td>
+                                <td title="${movie.matchedTitle}">${movie.matchedTitle}</td>
                                 <td title="${movie.extra}">${movie.extra}</td>
                                 <td>
                                     <button class="button is-small copy-btn" onclick="copyToClipboard('${movie.extra.replace(/'/g, "\\'")}', this)">
