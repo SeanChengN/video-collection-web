@@ -295,6 +295,22 @@
     height: 100%;
 }
 
+.duplicate-separator td {
+    text-align: center;
+    background-color: #f5f5f5;
+    font-weight: bold;
+    color: #666;
+    padding: 0.5rem !important;
+}
+
+tr.is-duplicate {
+    background-color: #fff3e0 !important;
+}
+
+tr.is-duplicate:hover {
+    background-color: #ffe0b2 !important;
+}
+
 .copy-btn {
     min-width: 55px;
 }
@@ -1381,7 +1397,7 @@
 /* 查重模态框 */
 #duplicateModal .modal-card {
     width: 60%;
-    height: 70vh;
+    height: 80vh;
 }
 
 /* Jackett模态框 */
@@ -1427,7 +1443,7 @@
     
     #duplicateModal .modal-card {
         width: 90% !important;
-        height: 60% !important;
+        height: 90% !important;
     }
     
     #thunderModal .modal-card {

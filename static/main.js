@@ -422,6 +422,13 @@ function openDuplicateModal() {
 }
 
 function closeDuplicateModal() {
+    // 清空输入框
+    document.getElementById('duplicate-input').value = '';
+    // 清空结果区域
+    document.getElementById('check-result').innerHTML = '<span class="has-text-grey-light">等待核对...</span>';
+    // 清空表格区域
+    document.getElementById('duplicate-table').innerHTML = '';
+    // 关闭模态框
     ModalManager.close('duplicateModal');
 }
 
@@ -437,9 +444,8 @@ function checkDuplicates() {
         return;
     }
     
-    const button = document.querySelector('#duplicateModal .button');
-    const originalText = button.textContent;
-    button.textContent = '核对中...';
+    const button = document.querySelector('#duplicateModal .dupStart-btn');
+    const originalHtml = button.innerHTML; 
     button.disabled = true;
     resultDiv.innerHTML = '<span class="has-text-info">正在核对...</span>';
     
@@ -507,6 +513,26 @@ function checkDuplicates() {
                             </td>
                         </tr>
                     `).join('')}
+                    ${result.duplicates.length > 0 ? `
+                        <tr class="duplicate-separator">
+                            <td colspan="3">以下为重复项</td>
+                        </tr>
+                        ${movieData.filter(movie => result.duplicates.includes(movie.title)).map(movie => `
+                            <tr class="is-duplicate">
+                                <td title="${movie.title}">${movie.title}</td>
+                                <td title="${movie.extra}">${movie.extra}</td>
+                                <td>
+                                    <button class="button is-small copy-btn" onclick="copyToClipboard('${movie.extra.replace(/'/g, "\\'")}', this)">
+                                        <span class="icon">
+                                            <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="复制">
+                                                <use href="/static/sprite.svg#copy-btn-icon"></use>
+                                            </svg>
+                                        </span>
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    ` : ''}
                 </tbody>
             </table>
         `;
@@ -517,14 +543,14 @@ function checkDuplicates() {
         console.error('Error:', error);
     })
     .finally(() => {
-        button.textContent = originalText;
+        button.innerHTML = originalHtml;
         button.disabled = false;
     });
 }
 
 // 复制内容到剪贴板
 async function copyToClipboard(text, button) {
-    const originalHtml = button.innerHTML;
+    //const originalHtml = button.innerHTML;
 
     // 创建临时文本框
     const textarea = document.createElement('textarea');
@@ -736,8 +762,6 @@ function formatTime(seconds) {
 
 
 // 设置功能相关代码
-let editingItemId = null;
-
 function openSettingsModal() {
     ModalManager.open('settingsModal');
     loadSettings();
