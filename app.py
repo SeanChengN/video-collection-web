@@ -320,6 +320,15 @@ def check_title_match(title1, title2):
     # 转换为小写进行比较
     t1 = title1.lower()
     t2 = title2.lower()
+
+    # 如果标题1以 "FC2-" 开头，取最后一个部分
+    if t1.startswith('fc2-'):
+        t1 = t1.split('-')[-1]
+    
+    # 如果标题2以 "FC2-" 开头，取最后一个部分
+    if t2.startswith('fc2-'):
+        t2 = t2.split('-')[-1]
+
     # 两者互相包含都算匹配
     return t1 in t2 or t2 in t1
 
