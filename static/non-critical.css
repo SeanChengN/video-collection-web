@@ -308,12 +308,91 @@ tr.is-duplicate {
 }
 
 tr.is-duplicate:hover {
-    background-color: #ffe0b2 !important;
+    background-color: #ffeaca !important;
 }
 
+/* 复制按钮样式 */
 .copy-btn {
     min-width: 55px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important; /* 灰色阴影 */
+    overflow: hidden;
+    background: transparent;
+    transition: box-shadow 0.3s, background-color 0.3s;
 }
+.copy-btn svg {
+    z-index: 2;
+    transition: transform 0.3s;
+}
+.copy-btn::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    z-index: 1;
+    background: radial-gradient(
+      65.28% 65.28% at 50% 100%,
+      rgba(255, 255, 255, 1.0) 0%, /* 白色光晕 */
+      rgba(255, 255, 255, 0) 100%
+    ),
+    linear-gradient(0deg, #f1f1f1, #f1f1f1);
+    transition: filter 0.3s;
+}
+/* hover */
+.copy-btn:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+.copy-btn:hover svg {
+    transform: scale(1.1);
+}
+.copy-btn:hover::before {
+    filter: brightness(95%);
+}
+/* active */
+.copy-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+.copy-btn:active::before {
+    filter: brightness(90%);
+}
+/* 成功状态样式 */
+.copy-btn.is-success {
+    border: none !important;
+    transition: box-shadow 1.3s, background-color 1.3s;
+}
+.copy-btn.is-success::before {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(110, 231, 183, 0.6) 0%,  /* 浅绿色光晕 */
+        rgba(110, 231, 183, 0) 100%
+    ),
+    linear-gradient(0deg, #17a84c, #17a84c);
+}
+.copy-btn.is-success:hover {
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4) !important;
+}
+.copy-btn.is-success:active {
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2) !important;
+}
+/* 失败状态样式 */
+.copy-btn.is-danger {
+    border: none !important;
+    transition: box-shadow 1.3s, background-color 1.3s;
+}
+.copy-btn.is-danger::before {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(255, 134, 134, 0.6) 0%,  /* 浅红色光晕 */
+        rgba(255, 134, 134, 0) 100%
+    ),
+    linear-gradient(0deg, #ff3950, #ff3950);  /* 深红色底色 */
+}
+.copy-btn.is-danger:hover {
+    box-shadow: 0 6px 16px rgba(241, 70, 104, 0.4) !important;
+}
+.copy-btn.is-danger:active {
+    box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
+}
+
 
 
 /*----------------------------------------

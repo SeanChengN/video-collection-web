@@ -518,7 +518,7 @@ function checkDuplicates() {
                             <td>
                                 <button class="button is-small copy-btn" onclick="copyToClipboard('${movie.extra.replace(/'/g, "\\'")}', this)">
                                     <span class="icon">
-                                        <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="复制">
+                                        <svg width="20" height="20" fill="#888888" stroke="none" aria-label="复制">
                                             <use href="/static/sprite.svg#copy-btn-icon"></use>
                                         </svg>
                                     </span>
@@ -538,7 +538,7 @@ function checkDuplicates() {
                                 <td>
                                     <button class="button is-small copy-btn" onclick="copyToClipboard('${movie.extra.replace(/'/g, "\\'")}', this)">
                                         <span class="icon">
-                                            <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="复制">
+                                            <svg width="20" height="20" fill="#888888" stroke="none" aria-label="复制">
                                                 <use href="/static/sprite.svg#copy-btn-icon"></use>
                                             </svg>
                                         </span>
@@ -577,10 +577,12 @@ async function copyToClipboard(text, button) {
         textarea.select();
         document.execCommand('copy');
         // 修改按钮显示成功
-        button.innerHTML = '<span class="icon"><svg width="14" height="14" fill="#00d1b2"><use href="/static/sprite.svg#save-btn-icon"></use></svg></span>';
+        button.innerHTML = '<span class="icon"><svg width="20" height="20" fill="#fff"><use href="/static/sprite.svg#copy-success-btn-icon"></use></svg></span>';
+        button.classList.add('is-success'); // 添加成功样式
     } catch (err) {
         // 修改按钮显示失败
-        button.innerHTML = '<span class="icon"><svg width="14" height="14" fill="#ff3860"><use href="/static/sprite.svg#close-icon"></use></svg></span>';
+        button.innerHTML = '<span class="icon"><svg width="20" height="20" fill="#fff"><use href="/static/sprite.svg#copy-fail-btn-icon"></use></svg></span>';
+        button.classList.add('is-danger'); // 添加失败样式
     }
     
     // 清理临时元素
