@@ -251,7 +251,6 @@
   查重核对相关样式
 ----------------------------------------*/
 #duplicateModal .textarea {
-    font-family: monospace;
     height: 200px;
 }
 
@@ -391,6 +390,16 @@ tr.is-duplicate:hover {
 }
 .copy-btn.is-danger:active {
     box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
+}
+
+@media screen and (max-width: 1200px) {
+    #duplicateModal .column.is-4 {
+        height: auto !important;
+    }
+    .copy-btn svg {
+        width: 28px;
+        height: 28px;
+    }
 }
 
 
