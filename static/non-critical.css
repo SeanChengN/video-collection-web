@@ -1455,33 +1455,6 @@ tr.is-duplicate:hover {
         width: 90% !important;
         height: 90% !important;
     }
-    
-    /* 关闭按钮样式 */
-    .modal .delete {
-        width: 40px !important;
-        height: 40px !important;
-        max-width: none !important;
-        max-height: none !important;
-        position: relative !important;
-    }
-    
-    .modal .delete::before,
-    .modal .delete::after {
-        background-color: currentColor !important;
-        content: "" !important;
-        display: block !important;
-        left: 50% !important;
-        position: absolute !important;
-        top: 50% !important;
-        transform: translateX(-50%) translateY(-50%) rotate(45deg) !important;
-        transform-origin: center center !important;
-        width: 25px !important;
-        height: 2px !important;
-    }
-    
-    .modal .delete::after {
-        transform: translateX(-50%) translateY(-50%) rotate(-45deg) !important;
-    }
 }
 
 /* 讯雷窗口滚动条 */
