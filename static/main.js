@@ -2090,28 +2090,26 @@ function initUploadArea(areaId, inputId) {
         }
         
         // 过滤掉重复文件
-        const uniqueFiles = validFiles.filter(file => !uploadedFiles.some(existingFile => 
-            existingFile.name === file.name && 
-            existingFile.size === file.size &&
-            existingFile.type === file.type
-        ));
+        const fileIdentifiers = uploadedFiles.map(f => `${f.name}-${f.size}-${f.type}`);
+        const uniqueFiles = validFiles.filter(file => 
+            !fileIdentifiers.includes(`${file.name}-${file.size}-${file.type}`)
+        );
         
         if (uniqueFiles.length === 0) {
             alert('所选图片已存在');
             return;
         }
-        
-        uploadedFiles = [...uploadedFiles, ...uniqueFiles];
-        
+
         uniqueFiles.forEach(file => {
             const reader = new FileReader();
             reader.onload = (e) => {
-                addImagePreview(file, uploadArea);
+                const index = uploadedFiles.length;
+                uploadedFiles.push(file);
+                addImagePreview(e.target.result, uploadArea, index);
                 updateUploadArea();
             };
             reader.readAsDataURL(file);
         });
-        updateUploadArea();
     }
 
     // 删除预览图片的处理
@@ -2124,10 +2122,10 @@ function initUploadArea(areaId, inputId) {
         e.stopPropagation(); // 阻止事件冒泡
         const previewItem = deleteButton.closest('.preview-item');
         if (previewItem) {
-            previewItem.remove();
             // 更新uploadedFiles数组
             const index = Array.from(previewContainer.children).indexOf(previewItem);
             uploadedFiles.splice(index, 1);
+            previewItem.remove();
             updateUploadArea();
         }
     });
@@ -2173,24 +2171,22 @@ function initUploadArea(areaId, inputId) {
 }
 
 // 添加预览图片
-function addImagePreview(file, uploadArea) {
+function addImagePreview(imageData, uploadArea, index) {
     const previewContainer = uploadArea.querySelector('.image-preview-container');
+    const previewItem = document.createElement('div');
+    previewItem.className = 'preview-item';
+    previewItem.dataset.index = index;
 
-    const reader = new FileReader();
-    reader.onload = e => {
-        const previewItem = document.createElement('div');
-        previewItem.className = 'preview-item';
-        previewItem.innerHTML = `
-            <img src="${e.target.result}" alt="预览图">
-            <button class="delete-image" onclick="this.parentElement.remove()">
-                <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
-                    <use href="/static/sprite.svg#close-icon"></use>
-                </svg>
-            </button>
-        `;
-        previewContainer.appendChild(previewItem);
-    };
-    reader.readAsDataURL(file);
+    previewItem.innerHTML = `
+        <img src="${imageData}" alt="预览图">
+        <button class="delete-image" type="button">
+            <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
+                <use href="/static/sprite.svg#close-icon"></use>
+            </svg>
+        </button>
+    `;
+    
+    previewContainer.appendChild(previewItem);
 }
 
 // 添加图片查看器相关函数
