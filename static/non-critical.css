@@ -778,6 +778,7 @@ tr.is-duplicate:hover {
     border-radius: 8px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
+    cursor: move;
 }
 .preview-item:hover {
     transform: translateY(-2px);
@@ -818,6 +819,11 @@ tr.is-duplicate:hover {
 }
 .preview-item .delete-image svg {
     height: 100%;
+}
+/* 顺序拖拽样式 */
+.preview-item.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
 }
 
 

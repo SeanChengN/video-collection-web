@@ -2073,10 +2073,19 @@ function initUploadArea(areaId, inputId) {
     const previewContainer = uploadArea.querySelector('.image-preview-container');
     const uploadPlaceholder = uploadArea.querySelector('.upload-placeholder');
     let uploadedFiles = []; // 存储文件对象
+    let isPreviewDragging = false; // 预览图拖拽状态标记
     
     // 更新上传区域显示状态
     function updateUploadArea() {
         uploadPlaceholder.style.display = uploadedFiles.length > 0 ? 'none' : 'block';
+    }
+
+    // 更新所有预览项的索引
+    function updatePreviewIndexes() {
+        const items = previewContainer.querySelectorAll('.preview-item');
+        items.forEach((item, index) => {
+            item.dataset.index = index;
+        });
     }
 
     // 处理新文件
@@ -2106,11 +2115,43 @@ function initUploadArea(areaId, inputId) {
                 const index = uploadedFiles.length;
                 uploadedFiles.push(file);
                 addImagePreview(e.target.result, uploadArea, index);
+                updatePreviewIndexes();
                 updateUploadArea();
             };
             reader.readAsDataURL(file);
         });
     }
+
+    // 预览图拖拽事件
+    previewContainer.addEventListener('dragstart', (e) => {
+        if (e.target.closest('.preview-item')) {
+            isPreviewDragging = true;
+        }
+    });
+
+    previewContainer.addEventListener('dragend', () => {
+        isPreviewDragging = false;
+    });
+
+    previewContainer.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (!isPreviewDragging) return;
+
+        const draggingItem = previewContainer.querySelector('.dragging');
+        if (!draggingItem) return;
+
+        const siblings = [...previewContainer.querySelectorAll('.preview-item:not(.dragging)')];
+        const nextSibling = siblings.find(sibling => {
+            const rect = sibling.getBoundingClientRect();
+            return e.clientY < rect.top + rect.height / 2;
+        });
+
+        if (nextSibling) {
+            previewContainer.insertBefore(draggingItem, nextSibling);
+        } else {
+            previewContainer.appendChild(draggingItem);
+        }
+    });
 
     // 删除预览图片的处理
     previewContainer.addEventListener('click', (e) => {
@@ -2126,6 +2167,7 @@ function initUploadArea(areaId, inputId) {
             const index = Array.from(previewContainer.children).indexOf(previewItem);
             uploadedFiles.splice(index, 1);
             previewItem.remove();
+            updatePreviewIndexes();
             updateUploadArea();
         }
     });
@@ -2138,18 +2180,39 @@ function initUploadArea(areaId, inputId) {
     // 拖放处理
     uploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
-        uploadArea.classList.add('dragover');
+        if (!isPreviewDragging) {
+            uploadArea.classList.add('dragover');
+        }
     });
     
     uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('dragover');
+        if (!isPreviewDragging) {
+            uploadArea.classList.remove('dragover');
+        }
     });
     
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
-        uploadArea.classList.remove('dragover');
-        // 排除重复文件
-        handleNewFiles(Array.from(e.dataTransfer.files));
+        if (isPreviewDragging) {
+            const draggingItem = previewContainer.querySelector('.dragging');
+            if (!draggingItem) return;
+
+            const fromIndex = parseInt(draggingItem.dataset.index);
+            const items = [...previewContainer.querySelectorAll('.preview-item')];
+            const toIndex = items.indexOf(draggingItem);
+
+            if (fromIndex !== toIndex) {
+                const [movedFile] = uploadedFiles.splice(fromIndex, 1);
+                uploadedFiles.splice(toIndex, 0, movedFile);
+
+                items.forEach((item, index) => {
+                    item.dataset.index = index;
+                });
+            }
+        } else {
+            uploadArea.classList.remove('dragover');
+            handleNewFiles(Array.from(e.dataTransfer.files)); // 排除重复文件
+        }
     });
     
     // 文件选择处理
@@ -2176,6 +2239,7 @@ function addImagePreview(imageData, uploadArea, index) {
     const previewItem = document.createElement('div');
     previewItem.className = 'preview-item';
     previewItem.dataset.index = index;
+    previewItem.draggable = true; // 允许拖拽
 
     previewItem.innerHTML = `
         <img src="${imageData}" alt="预览图">
@@ -2186,6 +2250,16 @@ function addImagePreview(imageData, uploadArea, index) {
         </button>
     `;
     
+    // 拖拽事件
+    previewItem.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', index);
+        previewItem.classList.add('dragging');
+    });
+
+    previewItem.addEventListener('dragend', () => {
+        previewItem.classList.remove('dragging');
+    });
+
     previewContainer.appendChild(previewItem);
 }
 
@@ -2253,11 +2327,15 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
     
     try {
         const files = window[`getimage-upload-areaFiles`]() || [];
-        console.log('选择的文件:', files); // 调试输出1
-
-        // 上传所有图片并收集文件名
         const uploadedFiles = [];
-        for(const file of files) {
+
+        // 获取当前预览容器中的顺序
+        const previewItems = document.querySelectorAll('#image-upload-area .preview-item');
+        for(const item of previewItems) {
+            const index = parseInt(item.dataset.index);
+            const file = files[index];
+
+            // 上传所有图片并收集文件名
             const imageFormData = new FormData();
             imageFormData.append('image', file);
             imageFormData.append('title', formData.get('title'));
@@ -2268,7 +2346,6 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
             });
             
             const result = await response.json();
-            console.log('上传结果:', result); // 调试输出2
 
             if(result.success) {
                 uploadedFiles.push(result.filename);
@@ -2276,8 +2353,6 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
                 throw new Error(result.message || '图片上传失败');
             }
         }
-
-        console.log('收集的文件名:', uploadedFiles); // 调试输出3
 
         // 构建提交数据
         const data = {
@@ -2289,8 +2364,6 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
             ratings: collectRatings(),
             image_filenames: uploadedFiles.join(',')
         };
-
-        console.log('最终提交的数据:', data); // 调试输出4
 
         // API提交电影信息
         const movieResponse = await fetch('/api/movies', {
