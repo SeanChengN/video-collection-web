@@ -1489,42 +1489,34 @@ function collectRatings(isEdit = false) {
 function getDragAfterElement(container, x, y) {
     const draggableElements = [...container.querySelectorAll('.existing-image-item:not(.dragging), .preview-item:not(.dragging)')];
     
-    // 计算每个元素的行信息
-    const rows = new Map();
-    draggableElements.forEach(element => {
-        const box = element.getBoundingClientRect();
-        const row = Math.floor(box.top / box.height);
-        if (!rows.has(row)) {
-            rows.set(row, []);
-        }
-        rows.get(row).push({element, box});
-    });
-
-    // 找到当前鼠标所在行
-    const mouseRow = Math.floor(y / draggableElements[0]?.getBoundingClientRect().height);
-    const currentRow = rows.get(mouseRow) || [];
+    // 获取容器的位置信息
+    const containerRect = container.getBoundingClientRect();
+    const containerTop = containerRect.top;
+    const containerLeft = containerRect.left;
     
-    // 如果鼠标在当前行的最后一个元素之后
-    if (currentRow.length > 0) {
-        const lastElement = currentRow[currentRow.length - 1];
-        if (x > lastElement.box.right) {
-            return lastElement.element.nextElementSibling;
-        }
+    // 计算相对于容器的坐标
+    const relativeX = x - containerLeft;
+    const relativeY = y - containerTop;
+    
+    // 计算网格布局信息
+    const itemWidth = draggableElements[0]?.getBoundingClientRect().width || 0;
+    const itemHeight = draggableElements[0]?.getBoundingClientRect().height || 0;
+    const gap = 10; // 图片之间的间距
+    
+    // 计算目标位置的行和列
+    const targetRow = Math.floor(relativeY / (itemHeight + gap));
+    const targetCol = Math.floor(relativeX / (itemWidth + gap));
+    
+    // 计算目标索引
+    const itemsPerRow = Math.floor(containerRect.width / (itemWidth + gap));
+    const targetIndex = targetRow * itemsPerRow + targetCol;
+    
+    // 如果目标索引超出范围，返回null表示放置在末尾
+    if (targetIndex >= draggableElements.length) {
+        return null;
     }
     
-    // 否则找到最近的元素
-    return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const centerX = box.left + box.width / 2;
-        const centerY = box.top + box.height / 2;
-        const distance = Math.abs(x - centerX) + Math.abs(y - centerY);
-        
-        if (distance < closest.distance) {
-            return { distance, element: child };
-        } else {
-            return closest;
-        }
-    }, { distance: Number.POSITIVE_INFINITY }).element;
+    return draggableElements[targetIndex];
 }
 
 // 打开编辑模态框
