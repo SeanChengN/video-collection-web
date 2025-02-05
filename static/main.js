@@ -1636,6 +1636,23 @@ function openModal(movie) {
         });
 
         // 为容器添加拖拽事件
+        existingImagesContainer.addEventListener('dragstart', (e) => {
+            const imageWrapper = e.target.closest('.existing-image-item');
+            if (imageWrapper) {
+                imageWrapper.classList.add('dragging');
+                existingImagesContainer.classList.add('dragging-over');
+                e.dataTransfer.setData('text/plain', imageWrapper.dataset.index);
+            }
+        });
+
+        existingImagesContainer.addEventListener('dragend', (e) => {
+            const imageWrapper = e.target.closest('.existing-image-item');
+            if (imageWrapper) {
+                imageWrapper.classList.remove('dragging');
+                existingImagesContainer.classList.remove('dragging-over');
+            }
+        });
+
         existingImagesContainer.addEventListener('dragenter', (e) => {
             e.preventDefault();
             existingImagesContainer.classList.add('dragging-over');
@@ -1654,6 +1671,7 @@ function openModal(movie) {
         existingImagesContainer.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
+            existingImagesContainer.classList.add('dragging-over');
 
             const draggingItem = existingImagesContainer.querySelector('.dragging');
             if (!draggingItem) return;
