@@ -1558,10 +1558,12 @@ function openModal(movie) {
 
     if (movie.image_filename && movie.image_filename.trim()) {
         const images = movie.image_filename.split(',');
-        images.forEach(filename => {
+        images.forEach((filename, index) => {
             if (filename.trim()) {
                 const imageWrapper = document.createElement('div');
                 imageWrapper.className = 'existing-image-item';
+                imageWrapper.draggable = true; // 添加可拖拽属性
+                imageWrapper.dataset.index = index; // 添加索引用于排序
                 imageWrapper.innerHTML = `
                     <img src="/images/${filename.trim()}" alt="预览图">
                     <button class="delete-existing-image" data-filename="${filename.trim()}" type="button">
@@ -1579,10 +1581,44 @@ function openModal(movie) {
                     currentImages.delete(filename.trim());
                 });
 
-                currentImages.add(filename.trim());
+                // 添加拖拽事件
+                imageWrapper.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', index);
+                    imageWrapper.classList.add('dragging');
+                });
+
+                imageWrapper.addEventListener('dragend', () => {
+                    imageWrapper.classList.remove('dragging');
+                });                
 
                 existingImagesContainer.appendChild(imageWrapper);
+                currentImages.add(filename.trim());
             }
+        });
+
+        // 为容器添加拖拽事件
+        existingImagesContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const draggingItem = existingImagesContainer.querySelector('.dragging');
+            if (!draggingItem) return;
+
+            const siblings = [...existingImagesContainer.querySelectorAll('.existing-image-item:not(.dragging)')];
+            const nextSibling = siblings.find(sibling => {
+                const rect = sibling.getBoundingClientRect();
+                return e.clientY < rect.top + rect.height / 2;
+            });
+
+            if (nextSibling) {
+                existingImagesContainer.insertBefore(draggingItem, nextSibling);
+            } else {
+                existingImagesContainer.appendChild(draggingItem);
+            }
+
+            // 重新排序后更新索引
+            const items = existingImagesContainer.querySelectorAll('.existing-image-item');
+            items.forEach((item, idx) => {
+                item.dataset.index = idx;
+            });
         });
     }
 
@@ -1746,8 +1782,9 @@ async function updateMovie() {
         saveSearchState();
 
         // 获取当前保留的现有图片
-        const currentImages = Array.from(modal.querySelectorAll('.existing-image-item img'))
-            .map(img => img.src.split('/').pop());
+        const currentImages = Array.from(modal.querySelectorAll('.existing-image-item'))
+            .sort((a, b) => parseInt(a.dataset.index) - parseInt(b.dataset.index))
+            .map(item => item.querySelector('.delete-existing-image').dataset.filename);
 
         // 处理新上传的图片
         const uploadedFiles = window[`getedit-image-upload-areaFiles`]() || [];

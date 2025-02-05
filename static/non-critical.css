@@ -845,7 +845,7 @@ tr.is-duplicate:hover {
     height: 100px;
     border-radius: 4px;
     overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 .existing-image-item:hover {
     transform: translateY(-1px);
@@ -880,6 +880,18 @@ tr.is-duplicate:hover {
 .delete-existing-image:active {
     transform: scale(0.95);
     background: rgba(0, 0, 0, 0.7);
+}
+/* 顺序拖拽样式 */
+.existing-image-item.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+    box-shadow: 0 4px 12px rgba(50, 115, 220, 0.3);
+}
+.existing-image-item:not(.dragging) {
+    transition: transform 0.2s ease;
+}
+.existing-image-item:not(.dragging):hover {
+    transform: translateY(-2px);
 }
 
 
