@@ -837,6 +837,7 @@ tr.is-duplicate:hover {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+    align-items: flex-start;
 }
 /* 图片预览样式 */
 .existing-image-item {
@@ -846,6 +847,8 @@ tr.is-duplicate:hover {
     border-radius: 4px;
     overflow: hidden;
     transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    transform-origin: center;
+    cursor: grab;
 }
 .existing-image-item:hover {
     transform: translateY(-1px);
@@ -883,15 +886,25 @@ tr.is-duplicate:hover {
 }
 /* 顺序拖拽样式 */
 .existing-image-item.dragging {
-    opacity: 0.5;
-    transform: scale(0.95);
-    box-shadow: 0 4px 12px rgba(50, 115, 220, 0.3);
+    opacity: 0.8;
+    transform: scale(1.05);
+    z-index: 100;
+    cursor: grabbing;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 .existing-image-item:not(.dragging) {
-    transition: transform 0.2s ease;
+    transform: scale(1);
+    transition: transform 0.2s ease-in-out;
 }
-.existing-image-item:not(.dragging):hover {
-    transform: translateY(-2px);
+/* 拖动时其他图片的挤压效果 */
+.existing-images.dragging-over .existing-image-item:not(.dragging) {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+/* 图片容器拖动状态 */
+.existing-images.dragging-over {
+    background: rgba(50, 115, 220, 0.05);
+    border-radius: 4px;
 }
 
 

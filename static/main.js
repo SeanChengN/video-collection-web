@@ -1556,6 +1556,48 @@ function openModal(movie) {
     // 数组存储当前显示的图片文件名
     const currentImages = new Set();
 
+    // 精确计算拖放位置
+    function getDragAfterElement(container, x, y) {
+        const draggableElements = [...container.querySelectorAll('.existing-image-item:not(.dragging)')];
+        
+        // 计算每个元素的行信息
+        const rows = new Map();
+        draggableElements.forEach(element => {
+            const box = element.getBoundingClientRect();
+            const row = Math.floor(box.top / box.height);
+            if (!rows.has(row)) {
+                rows.set(row, []);
+            }
+            rows.get(row).push({element, box});
+        });
+    
+        // 找到当前鼠标所在行
+        const mouseRow = Math.floor(y / draggableElements[0]?.getBoundingClientRect().height);
+        const currentRow = rows.get(mouseRow) || [];
+        
+        // 如果鼠标在当前行的最后一个元素之后
+        if (currentRow.length > 0) {
+            const lastElement = currentRow[currentRow.length - 1];
+            if (x > lastElement.box.right) {
+                return lastElement.element.nextElementSibling;
+            }
+        }
+        
+        // 否则找到最近的元素
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const centerX = box.left + box.width / 2;
+            const centerY = box.top + box.height / 2;
+            const distance = Math.abs(x - centerX) + Math.abs(y - centerY);
+            
+            if (distance < closest.distance) {
+                return { distance, element: child };
+            } else {
+                return closest;
+            }
+        }, { distance: Number.POSITIVE_INFINITY }).element;
+    }
+
     if (movie.image_filename && movie.image_filename.trim()) {
         const images = movie.image_filename.split(',');
         images.forEach((filename, index) => {
@@ -1584,11 +1626,16 @@ function openModal(movie) {
                 // 添加拖拽事件
                 imageWrapper.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/plain', index);
+                    e.dataTransfer.effectAllowed = 'move';
+                    // 设置拖拽图像
+                    e.dataTransfer.setDragImage(imageWrapper, imageWrapper.offsetWidth / 2, imageWrapper.offsetHeight / 2);
                     imageWrapper.classList.add('dragging');
+                    existingImagesContainer.classList.add('dragging-over');
                 });
 
                 imageWrapper.addEventListener('dragend', () => {
                     imageWrapper.classList.remove('dragging');
+                    existingImagesContainer.classList.remove('dragging-over');
                 });                
 
                 existingImagesContainer.appendChild(imageWrapper);
@@ -1597,24 +1644,35 @@ function openModal(movie) {
         });
 
         // 为容器添加拖拽事件
+        existingImagesContainer.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            existingImagesContainer.classList.add('dragging-over');
+        });
+        
+        existingImagesContainer.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            existingImagesContainer.classList.remove('dragging-over');
+        });
+        
+        existingImagesContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            existingImagesContainer.classList.remove('dragging-over');
+        });
+
         existingImagesContainer.addEventListener('dragover', (e) => {
             e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+
             const draggingItem = existingImagesContainer.querySelector('.dragging');
             if (!draggingItem) return;
 
-            const siblings = [...existingImagesContainer.querySelectorAll('.existing-image-item:not(.dragging)')];
-            const nextSibling = siblings.find(sibling => {
-                const rect = sibling.getBoundingClientRect();
-                return e.clientY < rect.top + rect.height / 2;
-            });
-
-            if (nextSibling) {
-                existingImagesContainer.insertBefore(draggingItem, nextSibling);
+            const afterElement = getDragAfterElement(existingImagesContainer, e.clientX, e.clientY);
+            if (afterElement) {
+                existingImagesContainer.insertBefore(draggingItem, afterElement);
             } else {
                 existingImagesContainer.appendChild(draggingItem);
             }
-
-            // 重新排序后更新索引
+            // 更新索引
             const items = existingImagesContainer.querySelectorAll('.existing-image-item');
             items.forEach((item, idx) => {
                 item.dataset.index = idx;
