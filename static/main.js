@@ -1106,7 +1106,9 @@ function loadSettingsTags() {
                             </div>
                         </td>
                         <td>
-                            <button class="button is-small is-info" onclick="startEdit(this)">编辑</button>
+                            <button class="button is-small is-info edit-btn" onclick="startEdit(this)">
+                                <span>编辑</span>
+                            </button>
                         </td>
                     </tr>
                 `).join('');
@@ -1141,7 +1143,9 @@ function loadSettingsRatingDimensions() {
                             </div>
                         </td>
                         <td>
-                            <button class="button is-small is-info" onclick="startEdit(this)">编辑</button>
+                            <button class="button is-small is-info edit-btn" onclick="startEdit(this)">
+                                <span>编辑</span>
+                            </button>
                         </td>
                     </tr>
                 `).join('');
@@ -2080,8 +2084,8 @@ function displayCurrentPage() {
             <td class="hoverable" title="${movie.tag_names || ''}">${movie.tag_names || ''}</td>
             <td class="ratings-cell">${ratingsCell}</td>
             <td>
-                <button class="button is-small is-info" onclick='openModal(${JSON.stringify(movie)})'>
-                    编辑
+                <button class="button is-small is-info edit-btn" onclick='openModal(${JSON.stringify(movie)})'>
+                    <span>编辑</span>
                 </button>
             </td>
         `;

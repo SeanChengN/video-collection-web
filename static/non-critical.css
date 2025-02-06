@@ -582,6 +582,41 @@ tr.is-duplicate:hover {
     transform: translateX(1.4em) scale(1.1);
 }
 
+/* 编辑按钮样式 */
+.edit-btn {
+    border: none !important;
+    background: transparent;
+    transition: box-shadow 0.3s ease, background-color 0.3s ease, transform 0.2s, filter 0.3s ease;
+    position: relative;
+}
+.edit-btn span {
+    z-index: 2;
+    position: relative;
+}
+.edit-btn::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    z-index: 1;
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0) 100%
+    );
+}
+/* hover效果 */
+.edit-btn:hover {
+    filter: brightness(95%);
+    transform: scale(1.03);
+    box-shadow: 0 2px 6px rgba(23, 116, 255, 0.4);
+}
+/* active效果 */
+.edit-btn:active {
+    filter: brightness(92%);
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(23, 116, 255, 0.4);
+}
+
 
 
 /*----------------------------------------
