@@ -53,7 +53,44 @@
         .box-content {
             display: none;
         }
- 
+        .collapsible-box .box-content {
+            height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: opacity 0.25s ease, padding 0.25s ease;
+            display: block;
+        }
+        /* 评分维度容器布局 */
+        .collapsible-box #edit-ratings-container,
+        .collapsible-box #add-ratings-container {
+            display: grid;
+            grid-template-columns: 50% 50%;
+            align-items: baseline;
+        }
+
+        /*----------------------------------------
+        图片上传框 - 通用样式 - 必要样式
+        ----------------------------------------*/
+        /* 图片预览容器 */
+        .image-upload-area {
+            margin-top: 0.5rem;
+            border: 2px dashed #dbdbdb;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+        }
+        .image-upload-area .upload-placeholder {
+            color: #666;
+        }
+        .image-preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
         /*----------------------------------------
           功能区样式 - 必要样式
         ----------------------------------------*/
@@ -102,6 +139,13 @@
         /*----------------------------------------
           标签框/评分框通用样式 - 必要样式
         ----------------------------------------*/
+        /* 标签单元格样式 */
+        .tag-group { 
+            margin-bottom: 10px; 
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
         .tags-box,
         .image-box,
         .ratings-box {
@@ -111,7 +155,73 @@
             background: #fff;
             box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
         }
-                
+        /* 标签框特有样式 */
+        .tags-box .tag-group {
+            margin: 0;
+            padding: 0.3rem 0;
+        }
+        .tags-box .tag {
+            margin: 0.15rem;
+            padding: 0 0.5em;
+            height: 2em;
+            font-size: 0.9rem;
+        }
+        /*  评分框特有样式 */
+        .ratings-box .field {
+            display: flex;
+            align-items: baseline;
+            padding-left: 0.2rem;
+            padding-right: 1rem;
+            flex-wrap: wrap;
+        }
+        .ratings-box .field:first-child {
+            padding-top: 0.2rem;
+        }
+        .ratings-box .control {
+            flex: 1;
+            justify-content: flex-start;
+            padding: 0;
+        }
+        .ratings-box .field label:first-child {
+            min-width: 3rem;
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+        .ratings-box .label {
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+        /* 折叠框中星星样式 */
+        .collapsible-box .rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            user-select: none;
+            gap: 0px 6px;
+            transform: translateY(2px);
+        }
+
+        /*----------------------------------------
+        评分星星通用样式 - 必要样式
+        ----------------------------------------*/
+        .rating {
+            --star-1: #ff774d;
+            --star-2: #ff9d33;
+            --star-3: #f9d71e;
+            --star-4: #a0d234;
+            --star-5: #20ca20;
+            --star-default: #d3d3d3;
+        }
+        .rating input {
+            display: none;
+            transition: color 0.3s ease;
+        }
+        .rating svg {
+            color: var(--star-default); /* 默认未选中的星星颜色 */
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+
         /*----------------------------------------
           搜索过滤相关样式 - 必要样式
         ----------------------------------------*/
@@ -169,7 +279,6 @@
         /*----------------------------------------
         设置功能相关样式 - 必要样式
         ----------------------------------------*/
-        /* 设置按钮样式 */
         /* 标题和设置按钮布局 */
         .subtitle-with-controls {
             display: flex;
@@ -385,7 +494,33 @@
                 box-shaow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
                 border-color 0.3s ease;
         }
+        /* 下拉箭头样式 */
+        .select:not(.is-multiple):not(.is-loading)::after {
+            border-color: #4A9DEC !important;
+            transition: transform 0.3s ease;
+        }
+        /* option基础样式 */
+        .select select option {
+            background-color: #ffffff;
+        }
+        /* 选中状态 */
+        .select select option:checked {
+            background-color: #cee6ff;
+            color: #0874d8;
+        }
 
+        /*----------------------------------------
+        alert通知样式 - 必要样式
+        ----------------------------------------*/
+        .alert-container {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
     </style>
     <!-- 异步加载非关键CSS -->
     <link rel="preload" href="/static/styles.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
