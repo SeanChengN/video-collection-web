@@ -1234,7 +1234,7 @@ tr.is-duplicate:hover {
 @media screen and (max-width: 1200px) {
     /* 评分项间距调整 */
     .rating-item {
-        padding: 0.8rem;
+        padding: 0.1rem 0.3rem;
     }
 
     /* 维度名称字体调整 */
@@ -1256,11 +1256,12 @@ tr.is-duplicate:hover {
 
     /* 移动端下拉菜单定位 */
     .dropdown-menu {
-        position: fixed;
-        left: 50%;
-        top: 50%;
+        position: fixed !important;
+        left: 50% !important;
+        top: 50% !important;
         transform: translate(-50%, -50%);
         max-height: 80vh;
+        min-width: 15rem !important;
         overflow-y: auto;
     }
 
