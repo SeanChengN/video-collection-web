@@ -1537,6 +1537,11 @@ tr.is-duplicate:hover {
     width: 30%;
     height: 60vh;
 }
+#editModal .modal-card .textarea {
+    min-height: 5.5rem;
+    overflow-y: auto !important;
+    resize: vertical;
+}
 
 /*----------------------------------------
   3. 响应式样式
@@ -1574,6 +1579,9 @@ tr.is-duplicate:hover {
     #editModal .modal-card {
         width: 90% !important;
         height: 90% !important;
+    }
+    #editModal .modal-card .textarea {
+        min-height: 8rem;
     }
 }
 
