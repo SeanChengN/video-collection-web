@@ -49,6 +49,57 @@ const imageObserver = new IntersectionObserver((entries, observer) => {
     threshold: 0.1
 });
 
+// alert弹窗封装
+function showAlert(options = {}) {
+    const {
+        title = '提示',
+        message = '',
+        type = 'info', // success, error, warning, info
+        confirmText = '确认',
+        cancelText = '取消',
+        showCancel = true,
+        onConfirm = () => {},
+        onCancel = () => {}
+    } = options;
+
+    const container = document.getElementById('alert-container');
+    const icon = container.querySelector('.alert-icon');
+    const iconSvg = icon.querySelector('svg use');
+    const titleEl = container.querySelector('.alert-title');
+    const messageEl = container.querySelector('.alert-message');
+    const confirmBtn = container.querySelector('.confirm-btn');
+    const cancelBtn = container.querySelector('.cancel-btn');
+
+    // 设置图标类型样式
+    icon.className = `alert-icon ${type}`;
+    iconSvg.setAttribute('href', `/static/sprite.svg#alert-${type}-icon`);
+
+    // 设置按钮样式
+    confirmBtn.className = `confirm-btn ${type}`;
+    
+    // 设置内容
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    confirmBtn.textContent = confirmText;
+    cancelBtn.textContent = cancelText;
+    
+    // 显示/隐藏取消按钮
+    cancelBtn.style.display = showCancel ? 'block' : 'none';
+    
+    // 绑定事件
+    confirmBtn.onclick = () => {
+        onConfirm();
+        container.style.display = 'none';
+    };
+    
+    cancelBtn.onclick = () => {
+        onCancel();
+        container.style.display = 'none';
+    };
+
+    // 显示alert
+    container.style.display = 'flex';
+}
 
 // 模态框管理器
 const ModalManager = {
@@ -860,12 +911,22 @@ function saveTagEdit(button, oldName) {
             // 隐藏编辑表单
             cancelEdit(button);
         } else {
-            alert(result.message || '更新失败');
+            showAlert({
+                title: '更新失败',
+                message: result.message,
+                type: 'error',
+                showCancel: false
+            });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('更新失败：' + error.message);
+        showAlert({
+            title: '更新失败',
+            message: error.message || String(error),
+            type: 'error',
+            showCancel: false
+        });
     });
 }
 
@@ -904,12 +965,22 @@ function saveRatingEdit(button, oldName) {
             // 隐藏编辑表单
             cancelEdit(button);
         } else {
-            alert(result.message || '更新失败');
+            showAlert({
+                title: '更新失败',
+                message: result.message,
+                type: 'error',
+                showCancel: false
+            });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('更新失败：' + error.message);
+        showAlert({
+            title: '更新失败',
+            message: error.message || String(error),
+            type: 'error',
+            showCancel: false
+        });
     });
 }
 
@@ -919,7 +990,12 @@ function addNewTag() {
     const tagName = input.value.trim();
     
     if (!tagName) {
-        alert('请输入标签名称');
+        showAlert({
+            title: '操作失败',
+            message: '请输入标签名称',
+            type: 'warning',
+            showCancel: false
+        });
         return;
     }
     
@@ -937,12 +1013,22 @@ function addNewTag() {
             loadSettings(); // 重新加载列表
             loadTags(); // 重新加载主页面的标签
         } else {
-            alert(result.message || '添加失败');
+            showAlert({
+                title: '添加失败',
+                message: result.message,
+                type: 'error',
+                showCancel: false
+            });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('添加失败');
+        showAlert({
+            title: '添加失败',
+            message: error.message || String(error),
+            type: 'error',
+            showCancel: false
+        });
     });
 }
 
@@ -952,7 +1038,12 @@ function addNewRating() {
     const ratingName = input.value.trim();
     
     if (!ratingName) {
-        alert('请输入评分维度名称');
+        showAlert({
+            title: '操作失败',
+            message: '请输入评分维度名称',
+            type: 'warning',
+            showCancel: false
+        });
         return;
     }
     
@@ -969,12 +1060,22 @@ function addNewRating() {
             input.value = '';
             loadSettings(); // 重新加载列表
         } else {
-            alert(result.message || '添加失败');
+            showAlert({
+                title: '添加失败',
+                message: result.message,
+                type: 'error',
+                showCancel: false
+            });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('添加失败');
+        showAlert({
+            title: '添加失败',
+            message: error.message || String(error),
+            type: 'error',
+            showCancel: false
+        });
     });
 }
 
@@ -1098,6 +1199,12 @@ function loadFilters() {
         })
         .catch(error => {
             console.error('加载评分维度失败:', error);
+            showAlert({
+                title: '加载失败',
+                message: error.message || String(error),
+                type: 'error',
+                showCancel: false
+            });
         });
 
     // 加载标签
@@ -1119,6 +1226,12 @@ function loadFilters() {
         })
         .catch(error => {
             console.error('加载标签失败:', error);
+            showAlert({
+                title: '加载失败',
+                message: error.message || String(error),
+                type: 'error',
+                showCancel: false
+            });
         });
 }
 
@@ -1633,6 +1746,12 @@ async function loadEditTags() {
         }
     } catch (error) {
         console.error('加载标签失败:', error);
+        showAlert({
+            title: '加载失败',
+            message: error.message || String(error),
+            type: 'error',
+            showCancel: false
+        });
     }
 }
 
@@ -1685,34 +1804,57 @@ async function loadEditRatings() {
         }
     } catch (error) {
         console.error('加载评分维度失败:', error);
+        showAlert({
+            title: '加载失败',
+            message: error.message || String(error),
+            type: 'error',
+            showCancel: false
+        });
     }
 }
 
 // 删除电影相关代码
 function deleteMovie() {
-    if (!confirm('确定要删除这部电影吗？')) return;
-
-    // 保存当前的搜索状态
-    saveSearchState();
-    
-    const title = document.getElementById('edit-title').value;
-    fetch(`/api/movies/${encodeURIComponent(title)}`, {
-        method: 'DELETE'
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (!data.success) {
-            throw new Error(data.message || '删除失败');
+    showAlert({
+        title: '确认删除',
+        message: '确定要删除这部电影吗？此操作无法撤销。数据库中的图像文件也会被删除。',
+        type: 'warning',
+        confirmText: '删除',
+        cancelText: '取消',
+        onConfirm: () => {
+            // 保存当前的搜索状态
+            saveSearchState();
+            
+            const title = document.getElementById('edit-title').value;
+            fetch(`/api/movies/${encodeURIComponent(title)}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.message || '删除失败');
+                }
+                closeModal();
+                // 恢复搜索状态并重新搜索
+                restoreSearchState();
+                searchMovies();
+                showAlert({
+                    title: '删除成功',
+                    message: data.message || '电影已删除',
+                    type: 'success',
+                    showCancel: false
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert({
+                    title: '删除失败',
+                    message: error.message,
+                    type: 'error',
+                    showCancel: false
+                });
+            });
         }
-        closeModal();
-        // 恢复搜索状态并重新搜索
-        restoreSearchState();
-        searchMovies();
-        showToast(data.message || '删除成功', 'success');
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showToast(error.message || '删除失败', 'error');
     });
 }
 
@@ -1812,10 +1954,20 @@ async function updateMovie() {
             restoreSearchState();
             searchMovies();
         } else {
-            alert(result.error || '更新失败');
+            showAlert({
+                title: '更新失败',
+                message: result.error,
+                type: 'error',
+                showCancel: false
+            });
         }
     } catch (error) {
-        alert(`更新失败: ${error}`);
+        showAlert({
+            title: '更新失败',
+            message: error.message || String(error),
+            type: 'error',
+            showCancel: false
+        });
     }
 }
 
@@ -2115,7 +2267,12 @@ function initUploadArea(areaId, inputId) {
         const validFiles = newFiles.filter(file => file.type.startsWith('image/'));
         
         if (validFiles.length === 0) {
-            alert('请选择图片文件');
+            showAlert({
+                title: '操作失败',
+                message: '请选择图片文件',
+                type: 'warning',
+                showCancel: false
+            });
             return;
         }
         
@@ -2126,7 +2283,12 @@ function initUploadArea(areaId, inputId) {
         );
         
         if (uniqueFiles.length === 0) {
-            alert('所选图片已存在');
+            showAlert({
+                title: '操作失败',
+                message: '所选图片已存在',
+                type: 'warning',
+                showCancel: false
+            });
             return;
         }
 
