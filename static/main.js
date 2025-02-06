@@ -267,20 +267,10 @@ if (window.addEventListener) {
     window.attachEvent('onload', loadDeferredStyles);
 }
 
-
 const itemsPerPage = 10; // 每页显示10条
 let currentPage = 1;
 let totalPages = 0;
 let allMovies = []; // 存储所有搜索结果
-
-const DEFAULT_COLUMN_WIDTHS = {
-    'title': '20%',
-    'recommended': '8%',
-    'review': '35%',
-    'tags': '20%',
-    'date': '12%',
-    'action': '5%'
-};
 
 // 定义全局配置变量
 let serviceConfig = {};
@@ -1058,19 +1048,6 @@ function loadSettingsRatingDimensions() {
         });
 }
 
-// 获取保存的列宽设置
-function getStoredColumnWidths() {
-    const stored = localStorage.getItem('tableColumnWidths');
-    return stored ? JSON.parse(stored) : {
-        'title': '20%',
-        'recommended': '8%',
-        'review': '45%',
-        'tags': '22%',
-        'ratings': '8%',
-        'action': '7%'
-    };
-}
-
 function loadTags() {
     fetch('/get_tags')
         .then(response => response.json())
@@ -1291,65 +1268,6 @@ function changePage(page) {
         currentPage = page;
         displayCurrentPage();
     }
-}
-
-// 使表格可调整列宽
-function makeTableResizable() {
-    const table = document.querySelector('.table');
-    if (!table) return;
-    
-    const headers = table.querySelectorAll('th');
-    let isResizing = false;
-    let currentHeader;
-    let startX;
-    let startWidth;
-    
-    headers.forEach((header, index) => {
-        // 添加调整手柄
-        const resizer = document.createElement('div');
-        resizer.className = 'column-resizer';
-        header.appendChild(resizer);
-        
-        // 鼠标按下开始调整
-        resizer.addEventListener('mousedown', (e) => {
-            isResizing = true;
-            currentHeader = header;
-            startX = e.pageX;
-            startWidth = header.offsetWidth;
-            
-            // 添加调整时的视觉效果
-            document.body.style.cursor = 'col-resize';
-            currentHeader.classList.add('resizing');
-        });
-    });
-    
-    // 鼠标移动时调整列宽
-    document.addEventListener('mousemove', (e) => {
-        if (!isResizing) return;
-        
-        const width = startWidth + (e.pageX - startX);
-        if (width > 50) { // 最小宽度限制
-            currentHeader.style.width = `${width}px`;
-        }
-    });
-    
-    // 鼠标释放时保存设置
-    document.addEventListener('mouseup', () => {
-        if (!isResizing) return;
-        
-        isResizing = false;
-        document.body.style.cursor = '';
-        if (currentHeader) {
-            currentHeader.classList.remove('resizing');
-            
-            // 保存列宽设置
-            const columnWidths = {};
-            headers.forEach((header, index) => {
-                columnWidths[header.dataset.column] = header.style.width;
-            });
-            localStorage.setItem('tableColumnWidths', JSON.stringify(columnWidths));
-        }
-    });
 }
 
 function closeModal() {
@@ -1928,15 +1846,14 @@ function displayCurrentPage() {
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
     
-    // 应用保存的列宽
-    const columnWidths = getStoredColumnWidths();
+    // 应用列宽
     headerRow.innerHTML = `
-        <th data-column="title" style="width: ${columnWidths.title}">电影名称</th>
-        <th data-column="recommended" style="width: ${columnWidths.recommended}">推荐</th>
-        <th data-column="review" style="width: ${columnWidths.review}">评价</th>
-        <th data-column="tags" style="width: ${columnWidths.tags}">标签</th>
-        <th data-column="ratings" style="width: ${columnWidths.ratings}">评分</th>
-        <th data-column="action" style="width: ${columnWidths.action}">操作</th>
+        <th data-column="title" style="width: 23%">电影名称</th>
+        <th data-column="recommended" style="width: 4.5%">推荐</th>
+        <th data-column="review" style="width: 36%">评价</th>
+        <th data-column="tags" style="width: 15.5%">标签</th>
+        <th data-column="ratings" style="width: 10.5%">评分</th>
+        <th data-column="action" style="width: 10.5%">操作</th>
     `;
     thead.appendChild(headerRow);
     table.appendChild(thead);
@@ -2024,7 +1941,6 @@ function displayCurrentPage() {
     resultsDiv.appendChild(tableContainer);
 
     updatePagination();
-    makeTableResizable();
     setupDropdownPositioning();
 }
 
