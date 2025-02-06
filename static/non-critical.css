@@ -2265,6 +2265,7 @@ tr.is-duplicate:hover {
     flex-direction: column;
     gap: 0.75rem;
 }
+/* 按钮样式 */
 .confirm-btn,
 .cancel-btn {
     padding: 0.5rem 1rem;
@@ -2273,9 +2274,27 @@ tr.is-duplicate:hover {
     font-weight: 500;
     width: 100%;
     border-radius: 0.375rem;
-    border: 1px solid transparent;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease, filter 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.confirm-btn span,
+.cancel-btn span {
+    position: relative;
+    z-index: 2;
+}
+.confirm-btn::before,
+.cancel-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0) 100%
+    );
 }
 .confirm-btn:hover,
 .cancel-btn:hover {
@@ -2286,7 +2305,6 @@ tr.is-duplicate:hover {
     transform: scale(0.95);
     filter: brightness(94%);
 }
-
 /* 确认按钮颜色 */
 .confirm-btn.success { background-color: var(--alert-success); }
 .confirm-btn.error { background-color: var(--alert-error); }
@@ -2295,9 +2313,10 @@ tr.is-duplicate:hover {
 
 .confirm-btn {
     color: #ffffff;
+    border: none;
 }
 .cancel-btn {
     background-color: #ffffff;
     color: #374151;
-    border-color: #d1d5db;
+    border: 1px solid #d1d5db;
 }
