@@ -1614,27 +1614,6 @@ tr.is-duplicate:hover {
     max-width: 150px;
 }
 
-/* 可调整列宽功能 */
-.table.resizable {
-    table-layout: fixed;
-}
-
-.table th {
-    position: relative;
-    user-select: none;
-}
-
-.column-resizer {
-    position: absolute;
-    right: -3px;
-    top: 0;
-    height: 100%;
-    width: 6px;
-    cursor: col-resize;
-    background: transparent;
-    z-index: 1;
-}
-
 /* 悬浮提示功能 */
 .table td[data-tooltip] {
     position: relative;
@@ -1696,29 +1675,6 @@ tr.is-duplicate:hover {
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     white-space: normal;
-}
-
-.column-resizer:hover,
-th.resizing .column-resizer {
-    background: rgba(0, 0, 0, 0.2);
-}
-
-th.resizing {
-    background: rgba(0, 0, 0, 0.05);
-}
-.table th::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
-    height: 100%;
-    width: 5px;
-    background: transparent;
-    cursor: col-resize;
-}
-
-.table th:hover::after {
-    background: rgba(0, 0, 0, 0.1);
 }
 
 /* 所有需要缩略的单元格通用样式 */
