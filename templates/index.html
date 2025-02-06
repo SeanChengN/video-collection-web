@@ -146,14 +146,24 @@
         .tags-filter .tag {
             margin: 0.3rem;
             cursor: pointer;
-            transition: background-color 0.3s ease;
             font-size: 0.9rem;
         }
         .tag { 
             cursor: pointer; 
-            transition: background-color 0.3s ease;
-            background-color: #d3d3d3;
-            color: #4a4a4a;
+            user-select: none;
+            background: linear-gradient(
+                177.95deg,
+                rgba(255, 255, 255, 0.19) 0%,
+                rgba(255, 255, 255, 0) 100%
+            ),
+            #f0f0f0;
+            color: #515151;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: 
+                background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.3s ease, 
+                transform 0.3s ease, 
+                border-color 0.3s ease;
         }
         
         /*----------------------------------------

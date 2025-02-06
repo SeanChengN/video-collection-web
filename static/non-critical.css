@@ -409,14 +409,38 @@ tr.is-duplicate:hover {
 
 
 /*----------------------------------------
-  标签相关样式
+  标签相关样式 - 整合 - 必要样式在index中
 ----------------------------------------*/
 .tag:hover {
-    background-color: #b5b5b5;
+    background: linear-gradient(
+        177.95deg,
+        rgba(255, 255, 255, 0.25) 0%,
+        rgba(255, 255, 255, 0) 100%
+    ),
+    #e0e0e0;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .tag.is-selected {
-    background-color: #3273dc;
+    background: linear-gradient(
+        177.95deg,
+        rgba(255, 255, 255, 0.25) 0%,
+        rgba(255, 255, 255, 0) 100%
+    ),
+    #4A9DEC;
     color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 4px rgba(74, 157, 236, 0.2);
+}
+.tag.is-selected:hover {
+    background: linear-gradient(
+        177.95deg,
+        rgba(255, 255, 255, 0.3) 0%,
+        rgba(255, 255, 255, 0) 100%
+    ),
+    #3b8ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(74, 157, 236, 0.3);
 }
 
 
@@ -1196,10 +1220,7 @@ tr.is-duplicate:hover {
     font-size: 0.9rem;
 }
 
-.tags-box .tag.is-selected {
-    background-color: #3273dc;
-    color: white;
-}
+
 
 /*----------------------------------------
   移动端响应式样式
@@ -1813,15 +1834,6 @@ tr.is-duplicate:hover {
         padding: 0 1rem !important;
         width: 4.5em !important;
     }
-}
-
-
-
-/*----------------------------------------
-  搜索过滤相关样式 - 必要样式在index中
-----------------------------------------*/
-.tags-filter .tag.is-selected:hover {
-    background-color: #2366d1;
 }
 
 
