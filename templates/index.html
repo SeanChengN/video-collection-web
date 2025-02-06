@@ -374,6 +374,18 @@
         .field.has-addons {
             gap: 1rem;
         }
+
+        /*----------------------------------------
+        下拉框相关样式 - 必要样式
+        ----------------------------------------*/
+        .select select {
+            border-radius: 8px !important;
+            padding-left: 1em !important;
+            transition: 
+                box-shaow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.3s ease;
+        }
+
     </style>
     <!-- 异步加载非关键CSS -->
     <link rel="preload" href="/static/styles.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">

@@ -2367,3 +2367,47 @@ tr.is-duplicate:hover {
     color: #374151;
     border: 1px solid #d1d5db;
 }
+
+
+
+/*----------------------------------------
+  下拉框相关样式 - 必要样式在index中
+----------------------------------------*/
+/* 悬浮效果 */
+.select select:hover {
+    background: linear-gradient(
+        177.95deg,
+        rgba(74, 157, 236, 0.15) 0%,
+        rgba(74, 157, 236, 0.05) 100%
+    ),
+    #ffffff;
+    border-color: rgba(74, 157, 236, 0.4) !important;
+    box-shadow: 0 2px 6px rgba(74, 157, 236, 0.15);
+}
+/* 聚焦效果 */
+.select select:focus {
+    background: linear-gradient(
+        177.95deg,
+        rgba(74, 157, 236, 0.3) 0%,
+        rgba(74, 157, 236, 0) 100%
+    ),
+    #ffffff;
+    border-color: rgba(74, 157, 236, 0.8) !important;
+}
+/* 下拉箭头样式 */
+.select:not(.is-multiple):not(.is-loading)::after {
+    border-color: #4A9DEC !important;
+    transition: transform 0.3s ease;
+}
+.select:not(.is-multiple):not(.is-loading):hover::after {
+    transform: translateY(2px);
+}
+/* option基础样式 */
+.select select option {
+    background-color: #ffffff;
+}
+/* 选中状态 */
+.select select option:checked {
+    background-color: #cee6ff;
+    color: #0874d8;
+}
