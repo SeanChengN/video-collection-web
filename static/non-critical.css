@@ -684,6 +684,17 @@ tr.is-duplicate:hover {
     white-space: normal;
     word-wrap: break-word;
 }
+/* 标签容器hover效果 */
+.tags-filter:hover {
+    background: linear-gradient(
+        177.95deg,
+        rgba(74, 157, 236, 0.08) 0%,
+        rgba(74, 157, 236, 0.02) 100%
+    ),
+    #ffffff;
+    border-color: rgba(74, 157, 236, 0.4) !important;
+    box-shadow: 0 2px 6px rgba(74, 157, 236, 0.15);
+}
 
 
 
@@ -2247,8 +2258,8 @@ tr.is-duplicate:hover {
 .select select:hover {
     background: linear-gradient(
         177.95deg,
-        rgba(74, 157, 236, 0.15) 0%,
-        rgba(74, 157, 236, 0.05) 100%
+        rgba(74, 157, 236, 0.08) 0%,
+        rgba(74, 157, 236, 0.02) 100%
     ),
     #ffffff;
     border-color: rgba(74, 157, 236, 0.4) !important;
@@ -2258,8 +2269,8 @@ tr.is-duplicate:hover {
 .select select:focus {
     background: linear-gradient(
         177.95deg,
-        rgba(74, 157, 236, 0.3) 0%,
-        rgba(74, 157, 236, 0) 100%
+        rgba(74, 157, 236, 0.15) 0%,
+        rgba(74, 157, 236, 0.02) 100%
     ),
     #ffffff;
     border-color: rgba(74, 157, 236, 0.8) !important;
