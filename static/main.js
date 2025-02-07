@@ -1112,6 +1112,9 @@ function loadSettingsTags() {
                         </td>
                     </tr>
                 `).join('');
+
+                // 更新标签计数
+                document.querySelector('.tag-counter').textContent = result.data.length;
             }
         });
 }
@@ -1149,6 +1152,9 @@ function loadSettingsRatingDimensions() {
                         </td>
                     </tr>
                 `).join('');
+                
+                // 更新评分维度计数
+                document.querySelector('.rating-counter').textContent = result.dimensions.length;
             }
         });
 }
