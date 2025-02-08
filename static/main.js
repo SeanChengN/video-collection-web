@@ -1749,7 +1749,9 @@ function openModal(movie) {
 
         function handleMove(e) {
             e.preventDefault();
-            e.dataTransfer?.dropEffect === 'move';
+            if (e.dataTransfer) {
+                e.dataTransfer.dropEffect = 'move';
+            }
             existingImagesContainer.classList.add('dragging-over');
         
             const draggingItem = existingImagesContainer.querySelector('.dragging');
