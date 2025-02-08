@@ -1676,7 +1676,7 @@ function openModal(movie) {
                 imageWrapper.addEventListener('touchstart', () => {
                     imageWrapper.classList.add('dragging');
                     existingImagesContainer.classList.add('dragging-over');
-                });
+                }, { passive: true });
                 // 图片拖拽事件 - 结束
                 imageWrapper.addEventListener('dragend', () => {
                     imageWrapper.classList.remove('dragging');
@@ -1686,7 +1686,7 @@ function openModal(movie) {
                 imageWrapper.addEventListener('touchend', () => {
                     imageWrapper.classList.remove('dragging');
                     existingImagesContainer.classList.remove('dragging-over');
-                });
+                }, { passive: true });
 
                 existingImagesContainer.appendChild(imageWrapper);
                 currentImages.add(filename.trim());
@@ -1709,11 +1709,11 @@ function openModal(movie) {
                 imageWrapper.classList.add('dragging');
                 existingImagesContainer.classList.add('dragging-over');
             }
-        });
+        }, { passive: true });
         // 容器图片拖拽事件 - 结束
         existingImagesContainer.addEventListener('dragend', updateImageOrder);
         // 移动端容器图片拖拽事件 - 结束
-        existingImagesContainer.addEventListener('touchend', updateImageOrder);
+        existingImagesContainer.addEventListener('touchend', updateImageOrder, { passive: true });
 
         function updateImageOrder(e) {
             const imageWrapper = e.target.closest('.existing-image-item');
@@ -2374,7 +2374,7 @@ function initUploadArea(areaId, inputId) {
             isPreviewDragging = true;
             e.target.closest('.preview-item').classList.add('dragging');
         }
-    });
+    }, { passive: true });
     // 预览图拖拽事件 - 结束
     previewContainer.addEventListener('dragend', () => {
         isPreviewDragging = false;
@@ -2399,7 +2399,7 @@ function initUploadArea(areaId, inputId) {
             uploadedFiles = finalUploadedFiles;
             updatePreviewIndexes();
         }
-    });
+    }, { passive: true });
     // 预览图拖拽事件 - 移动
     previewContainer.addEventListener('dragover', handleDragOver);
     // 移动端预览图拖拽事件 - 移动
