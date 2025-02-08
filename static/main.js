@@ -2347,31 +2347,54 @@ function initUploadArea(areaId, inputId) {
         });
     }
 
-    // 预览图拖拽事件
+    // 预览图拖拽事件 - 开始
     previewContainer.addEventListener('dragstart', (e) => {
         if (e.target.closest('.preview-item')) {
             isPreviewDragging = true;
+            e.target.closest('.preview-item').classList.add('dragging');
         }
     });
-
+    // 移动端预览图拖拽事件 - 开始
+    previewContainer.addEventListener('touchstart', (e) => {
+        if (e.target.closest('.preview-item')) {
+            isPreviewDragging = true;
+            e.target.closest('.preview-item').classList.add('dragging');
+        }
+    });
+    // 预览图拖拽事件 - 结束
     previewContainer.addEventListener('dragend', () => {
         isPreviewDragging = false;
+        const dragItem = previewContainer.querySelector('.dragging');
+        if (dragItem) dragItem.classList.remove('dragging');
     });
+    // 移动端预览图拖拽事件 - 结束
+    previewContainer.addEventListener('touchend', () => {
+        isPreviewDragging = false;
+        const dragItem = previewContainer.querySelector('.dragging');
+        if (dragItem) dragItem.classList.remove('dragging');
+    });
+    // 预览图拖拽事件 - 移动
+    previewContainer.addEventListener('dragover', handleDragOver);
+    // 移动端预览图拖拽事件 - 移动
+    previewContainer.addEventListener('touchmove', handleDragOver);
 
-    previewContainer.addEventListener('dragover', (e) => {
+    function handleDragOver(e) {
         e.preventDefault();
         if (!isPreviewDragging) return;
-
+    
+        const clientX = e.clientX || e.touches[0].clientX;
+        const clientY = e.clientY || e.touches[0].clientY;
+    
         const draggingItem = previewContainer.querySelector('.dragging');
         if (!draggingItem) return;
-
-        const afterElement = getDragAfterElement(previewContainer, e.clientX, e.clientY);
+    
+        const afterElement = getDragAfterElement(previewContainer, clientX, clientY);
         if (afterElement) {
             previewContainer.insertBefore(draggingItem, afterElement);
         } else {
             previewContainer.appendChild(draggingItem);
         }
-    });
+    }
 
     // 删除预览图片的处理
     previewContainer.addEventListener('click', (e) => {

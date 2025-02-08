@@ -806,6 +806,12 @@ tr.is-duplicate:hover {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     cursor: move;
+    /* 移动端触摸拖拽支持 */
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 .preview-item:hover {
     transform: translateY(-2px);
@@ -817,6 +823,7 @@ tr.is-duplicate:hover {
     object-fit: cover;
     border-radius: 8px;
     display: block;
+    pointer-events: none;
 }
 /* 删除按钮样式 */
 .preview-item .delete-image {
@@ -833,6 +840,7 @@ tr.is-duplicate:hover {
     z-index: 1;
     box-shadow: 0 2px 4px rgba(255, 56, 96, 0.3);
     transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    pointer-events: auto;
 }
 .preview-item .delete-image:hover {
     background: #eb0023;
