@@ -1711,21 +1711,23 @@ function openModal(movie) {
             }
         });
         // 容器图片拖拽事件 - 结束
-        existingImagesContainer.addEventListener('dragend', (e) => {
-            const imageWrapper = e.target.closest('.existing-image-item');
-            if (imageWrapper) {
-                imageWrapper.classList.remove('dragging');
-                existingImagesContainer.classList.remove('dragging-over');
-            }
-        });
+        existingImagesContainer.addEventListener('dragend', updateImageOrder);
         // 移动端容器图片拖拽事件 - 结束
-        existingImagesContainer.addEventListener('touchend', (e) => {
+        existingImagesContainer.addEventListener('touchend', updateImageOrder);
+
+        function updateImageOrder(e) {
             const imageWrapper = e.target.closest('.existing-image-item');
             if (imageWrapper) {
                 imageWrapper.classList.remove('dragging');
                 existingImagesContainer.classList.remove('dragging-over');
+
+                // 更新索引
+                const items = existingImagesContainer.querySelectorAll('.existing-image-item');
+                items.forEach((item, idx) => {
+                    item.dataset.index = idx;
+                });
             }
-        });
+        }
 
         existingImagesContainer.addEventListener('dragenter', (e) => {
             e.preventDefault();
@@ -1766,11 +1768,6 @@ function openModal(movie) {
             } else {
                 existingImagesContainer.appendChild(draggingItem);
             }
-            // 更新索引
-            const items = existingImagesContainer.querySelectorAll('.existing-image-item');
-            items.forEach((item, idx) => {
-                item.dataset.index = idx;
-            });
         }
     }
 
@@ -2358,6 +2355,12 @@ function initUploadArea(areaId, inputId) {
         });
     }
 
+    /* PC端使用的是HTML5原生拖放API(dragstart、dragover、drop等事件)。
+    在uploadArea的drop事件处理中已经包含了文件数组顺序的更新逻辑。 
+    而移动端使用的是触摸事件(touchstart、touchmove、touchend)来模拟拖放行为。
+    在touchmove(handleDragOver)中只改变了DOM元素的位置，没有同步更新文件数组的顺序。
+    所以需要在touchend中添加文件数组顺序更新的逻辑，使移动端的行为与PC端保持一致。*/
+
     // 预览图拖拽事件 - 开始
     previewContainer.addEventListener('dragstart', (e) => {
         if (e.target.closest('.preview-item')) {
@@ -2382,7 +2385,20 @@ function initUploadArea(areaId, inputId) {
     previewContainer.addEventListener('touchend', () => {
         isPreviewDragging = false;
         const dragItem = previewContainer.querySelector('.dragging');
-        if (dragItem) dragItem.classList.remove('dragging');
+        if (dragItem) {
+            dragItem.classList.remove('dragging');
+            // 确保在触摸结束时再次同步文件顺序
+            const items = [...previewContainer.querySelectorAll('.preview-item')];
+            const finalUploadedFiles = [];
+            items.forEach(item => {
+                const oldIndex = parseInt(item.dataset.index);
+                if (uploadedFiles[oldIndex]) {
+                    finalUploadedFiles.push(uploadedFiles[oldIndex]);
+                }
+            });
+            uploadedFiles = finalUploadedFiles;
+            updatePreviewIndexes();
+        }
     });
     // 预览图拖拽事件 - 移动
     previewContainer.addEventListener('dragover', handleDragOver);
