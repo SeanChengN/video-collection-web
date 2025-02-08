@@ -865,6 +865,11 @@ tr.is-duplicate:hover {
     flex-wrap: wrap;
     gap: 10px;
     align-items: flex-start;
+    /* 移动端触摸拖拽支持 */
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 /* 图片预览样式 */
 .existing-image-item {
@@ -876,6 +881,12 @@ tr.is-duplicate:hover {
     transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
     transform-origin: center;
     cursor: grab;
+    /* 移动端触摸拖拽支持 */
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 .existing-image-item:hover {
     transform: translateY(-1px);
@@ -885,6 +896,7 @@ tr.is-duplicate:hover {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    pointer-events: none;
 }
 /* 删除按钮样式 */
 .delete-existing-image {
@@ -902,6 +914,7 @@ tr.is-duplicate:hover {
     cursor: pointer;
     color: white;
     transition: transform 0.2s ease, background-color 0.2s ease;
+    pointer-events: auto;
 }
 .delete-existing-image:hover {
     transform: scale(1.15);
@@ -932,6 +945,16 @@ tr.is-duplicate:hover {
 .existing-images.dragging-over {
     background: rgba(50, 115, 220, 0.05);
     border-radius: 4px;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .existing-image-item {
+        cursor: move; /* 触摸设备显示移动光标 */
+    }
+    
+    .existing-image-item:active {
+        transform: scale(0.98); /* 触摸时的压缩效果 */
+    }
 }
 
 

@@ -1648,6 +1648,9 @@ function openModal(movie) {
                     </button>
                 `;
 
+                // 阻止右键菜单弹出
+                imageWrapper.addEventListener('contextmenu', e => e.preventDefault());
+
                 // 添加删除按钮点击事件
                 const deleteButton = imageWrapper.querySelector('.delete-existing-image');
                 deleteButton.addEventListener('click', (e) => {
@@ -1669,7 +1672,36 @@ function openModal(movie) {
                 imageWrapper.addEventListener('dragend', () => {
                     imageWrapper.classList.remove('dragging');
                     existingImagesContainer.classList.remove('dragging-over');
-                });                
+                });
+
+                // 添加移动端触摸事件支持
+                imageWrapper.addEventListener('touchmove', e => {
+                    e.preventDefault(); // 阻止页面滚动
+                    const touch = e.touches[0];
+                    const moveTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+                    const dragItem = document.querySelector('.dragging');
+                    
+                    if (moveTarget && moveTarget.closest('.existing-image-item')) {
+                        const container = document.querySelector('.existing-images');
+                        const items = [...container.querySelectorAll('.existing-image-item')];
+                        const dragIndex = items.indexOf(dragItem);
+                        const dropIndex = items.indexOf(moveTarget.closest('.existing-image-item'));
+                        
+                        if (dragIndex !== dropIndex) {
+                            container.insertBefore(dragItem, dropIndex < dragIndex ? moveTarget.closest('.existing-image-item') : moveTarget.closest('.existing-image-item').nextSibling);
+                        }
+                    }
+                });
+                imageWrapper.addEventListener('touchend', () => {
+                    imageWrapper.classList.remove('dragging');
+                    existingImagesContainer.classList.remove('dragging-over');
+                    
+                    // 更新索引
+                    const items = existingImagesContainer.querySelectorAll('.existing-image-item');
+                    items.forEach((item, idx) => {
+                        item.dataset.index = idx;
+                    });
+                });
 
                 existingImagesContainer.appendChild(imageWrapper);
                 currentImages.add(filename.trim());
