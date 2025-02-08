@@ -1659,7 +1659,11 @@ function openModal(movie) {
                     currentImages.delete(filename.trim());
                 });
 
-                // 添加拖拽事件
+                /* PC端的拖拽使用了HTML5的原生拖放API，dragstart只是标记开始拖拽状态，
+                真正的排序和索引更新是在container的dragover事件中完成的。
+                而移动端没有原生拖放API，所以在touchmove中模拟了拖放行为。*/
+
+                // 图片拖拽事件 - 开始
                 imageWrapper.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/plain', index);
                     e.dataTransfer.effectAllowed = 'move';
@@ -1668,39 +1672,20 @@ function openModal(movie) {
                     imageWrapper.classList.add('dragging');
                     existingImagesContainer.classList.add('dragging-over');
                 });
-
+                // 移动端图片拖拽事件 - 开始
+                imageWrapper.addEventListener('touchstart', () => {
+                    imageWrapper.classList.add('dragging');
+                    existingImagesContainer.classList.add('dragging-over');
+                });
+                // 图片拖拽事件 - 结束
                 imageWrapper.addEventListener('dragend', () => {
                     imageWrapper.classList.remove('dragging');
                     existingImagesContainer.classList.remove('dragging-over');
                 });
-
-                // 添加移动端触摸事件支持
-                imageWrapper.addEventListener('touchmove', e => {
-                    e.preventDefault(); // 阻止页面滚动
-                    const touch = e.touches[0];
-                    const moveTarget = document.elementFromPoint(touch.clientX, touch.clientY);
-                    const dragItem = document.querySelector('.dragging');
-                    
-                    if (moveTarget && moveTarget.closest('.existing-image-item')) {
-                        const container = document.querySelector('.existing-images');
-                        const items = [...container.querySelectorAll('.existing-image-item')];
-                        const dragIndex = items.indexOf(dragItem);
-                        const dropIndex = items.indexOf(moveTarget.closest('.existing-image-item'));
-                        
-                        if (dragIndex !== dropIndex) {
-                            container.insertBefore(dragItem, dropIndex < dragIndex ? moveTarget.closest('.existing-image-item') : moveTarget.closest('.existing-image-item').nextSibling);
-                        }
-                    }
-                });
+                // 移动端图片拖拽事件 - 结束
                 imageWrapper.addEventListener('touchend', () => {
                     imageWrapper.classList.remove('dragging');
                     existingImagesContainer.classList.remove('dragging-over');
-                    
-                    // 更新索引
-                    const items = existingImagesContainer.querySelectorAll('.existing-image-item');
-                    items.forEach((item, idx) => {
-                        item.dataset.index = idx;
-                    });
                 });
 
                 existingImagesContainer.appendChild(imageWrapper);
@@ -1708,7 +1693,7 @@ function openModal(movie) {
             }
         });
 
-        // 为容器添加拖拽事件
+        // 容器图片拖拽事件 - 开始
         existingImagesContainer.addEventListener('dragstart', (e) => {
             const imageWrapper = e.target.closest('.existing-image-item');
             if (imageWrapper) {
@@ -1717,8 +1702,24 @@ function openModal(movie) {
                 e.dataTransfer.setData('text/plain', imageWrapper.dataset.index);
             }
         });
-
+        // 移动端容器图片拖拽事件 - 开始
+        existingImagesContainer.addEventListener('touchstart', (e) => {
+            const imageWrapper = e.target.closest('.existing-image-item');
+            if (imageWrapper) {
+                imageWrapper.classList.add('dragging');
+                existingImagesContainer.classList.add('dragging-over');
+            }
+        });
+        // 容器图片拖拽事件 - 结束
         existingImagesContainer.addEventListener('dragend', (e) => {
+            const imageWrapper = e.target.closest('.existing-image-item');
+            if (imageWrapper) {
+                imageWrapper.classList.remove('dragging');
+                existingImagesContainer.classList.remove('dragging-over');
+            }
+        });
+        // 移动端容器图片拖拽事件 - 结束
+        existingImagesContainer.addEventListener('touchend', (e) => {
             const imageWrapper = e.target.closest('.existing-image-item');
             if (imageWrapper) {
                 imageWrapper.classList.remove('dragging');
@@ -1741,15 +1742,23 @@ function openModal(movie) {
             existingImagesContainer.classList.remove('dragging-over');
         });
 
-        existingImagesContainer.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            existingImagesContainer.classList.add('dragging-over');
+        // 容器图片拖拽事件 - 移动
+        existingImagesContainer.addEventListener('dragover', handleMove);
+        // 移动端容器图片拖拽事件 - 移动
+        existingImagesContainer.addEventListener('touchmove', handleMove);
 
+        function handleMove(e) {
+            e.preventDefault();
+            e.dataTransfer?.dropEffect === 'move';
+            existingImagesContainer.classList.add('dragging-over');
+        
             const draggingItem = existingImagesContainer.querySelector('.dragging');
             if (!draggingItem) return;
-
-            const afterElement = getDragAfterElement(existingImagesContainer, e.clientX, e.clientY);
+        
+            const clientX = e.clientX || e.touches?.[0].clientX;
+            const clientY = e.clientY || e.touches?.[0].clientY;
+        
+            const afterElement = getDragAfterElement(existingImagesContainer, clientX, clientY);
             if (afterElement) {
                 existingImagesContainer.insertBefore(draggingItem, afterElement);
             } else {
@@ -1760,7 +1769,7 @@ function openModal(movie) {
             items.forEach((item, idx) => {
                 item.dataset.index = idx;
             });
-        });
+        }
     }
 
     // 将当前图片集合保存到modal元素中，供updateMovie使用
