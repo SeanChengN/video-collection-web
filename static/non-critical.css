@@ -1,5 +1,5 @@
 /* 移动端响应式布局 */
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 490px) {
     .columns {
         margin: 0;
     }
@@ -9,29 +9,29 @@
 
 
     /* 移动端元素放大 */
-    .title {
-        font-size: 2.5rem !important;
+    .section {
+        padding: 0rem 0.5rem 1rem !important;
+    }
+    .box {
+        padding: 0.5rem !important;
     }
     .subtitle {
-        font-size: 2rem !important;
+        font-size: 1.1rem !important;
     }
     .input, .textarea {
-        font-size: 1.5rem !important;
+        font-size: 1.3rem !important;
         height: 3.5em;
         padding: 1rem;
     }
     .button {
-        font-size: 1.5rem !important;
+        font-size: 1.3rem !important;
         height: 3.5em;
         padding: 0 2rem;
     }
     .tag {
-        font-size: 1.3rem !important;
-        height: 2.8em !important;
-        padding: 0.7em 1.2em !important;
+        height: 2.4em !important;
     }
     .label {
-        font-size: 1.5rem !important;
         margin-bottom: 1rem;
     }
     .radio {
@@ -41,13 +41,20 @@
     .field:not(:last-child) {
         margin-bottom: 1.5rem;
     }
-    
+    #search-results {
+        margin: 5px 0 0;
+    }
+
     /* 工具栏按钮内图标尺寸 */
+    .function-tools {
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+    }
     .function-tools .button {
-        height: 5rem;
+        height: 4.5rem;
     }
     .function-tools .buttons {
-        height: 6rem;
+        gap: 0rem;
     }
     .function-tools .buttons .icon {
         width: 3.5rem;
@@ -89,9 +96,11 @@
 
     /* 导航栏样式 */
     .navbar-brand {
-        justify-content: center;  
+        justify-content: center;
+        height: 2rem;
     }
     .navbar-brand .title {
+        padding-left: 0;
         text-align: center;  
     }
 
@@ -100,6 +109,14 @@
     .review-cell:hover::after,
     .tags-cell:hover::after {
         display: none;
+    }
+    .tags-filter {
+        width: 112%;
+    }
+    .tags-box .tag,
+    .tags-filter .tag {
+        font-size: 1.1rem;
+        padding: 0.5em 0.5em;
     }
 
 
@@ -111,7 +128,7 @@
 
     /* 增加点击区域 */
     .table td, .button {
-        min-height: 54px;
+        min-height: 40px;
     }
 
 
@@ -396,7 +413,7 @@ tr.is-duplicate:hover {
     box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
 }
 
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 490px) {
     #duplicateModal .column.is-4 {
         height: auto !important;
     }
@@ -1146,7 +1163,7 @@ tr.is-duplicate:hover {
 /*----------------------------------------
   移动端响应式样式
 ----------------------------------------*/
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 490px) {
     .ratings-box {
         grid-template-columns: 1fr;
     }
@@ -1156,13 +1173,7 @@ tr.is-duplicate:hover {
     }
     
     .ratings-box .field label:first-child {
-        min-width: 3em;
-        font-size: 0.9rem;
-    }
-    .image-box-title,
-    .ratings-box-title,
-    .tags-box-title {
-        font-size: 1.6rem;
+        font-size: 1rem;
     }
 }
 
@@ -1212,7 +1223,7 @@ tr.is-duplicate:hover {
 }
 
 /* 移动端适配 */
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 490px) {
     /* 评分项间距调整 */
     .rating-item {
         padding: 0.1rem 0.3rem;
@@ -1526,15 +1537,11 @@ tr.is-duplicate:hover {
 /*----------------------------------------
   3. 响应式样式
 ----------------------------------------*/
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 490px) {
     /* 通用模态框响应式样式 */
     .modal-card {
         margin: 10px;
         max-height: calc(100vh - 20px);
-    }
-    
-    .modal-card-title {
-        font-size: 2rem !important;
     }
     
     /* 特定模态框响应式宽度 */
@@ -1674,7 +1681,7 @@ tr.is-duplicate:hover {
 }
 
 /* 移动端响应式布局 */
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 490px) {
     .table {
         display: block;
         background: none;
@@ -1703,7 +1710,7 @@ tr.is-duplicate:hover {
         align-items: baseline;
         padding: 0.5rem 0;
         border: none;
-        font-size: 1.4rem;
+        font-size: 1.2rem;
         font-weight: 500;
         line-height: 1.5;
         max-width: none;
@@ -1749,10 +1756,10 @@ tr.is-duplicate:hover {
         padding: 0.5rem 0;
     }
     .table td:last-child .button {
-        font-size: 1.5rem !important;
+        font-size: 1.3rem !important;
         height: 2em !important;
         padding: 0 1rem !important;
-        width: 4.5em !important;
+        width: 4.0em !important;
     }
 }
 
@@ -1813,7 +1820,7 @@ tr.is-duplicate:hover {
 .settings-tabs .tag-counter {
     border-radius: 50% !important; /* 圆角 */
     width: 1rem;
-    height: 1.2rem;
+    height: 1.2rem !important;
     margin-left: 0.3rem;
 }
 
@@ -1943,7 +1950,7 @@ tr.is-duplicate:hover {
 /*----------------------------------------
   搜索电影相关样式
 ----------------------------------------*/
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 490px) {
     .select.is-fullwidth select {
         height: 150%;
     }
@@ -1953,16 +1960,9 @@ tr.is-duplicate:hover {
     .select select {
         font-size: 1.3rem !important;
     }
-}
-
-
-
-/*----------------------------------------
-  添加电影相关样式
-----------------------------------------*/
-@media screen and (max-width: 1200px) {
-    .box-title {
-        font-size: 1.5rem;
+    .filter-options .select {
+        height: auto !important;
+        width: 112% !important;
     }
 }
 
