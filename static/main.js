@@ -418,10 +418,10 @@ function makeDraggable(modal) {
         }
     }
     
-    // 使用 passive 选项优化事件监听
-    modalHead.addEventListener('mousedown', dragStart, { passive: false });
-    document.addEventListener('mousemove', drag, { passive: false });
-    document.addEventListener('mouseup', dragEnd, { passive: true });
+    // 鼠标事件不需要passive, 因为它们不会阻止默认行为
+    modalHead.addEventListener('mousedown', dragStart);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', dragEnd);
 
     // 清理函数
     return function cleanup() {
