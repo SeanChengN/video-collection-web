@@ -1,5 +1,5 @@
 /* 移动端响应式布局 */
-@media screen and (max-width: 490px) {
+@media screen and (max-width: 768px) {
     .columns {
         margin: 0;
     }
@@ -413,7 +413,7 @@ tr.is-duplicate:hover {
     box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
 }
 
-@media screen and (max-width: 490px) {
+@media screen and (max-width: 768px) {
     #duplicateModal .column.is-4 {
         height: auto !important;
     }
@@ -982,6 +982,12 @@ tr.is-duplicate:hover {
     }
 }
 
+@media screen and (max-width: 768px) {
+    .existing-image-item {
+        width: 116px;
+        height: 116px;
+    }
+}
 
 
 /*----------------------------------------
@@ -1163,7 +1169,7 @@ tr.is-duplicate:hover {
 /*----------------------------------------
   移动端响应式样式
 ----------------------------------------*/
-@media screen and (max-width: 490px) {
+@media screen and (max-width: 768px) {
     .ratings-box {
         grid-template-columns: 1fr;
     }
@@ -1223,7 +1229,7 @@ tr.is-duplicate:hover {
 }
 
 /* 移动端适配 */
-@media screen and (max-width: 490px) {
+@media screen and (max-width: 768px) {
     /* 评分项间距调整 */
     .rating-item {
         padding: 0.1rem 0.3rem;
@@ -1537,7 +1543,7 @@ tr.is-duplicate:hover {
 /*----------------------------------------
   3. 响应式样式
 ----------------------------------------*/
-@media screen and (max-width: 490px) {
+@media screen and (max-width: 768px) {
     /* 通用模态框响应式样式 */
     .modal-card {
         margin: 10px;
@@ -1681,7 +1687,7 @@ tr.is-duplicate:hover {
 }
 
 /* 移动端响应式布局 */
-@media screen and (max-width: 490px) {
+@media screen and (max-width: 768px) {
     .table {
         display: block;
         background: none;
@@ -1950,7 +1956,7 @@ tr.is-duplicate:hover {
 /*----------------------------------------
   搜索电影相关样式
 ----------------------------------------*/
-@media screen and (max-width: 490px) {
+@media screen and (max-width: 768px) {
     .select.is-fullwidth select {
         height: 150%;
     }
