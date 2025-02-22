@@ -72,7 +72,7 @@ function showAlert(options = {}) {
 
     // 设置图标类型样式
     icon.className = `alert-icon ${type}`;
-    iconSvg.setAttribute('href', `/static/sprite.svg#alert-${type}-icon`);
+    iconSvg.setAttribute('href', `../static/sprite.svg#alert-${type}-icon`);
 
     // 设置按钮样式
     confirmBtn.className = `confirm-btn ${type}`;
@@ -299,7 +299,7 @@ function minimizeModal(modalId) {
 // 延迟加载非关键CSS
 function loadDeferredStyles() {
     const stylesheets = [
-        '/static/styles.min.css',
+        '../static/styles.min.css',
         'https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css'
     ];
     
@@ -327,10 +327,11 @@ let allMovies = []; // 存储所有搜索结果
 let serviceConfig = {};
 
 // 页面加载时获取所有服务配置
-fetch('/get_services_config')
-    .then(response => response.json())
-    .then(config => {
-        serviceConfig = config;
+callApi(event_map.get_services_config)
+    .then(result => {
+        if (result.success) {
+            serviceConfig = result.data;
+        }
     });
 
 
@@ -499,108 +500,106 @@ function checkDuplicates() {
         };
     });
 
-    fetch('/check_duplicates', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ titles: movieData.map(m => m.title) })
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            const duplicateCount = result.duplicates.length;
-            const newMovies = movieData.filter(movie => 
-                !result.duplicates.includes(movie.title)
-            ).map(movie => ({
-                ...movie,
-                matchedTitle: ''  // 非重复项无匹配名称
-            }));
+    callApi(event_map.check_duplicates, { titles: movieData.map(m => m.title) })
+        .then(result => {
+            if (result.success) {
+                const duplicateCount = result.duplicates.length;
+                const newMovies = movieData.filter(movie => 
+                    !result.duplicates.includes(movie.title)
+                ).map(movie => ({
+                    ...movie,
+                    matchedTitle: ''  // 非重复项无匹配名称
+                }));
 
-            const duplicateMovies = movieData
-            .filter(movie => result.duplicates.includes(movie.title))
-            .map(movie => ({
-                ...movie,
-                matchedTitle: result.matched_titles[movie.title] || movie.title
-            }));
+                const duplicateMovies = movieData
+                .filter(movie => result.duplicates.includes(movie.title))
+                .map(movie => ({
+                    ...movie,
+                    matchedTitle: result.matched_titles[movie.title] || movie.title
+                }));
 
-            // 更新统计信息
-            resultDiv.innerHTML = `
-                <div class="notification is-success">
-                    <p>核对完成！</p>
-                    <p>发现 <strong>${duplicateCount}</strong> 个重复项</p>
-                    <p>剩余 <strong>${newMovies.length}</strong> 个未收录项</p>
-                </div>
-            `;
-            
-            // 更新表格内容
-            tableDiv.innerHTML = `
-            <table class="table is-fullwidth is-striped is-hoverable">
-                <colgroup>
-                    <col style="width: 15%">
-                    <col style="width: 15%">
-                    <col style="width: 62%">
-                    <col style="width: 8%">
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th>电影名称</th>
-                        <th>匹配名称</th>
-                        <th>磁力链接</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${newMovies.map(movie => `
+                // 更新统计信息
+                resultDiv.innerHTML = `
+                    <div class="notification is-success">
+                        <p>核对完成！</p>
+                        <p>发现 <strong>${duplicateCount}</strong> 个重复项</p>
+                        <p>剩余 <strong>${newMovies.length}</strong> 个未收录项</p>
+                    </div>
+                `;
+                
+                // 更新表格内容
+                tableDiv.innerHTML = `
+                <table class="table is-fullwidth is-striped is-hoverable">
+                    <colgroup>
+                        <col style="width: 15%">
+                        <col style="width: 15%">
+                        <col style="width: 62%">
+                        <col style="width: 8%">
+                    </colgroup>
+                    <thead>
                         <tr>
-                            <td title="${movie.title}">${movie.title}</td>
-                            <td title="${movie.matchedTitle || ''}">${movie.matchedTitle || ''}</td>
-                            <td title="${movie.extra}">${movie.extra}</td>
-                            <td>
-                                <button class="button is-small copy-btn" onclick="copyToClipboard('${movie.extra.replace(/'/g, "\\'")}', this)">
-                                    <span class="icon">
-                                        <svg width="20" height="20" fill="#888888" stroke="none" aria-label="复制">
-                                            <use href="/static/sprite.svg#copy-btn-icon"></use>
-                                        </svg>
-                                    </span>
-                                </button>
-                            </td>
+                            <th>电影名称</th>
+                            <th>匹配名称</th>
+                            <th>磁力链接</th>
+                            <th>操作</th>
                         </tr>
-                    `).join('')}
-                    ${result.duplicates.length > 0 ? `
-                        <tr class="duplicate-separator">
-                            <td colspan="4">以下为重复项</td>
-                        </tr>
-                        ${duplicateMovies.map(movie => `
-                            <tr class="is-duplicate">
+                    </thead>
+                    <tbody>
+                        ${newMovies.map(movie => `
+                            <tr>
                                 <td title="${movie.title}">${movie.title}</td>
-                                <td title="${movie.matchedTitle}">${movie.matchedTitle}</td>
+                                <td title="${movie.matchedTitle || ''}">${movie.matchedTitle || ''}</td>
                                 <td title="${movie.extra}">${movie.extra}</td>
                                 <td>
                                     <button class="button is-small copy-btn" onclick="copyToClipboard('${movie.extra.replace(/'/g, "\\'")}', this)">
                                         <span class="icon">
                                             <svg width="20" height="20" fill="#888888" stroke="none" aria-label="复制">
-                                                <use href="/static/sprite.svg#copy-btn-icon"></use>
+                                                <use href="../static/sprite.svg#copy-btn-icon"></use>
                                             </svg>
                                         </span>
                                     </button>
                                 </td>
                             </tr>
                         `).join('')}
-                    ` : ''}
-                </tbody>
-            </table>
-        `;
-        }
-    })
-    .catch(error => {
-        resultDiv.innerHTML = '<div class="notification is-danger is-light">核对过程出错，请重试</div>';
-        console.error('Error:', error);
-    })
-    .finally(() => {
-        button.innerHTML = originalHtml;
-        button.disabled = false;
-    });
+                        ${result.duplicates.length > 0 ? `
+                            <tr class="duplicate-separator">
+                                <td colspan="4">以下为重复项</td>
+                            </tr>
+                            ${duplicateMovies.map(movie => `
+                                <tr class="is-duplicate">
+                                    <td title="${movie.title}">${movie.title}</td>
+                                    <td title="${movie.matchedTitle}">${movie.matchedTitle}</td>
+                                    <td title="${movie.extra}">${movie.extra}</td>
+                                    <td>
+                                        <button class="button is-small copy-btn" onclick="copyToClipboard('${movie.extra.replace(/'/g, "\\'")}', this)">
+                                            <span class="icon">
+                                                <svg width="20" height="20" fill="#888888" stroke="none" aria-label="复制">
+                                                    <use href="../static/sprite.svg#copy-btn-icon"></use>
+                                                </svg>
+                                            </span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        ` : ''}
+                    </tbody>
+                </table>
+            `;
+            }
+        })
+        .catch(error => {
+            resultDiv.innerHTML = '<div class="notification is-danger is-light">核对过程出错，请重试</div>';
+            showAlert({
+                title: '核对失败',
+                message: error.message || '核对过程出错',
+                type: 'error',
+                showCancel: false
+            });
+        })
+        .finally(() => {
+            button.innerHTML = originalHtml;
+            button.disabled = false;
+        });
 }
 
 // 复制内容到剪贴板
@@ -618,11 +617,11 @@ async function copyToClipboard(text, button) {
         textarea.select();
         document.execCommand('copy');
         // 修改按钮显示成功
-        button.innerHTML = '<span class="icon"><svg width="20" height="20" fill="#fff"><use href="/static/sprite.svg#copy-success-btn-icon"></use></svg></span>';
+        button.innerHTML = '<span class="icon"><svg width="20" height="20" fill="#fff"><use href="../static/sprite.svg#copy-success-btn-icon"></use></svg></span>';
         button.classList.add('is-success'); // 添加成功样式
     } catch (err) {
         // 修改按钮显示失败
-        button.innerHTML = '<span class="icon"><svg width="20" height="20" fill="#fff"><use href="/static/sprite.svg#copy-fail-btn-icon"></use></svg></span>';
+        button.innerHTML = '<span class="icon"><svg width="20" height="20" fill="#fff"><use href="../static/sprite.svg#copy-fail-btn-icon"></use></svg></span>';
         button.classList.add('is-danger'); // 添加失败样式
     }
     
@@ -703,7 +702,12 @@ function searchEmby() {
         })
         .catch(error => {
             resultsDiv.innerHTML = '<div class="notification is-danger">搜索出错，请稍后重试</div>';
-            console.error('Search error:', error);
+            showAlert({
+                title: '搜索出错',
+                message: error.message || '搜索过程出错',
+                type: 'error',
+                showCancel: false
+            });
         });
 }
 
@@ -786,6 +790,12 @@ function searchWtl() {
         })
         .catch(error => {
             resultsDiv.innerHTML = '<div class="notification is-danger">查询失败，请检查链接是否正确</div>';
+            showAlert({
+                title: '查询失败',
+                message: error.message || '查询过程出错',
+                type: 'error',
+                showCancel: false
+            });
         });
 }
 
@@ -888,17 +898,10 @@ function saveTagEdit(button, oldName) {
         return;
     }
     
-    fetch('/update_tag', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-            old_name: oldName,
-            new_name: newName 
-        })
+    callApi(event_map.update_tag, { 
+        old_name: oldName, 
+        new_name: newName 
     })
-    .then(response => response.json())
     .then(result => {
         if (result.success) {
             // 只更新表格中的显示
@@ -918,15 +921,6 @@ function saveTagEdit(button, oldName) {
                 showCancel: false
             });
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert({
-            title: '更新失败',
-            message: error.message || String(error),
-            type: 'error',
-            showCancel: false
-        });
     });
 }
 
@@ -942,17 +936,10 @@ function saveRatingEdit(button, oldName) {
         return;
     }
     
-    fetch('/update_rating_dimension', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-            old_name: oldName,
-            new_name: newName 
-        })
+    callApi(event_map.update_rating_dimension, {
+        old_name: oldName,
+        new_name: newName
     })
-    .then(response => response.json())
     .then(result => {
         if (result.success) {
             // 只更新表格中的显示
@@ -972,15 +959,6 @@ function saveRatingEdit(button, oldName) {
                 showCancel: false
             });
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert({
-            title: '更新失败',
-            message: error.message || String(error),
-            type: 'error',
-            showCancel: false
-        });
     });
 }
 
@@ -999,37 +977,21 @@ function addNewTag() {
         return;
     }
     
-    fetch('/add_tag', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name: tagName })
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            input.value = '';
-            loadSettings(); // 重新加载列表
-            loadTags(); // 重新加载主页面的标签
-        } else {
-            showAlert({
-                title: '添加失败',
-                message: result.message,
-                type: 'error',
-                showCancel: false
-            });
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert({
-            title: '添加失败',
-            message: error.message || String(error),
-            type: 'error',
-            showCancel: false
+    callApi(event_map.add_tag, { name: tagName })
+        .then(result => {
+            if (result.success) {
+                input.value = '';
+                loadSettings(); // 重新加载列表
+                loadTags(); // 重新加载主页面的标签
+            } else {
+                showAlert({
+                    title: '添加失败',
+                    message: result.message,
+                    type: 'error',
+                    showCancel: false
+                });
+            }
         });
-    });
 }
 
 // 添加新评分维度
@@ -1047,42 +1009,25 @@ function addNewRating() {
         return;
     }
     
-    fetch('/add_rating_dimension', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name: ratingName })
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            input.value = '';
-            loadSettings(); // 重新加载列表
-        } else {
-            showAlert({
-                title: '添加失败',
-                message: result.message,
-                type: 'error',
-                showCancel: false
-            });
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert({
-            title: '添加失败',
-            message: error.message || String(error),
-            type: 'error',
-            showCancel: false
+    callApi(event_map.add_rating_dimension, { name: ratingName })
+        .then(result => {
+            if (result.success) {
+                input.value = '';
+                loadSettings(); // 重新加载列表
+            } else {
+                showAlert({
+                    title: '添加失败',
+                    message: result.message,
+                    type: 'error',
+                    showCancel: false
+                });
+            }
         });
-    });
 }
 
 // 加载设置界面的标签列表
 function loadSettingsTags() {
-    fetch('/get_tags')
-        .then(response => response.json())
+    callApi(event_map.get_tags)
         .then(result => {
             if (result.success) {
                 const tagsList = document.getElementById('tagsList');
@@ -1096,7 +1041,7 @@ function loadSettingsTags() {
                                     <button class="button is-success is-small save-btn-small" onclick="saveTagEdit(this, '${tag}')">
                                         <span class="icon">
                                             <svg width="10" height="10" fill="currentColor" stroke="none" aria-label="保存">
-                                                <use href="/static/sprite.svg#save-btn-icon"></use>
+                                                <use href="../static/sprite.svg#save-btn-icon"></use>
                                             </svg>
                                         </span>
                                         <span>保存</span>
@@ -1121,8 +1066,7 @@ function loadSettingsTags() {
 
 // 加载设置界面的评分维度列表
 function loadSettingsRatingDimensions() {
-    fetch('/get_ratings_dimensions')
-        .then(response => response.json())
+    callApi(event_map.get_ratings_dimensions)
         .then(result => {
             if (result.success) {
                 const ratingsList = document.getElementById('ratingsList');
@@ -1136,7 +1080,7 @@ function loadSettingsRatingDimensions() {
                                     <button class="button is-success is-small save-btn-small" onclick="saveRatingEdit(this, '${dimension.name}')">
                                         <span class="icon">
                                             <svg width="10" height="10" fill="currentColor" stroke="none" aria-label="保存">
-                                                <use href="/static/sprite.svg#save-btn-icon"></use>
+                                                <use href="../static/sprite.svg#save-btn-icon"></use>
                                             </svg>
                                         </span>
                                         <span>保存</span>
@@ -1160,8 +1104,7 @@ function loadSettingsRatingDimensions() {
 }
 
 function loadTags() {
-    fetch('/get_tags')
-        .then(response => response.json())
+    callApi(event_map.get_tags)
         .then(result => {
             if (result.success) {
                 const addTagsDiv = document.getElementById('add-tags');
@@ -1192,8 +1135,7 @@ const debounce = (func, wait) => {
 // 加载标签和评分维度
 function loadFilters() {
     // 加载评分维度
-    fetch('/get_ratings_dimensions')
-        .then(response => response.json())
+    callApi(event_map.get_ratings_dimensions)
         .then(data => {
             if (data.success) {
                 const dimensionSelect = document.getElementById('rating-dimension-filter');
@@ -1208,7 +1150,6 @@ function loadFilters() {
             }
         })
         .catch(error => {
-            console.error('加载评分维度失败:', error);
             showAlert({
                 title: '加载失败',
                 message: error.message || String(error),
@@ -1218,8 +1159,7 @@ function loadFilters() {
         });
 
     // 加载标签
-    fetch('/get_tags')
-        .then(response => response.json())
+    callApi(event_map.get_tags)
         .then(data => {
             if (data.success) {
                 const tagsFilter = document.getElementById('tags-filter');
@@ -1235,7 +1175,6 @@ function loadFilters() {
             }
         })
         .catch(error => {
-            console.error('加载标签失败:', error);
             showAlert({
                 title: '加载失败',
                 message: error.message || String(error),
@@ -1266,40 +1205,19 @@ function searchMovies() {
     const selectedTags = getSelectedTags();
     const messageDiv = document.getElementById('search-message');
     const resultsDiv = document.getElementById('search-results');
-    
+
     // 构建搜索参数
-    const searchParams = new URLSearchParams();
-    if (title) {
-        searchParams.append('title', title);
-    }
-    if (ratingDimension) {
-        searchParams.append('rating_dimension', ratingDimension);
-    }
-    if (minRating) {
-        searchParams.append('min_rating', minRating);
-    }
-    if (selectedTags.length > 0) {
-        searchParams.append('tags', selectedTags.join(','));
-    }
-    
-    // 构建搜索URL
-    const searchUrl = `/search?${searchParams.toString()}`;
-    
+    const searchParams = {
+        title,
+        rating_dimension: ratingDimension,
+        min_rating: minRating,
+        tags: selectedTags.join(',')
+    };
+
     // 显示加载提示
     //messageDiv.innerHTML = '<div class="notification is-info">正在搜索...</div>';
-    
-    fetch(searchUrl)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP status: ${response.status}`);
-            }
-            return response.json();
-        })
+    callApi(event_map.search_movies, searchParams, 'GET')
         .then(result => {
-            if (!result) {
-                throw new Error('No result returned from server');
-            }
-
             if (result.success) {
                 // 处理过滤
                 let filteredMovies = result.data;
@@ -1349,7 +1267,6 @@ function searchMovies() {
             }
         })
         .catch(error => {
-            console.error('Search error:', error);
             messageDiv.innerHTML = `<div class="notification is-danger">搜索出错: ${error.message}</div>`;
             resultsDiv.innerHTML = '';
             document.getElementById('pagination').innerHTML = '';
@@ -1404,9 +1321,9 @@ function loadNonCriticalResources() {
     // 只加载实际存在的资源文件
     const resources = [
         // 示例: 如果有额外的JavaScript文件
-        // { type: 'script', src: '/static/extra-features.js' },
+        // { type: 'script', src: '../static/extra-features.js' },
         // 示例: 如果有额外的CSS文件
-        // { type: 'style', href: '/static/extra-styles.css' }
+        // { type: 'style', href: '../static/extra-styles.css' }
     ];
     
     // 如果没有需要延迟加载的资源，可以直接返回
@@ -1441,8 +1358,7 @@ let ratingsDimensions = [];
 
 // 加载评分维度
 function loadRatingsDimensions() {
-    fetch('/get_ratings_dimensions')
-        .then(response => response.json())
+    callApi(event_map.get_ratings_dimensions)
         .then(result => {
             if (result.success) {
                 ratingsDimensions = result.dimensions;
@@ -1475,23 +1391,23 @@ function createRatingField(dimension, isEdit) {
             <div class="rating" data-dimension-id="${dimension.id}">
                 <input type="radio" id="${prefix}rating-${dimension.id}-5" name="${prefix}rating-${dimension.id}" value="5">
                 <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="星级">
-                    <use href="/static/sprite.svg#rating-star-icon"></use>
+                    <use href="../static/sprite.svg#rating-star-icon"></use>
                 </svg>
                 <input type="radio" id="${prefix}rating-${dimension.id}-4" name="${prefix}rating-${dimension.id}" value="4">
                 <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
-                    <use href="/static/sprite.svg#rating-star-icon"></use>
+                    <use href="../static/sprite.svg#rating-star-icon"></use>
                 </svg>
                 <input type="radio" id="${prefix}rating-${dimension.id}-3" name="${prefix}rating-${dimension.id}" value="3">
                 <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
-                    <use href="/static/sprite.svg#rating-star-icon"></use>
+                    <use href="../static/sprite.svg#rating-star-icon"></use>
                 </svg>
                 <input type="radio" id="${prefix}rating-${dimension.id}-2" name="${prefix}rating-${dimension.id}" value="2">
                 <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
-                    <use href="/static/sprite.svg#rating-star-icon"></use>
+                    <use href="../static/sprite.svg#rating-star-icon"></use>
                 </svg>
                 <input type="radio" id="${prefix}rating-${dimension.id}-1" name="${prefix}rating-${dimension.id}" value="1">
                 <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
-                    <use href="/static/sprite.svg#rating-star-icon"></use>
+                    <use href="../static/sprite.svg#rating-star-icon"></use>
                 </svg>
             </div>
         </div>
@@ -1640,10 +1556,10 @@ function openModal(movie) {
                 imageWrapper.draggable = true; // 添加可拖拽属性
                 imageWrapper.dataset.index = index; // 添加索引用于排序
                 imageWrapper.innerHTML = `
-                    <img src="/images/${filename.trim()}" alt="预览图">
+                    <img src="../images/${filename.trim()}" alt="预览图">
                     <button class="delete-existing-image" data-filename="${filename.trim()}" type="button">
                         <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
-                            <use href="/static/sprite.svg#close-icon"></use>
+                            <use href="../static/sprite.svg#close-icon"></use>
                         </svg>
                     </button>
                 `;
@@ -1781,8 +1697,7 @@ function openModal(movie) {
 // 加载编辑标签
 async function loadEditTags() {
     try {
-        const response = await fetch('/get_tags');
-        const result = await response.json();
+        const result = await callApi(event_map.get_tags);
         if (result.success) {
             const editTagsDiv = document.getElementById('edit-tags');
             editTagsDiv.innerHTML = '';
@@ -1795,7 +1710,6 @@ async function loadEditTags() {
             });
         }
     } catch (error) {
-        console.error('加载标签失败:', error);
         showAlert({
             title: '加载失败',
             message: error.message || String(error),
@@ -1808,8 +1722,7 @@ async function loadEditTags() {
 // 加载编辑评分 - 专用于编辑窗口中创建评分框
 async function loadEditRatings() {
     try {
-        const response = await fetch('/get_ratings_dimensions');
-        const result = await response.json();
+        const result = await callApi(event_map.get_ratings_dimensions);
         if (result.success) {
             // 创建外层field容器
             const fieldDiv = document.createElement('div');
@@ -1853,7 +1766,6 @@ async function loadEditRatings() {
             form.insertBefore(fieldDiv, imageBox);
         }
     } catch (error) {
-        console.error('加载评分维度失败:', error);
         showAlert({
             title: '加载失败',
             message: error.message || String(error),
@@ -1876,34 +1788,28 @@ function deleteMovie() {
             saveSearchState();
             
             const title = document.getElementById('edit-title').value;
-            fetch(`/api/movies/${encodeURIComponent(title)}`, {
-                method: 'DELETE'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) {
-                    throw new Error(data.message || '删除失败');
-                }
-                closeModal();
-                // 恢复搜索状态并重新搜索
-                restoreSearchState();
-                searchMovies();
-                showAlert({
-                    title: '删除成功',
-                    message: data.message || '电影已删除',
-                    type: 'success',
-                    showCancel: false
+            callApi(event_map.delete_movie, { title }, 'DELETE')
+                .then(result => {
+                    if (result.success){
+                        closeModal();
+                        // 恢复搜索状态并重新搜索
+                        restoreSearchState();
+                        searchMovies();
+                        showAlert({
+                            title: '删除成功',
+                            message: result.message || '电影已删除',
+                            type: 'success',
+                            showCancel: false
+                        });
+                    } else {
+                        showAlert({
+                            title: '删除失败',
+                            message: result.message || '删除失败',
+                            type: 'error',
+                            showCancel: false
+                        });
+                    }
                 });
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert({
-                    title: '删除失败',
-                    message: error.message,
-                    type: 'error',
-                    showCancel: false
-                });
-            });
         }
     });
 }
@@ -1969,8 +1875,11 @@ async function updateMovie() {
         const uploadResults = await Promise.all(uploadedFiles.map(async file => {
             const formData = new FormData();
             formData.append('image', file);
-            const response = await fetch('/upload_image', { method: 'POST', body: formData });
-            return response.json();
+            const response = await fetch('/api', { 
+                method: 'POST', 
+                body: formData 
+            }).then(res => res.json());
+            return response;
         }));
 
         // 合并现有图片和新上传图片的文件名
@@ -1991,13 +1900,7 @@ async function updateMovie() {
             original_images: modal.dataset.currentImages
         };
 
-        const response = await fetch(`/api/movies/${encodeURIComponent(title)}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
+        const result = await callApi(event_map.update_movie, data, 'PUT');
         if (result.message) {
             ModalManager.close('editModal');
             // 恢复搜索状态并重新搜索
@@ -2113,7 +2016,7 @@ function displayCurrentPage() {
                 ${movie.image_filename ? `
                     <div class="movie-title-with-image">
                         <div class="movie-preview-image" onclick="openImageViewer('${movie.image_filename}', '${movie.title}')">
-                            <img src="/images/${movie.image_filename.split(',')[0]}" alt="预览图">
+                            <img src="../images/${movie.image_filename.split(',')[0]}" alt="预览图">
                         </div>
                         <span title="${movie.title}">${movie.title}</span>
                     </div>
@@ -2123,7 +2026,7 @@ function displayCurrentPage() {
             </td>
             <td>
                 <svg width="20" height="20" fill="${movie.recommended ? '#ff7b00' : '#515151'}" stroke="none" aria-label="${movie.recommended ? '推荐' : '不推荐'}">
-                    <use href="/static/sprite.svg#${movie.recommended ? 'recommend-light-icon' : 'recommend-icon'}"></use>
+                    <use href="../static/sprite.svg#${movie.recommended ? 'recommend-light-icon' : 'recommend-icon'}"></use>
                 </svg>
             </td>
             <td class="hoverable" title="${movie.review || ''}">${movie.review || ''}</td>
@@ -2210,7 +2113,7 @@ function renderStars(rating) {
         const starColor = i <= rating ? getStarColor(rating) : '#d3d3d3';
         stars.push(`
             <svg width="16" height="16" fill="${starColor}" stroke="none" aria-label="星级">
-                <use href="/static/sprite.svg#rating-star-icon"></use>
+                <use href="../static/sprite.svg#rating-star-icon"></use>
             </svg>
         `);
     }
@@ -2515,7 +2418,7 @@ function addImagePreview(imageData, uploadArea, index) {
         <img src="${imageData}" alt="预览图">
         <button class="delete-image" type="button">
             <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
-                <use href="/static/sprite.svg#close-icon"></use>
+                <use href="../static/sprite.svg#close-icon"></use>
             </svg>
         </button>
     `;
@@ -2556,7 +2459,7 @@ function updateViewerImage() {
     const nextButton = modal.querySelector('.nav-button.next');
     const counter = modal.querySelector('.image-counter');
     
-    viewer.src = `/images/${currentImages[currentImageIndex].trim()}`;
+    viewer.src = `../images/${currentImages[currentImageIndex].trim()}`;
     
     // 只有多张图片时才显示计数器
     counter.style.display = currentImages.length > 1 ? 'block' : 'none';
@@ -2610,17 +2513,20 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
             imageFormData.append('image', file);
             imageFormData.append('title', formData.get('title'));
             
-            const response = await fetch('/upload_image', {
+            const result = await fetch('/api', {
                 method: 'POST',
                 body: imageFormData
-            });
-            
-            const result = await response.json();
+            }).then(res => res.json());
 
             if(result.success) {
                 uploadedFiles.push(result.filename);
             } else {
-                throw new Error(result.message || '图片上传失败');
+                showAlert({
+                    title: '上传失败',
+                    message: result.message || '图片上传失败',
+                    type: 'error',
+                    showCancel: false
+                });
             }
         }
 
@@ -2636,15 +2542,7 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
         };
 
         // API提交电影信息
-        const movieResponse = await fetch('/api/movies', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-
-        const result = await movieResponse.json();
+        const result = await callApi(event_map.add_movie, data);
 
         // 清除表单
         if (result.message) {
@@ -2663,7 +2561,6 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
             messageDiv.innerHTML = `<div class="notification is-danger">${result.error || '添加失败'}</div>`;
         }
     } catch (error) {
-        console.error('Error:', error);
         messageDiv.innerHTML = `<div class="notification is-danger">添加失败: ${error.message}</div>`;
     }
 });

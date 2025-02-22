@@ -11,8 +11,8 @@
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" as="style">
     <title>电影收藏</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../static/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../static/favicon-16x16.png">
     <style>
         /*----------------------------------------
           折叠框样式 - 必要样式
@@ -522,9 +522,9 @@
         }
     </style>
     <!-- 异步加载非关键CSS -->
-    <link rel="preload" href="/static/styles.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="../static/styles.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript>
-        <link rel="stylesheet" href="/static/styles.min.css">
+        <link rel="stylesheet" href="../static/styles.min.css">
     </noscript>
 </head>
 <body>
@@ -533,7 +533,7 @@
     <div class="container">
         <div class="navbar-brand">
             <svg class="navbar-item" width="58" height="58" stroke="none" aria-label="logo">
-                <use href="/static/sprite.svg#favicon"></use>
+                <use href="../static/sprite.svg#favicon"></use>
             </svg>            
             <h1 class="navbar-item title is-4 mb-0">Video Collection</h1>
         </div>
@@ -549,35 +549,35 @@
                         <a href="#" class="button tool-btn duplicate-btn" onclick="openDuplicateModal(); return false;">
                             <span class="icon">
                                 <svg width="64" height="64" fill="#ffaa1f" stroke="none" aria-label="查重核对">
-                                    <use href="/static/sprite.svg#duplicate-icon"></use>
+                                    <use href="../static/sprite.svg#duplicate-icon"></use>
                                 </svg>
                             </span>
                         </a>
                         <a href="#" class="button tool-btn jackett-btn" onclick="openJackettModal(); return false;">
                             <span class="icon">
                                 <svg width="64" height="64" fill="#595757" stroke="none" aria-label="Jackett">
-                                    <use href="/static/sprite.svg#jackett-icon"></use>
+                                    <use href="../static/sprite.svg#jackett-icon"></use>
                                 </svg>
                             </span>
                         </a>
                         <a href="#" class="button tool-btn wtl-btn" onclick="openWtlModal(); return false;">
                             <span class="icon">
                                 <svg width="64" height="64" fill="#6768ff" stroke="none" aria-label="What's the link">
-                                    <use href="/static/sprite.svg#wtl-icon"></use>
+                                    <use href="../static/sprite.svg#wtl-icon"></use>
                                 </svg>
                             </span>
                         </a>
                         <a href="#" class="button tool-btn thunder-btn" onclick="openThunderModal(); return false;">
                             <span class="icon">
                                 <svg width="64" height="64" fill="#34a8e0" stroke="none" aria-label="迅雷">
-                                    <use href="/static/sprite.svg#thunder-icon"></use>
+                                    <use href="../static/sprite.svg#thunder-icon"></use>
                                 </svg>
                             </span>
                         </a>
                         <a href="#" class="button tool-btn emby-btn" onclick="openEmbyModal(); return false;">
                             <span class="icon">
                                 <svg width="64" height="64" fill="#52ac4b" stroke="none" aria-label="Emby">
-                                    <use href="/static/sprite.svg#emby-icon"></use>
+                                    <use href="../static/sprite.svg#emby-icon"></use>
                                 </svg>
                             </span>
                         </a>
@@ -593,7 +593,7 @@
                             <button class="button is-info search-btn" id="search-button">
                                 <span class="icon">
                                     <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="搜索">
-                                        <use href="/static/sprite.svg#search-btn-icon"></use>
+                                        <use href="../static/sprite.svg#search-btn-icon"></use>
                                     </svg>
                                 </span>
                                 <span>搜索</span>
@@ -647,7 +647,7 @@
                         <button class="button is-light is-small settings-btn" onclick="openSettingsModal()" aria-label="打开设置">
                             <span class="icon">
                                 <svg width="14" height="14" fill="#515151" stroke="none" aria-label="设置">
-                                    <use href="/static/sprite.svg#settings-btn-icon"></use>
+                                    <use href="../static/sprite.svg#settings-btn-icon"></use>
                                 </svg>
                             </span>
                         </button>
@@ -660,7 +660,7 @@
                             <input type="checkbox" id="recommended" name="recommended" value="1">
                             <label for="recommended">
                                 <svg width="20" height="20" fill="#515151" stroke="none" aria-label="推荐">
-                                    <use href="/static/sprite.svg#recommend-icon"></use>
+                                    <use href="../static/sprite.svg#recommend-icon"></use>
                                 </svg>
                                 <div class="action">
                                     <span class="option-1">不推荐</span>
@@ -700,7 +700,7 @@
                                     <input type="hidden" id="image-filenames" name="image_filenames">
                                     <div class="upload-placeholder">
                                         <svg width="32" height="32" fill="#78c0dd" stroke="none">
-                                            <use href="/static/sprite.svg#upload-icon"></use>
+                                            <use href="../static/sprite.svg#upload-icon"></use>
                                         </svg>
                                         <p>点击或拖放图片到此处</p>
                                         <p class="help">支持多选或多次拖放</p>
@@ -714,7 +714,7 @@
                         <button class="button is-primary add-btn" type="submit">
                             <span class="icon">
                                 <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="添加">
-                                    <use href="/static/sprite.svg#add-btn-icon"></use>
+                                    <use href="../static/sprite.svg#add-btn-icon"></use>
                                 </svg>
                             </span>
                             <span>添加</span>
@@ -734,7 +734,7 @@
             <p class="modal-card-title">编辑电影</p>
             <button class="modal-control-button close" onclick="closeModal()">
                 <svg aria-label="关闭">
-                    <use href="/static/sprite.svg#close-icon"></use>
+                    <use href="../static/sprite.svg#close-icon"></use>
                 </svg>
             </button>
         </header>
@@ -747,7 +747,7 @@
                     <input type="checkbox" id="edit-recommended" name="recommended" value="1">
                     <label for="edit-recommended">
                         <svg width="20" height="20" fill="currentColor" stroke="none" aria-label="推荐">
-                            <use href="/static/sprite.svg#recommend-icon"></use>
+                            <use href="../static/sprite.svg#recommend-icon"></use>
                         </svg>
                         <div class="action">
                             <span class="option-1">不推荐</span>
@@ -777,7 +777,7 @@
                             <input type="hidden" id="edit-image-filenames" name="image_filenames">
                             <div class="upload-placeholder">
                                 <svg width="32" height="32" fill="#78c0dd" stroke="none">
-                                    <use href="/static/sprite.svg#upload-icon"></use>
+                                    <use href="../static/sprite.svg#upload-icon"></use>
                                 </svg>
                                 <p>点击或拖放图片到此处</p>
                                 <p class="help">支持多选或多次拖放</p>
@@ -795,7 +795,7 @@
                 <button class="button is-success save-btn" onclick="updateMovie()">
                     <span class="icon">
                         <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="保存">
-                            <use href="/static/sprite.svg#save-btn-icon"></use>
+                            <use href="../static/sprite.svg#save-btn-icon"></use>
                         </svg>
                     </span>
                     <span>保存</span>
@@ -805,10 +805,10 @@
             <button class="button is-danger delete-btn" onclick="deleteMovie()">
                 <span class="icon">
                     <svg class="bin-top" width="14" height="14" fill="currentColor" stroke="none" aria-label="删除">
-                        <use href="/static/sprite.svg#delete-btn-top-icon"></use>
+                        <use href="../static/sprite.svg#delete-btn-top-icon"></use>
                     </svg>
                     <svg class="bin-bottom" width="14" height="14" fill="currentColor" stroke="none" aria-label="删除">
-                        <use href="/static/sprite.svg#delete-btn-bottom-icon"></use>
+                        <use href="../static/sprite.svg#delete-btn-bottom-icon"></use>
                     </svg>
                 </span>
                 <span>删除</span>
@@ -825,12 +825,12 @@
             <div class="modal-card-controls">
                 <button class="modal-control-button minimize" onclick="minimizeModal('wtlModal')" aria-label="minimize">
                     <svg aria-label="最小化">
-                        <use href="/static/sprite.svg#minimize-icon"></use>
+                        <use href="../static/sprite.svg#minimize-icon"></use>
                     </svg>
                 </button>
                 <button class="modal-control-button close" onclick="closeWtlModal()" aria-label="close">
                     <svg aria-label="关闭">
-                        <use href="/static/sprite.svg#close-icon"></use>
+                        <use href="../static/sprite.svg#close-icon"></use>
                     </svg>
                 </button>
             </div>
@@ -846,7 +846,7 @@
                         <button class="button is-info search-btn" onclick="searchWtl()">
                             <span class="icon">
                                 <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="搜索">
-                                    <use href="/static/sprite.svg#search-btn-icon"></use>
+                                    <use href="../static/sprite.svg#search-btn-icon"></use>
                                 </svg>
                             </span>
                             <span>搜索</span>
@@ -868,12 +868,12 @@
             <div class="modal-card-controls">
                 <button class="modal-control-button minimize" onclick="minimizeModal('jackettModal')" aria-label="minimize">
                     <svg aria-label="最小化">
-                        <use href="/static/sprite.svg#minimize-icon"></use>
+                        <use href="../static/sprite.svg#minimize-icon"></use>
                     </svg>
                 </button>
                 <button class="modal-control-button close" onclick="closeJackettModal()" aria-label="close">
                     <svg aria-label="关闭">
-                        <use href="/static/sprite.svg#close-icon"></use>
+                        <use href="../static/sprite.svg#close-icon"></use>
                     </svg>
                 </button>
             </div>
@@ -893,12 +893,12 @@
             <div class="modal-card-controls">
                 <button class="modal-control-button minimize" onclick="minimizeModal('thunderModal')" aria-label="minimize">
                     <svg aria-label="最小化">
-                        <use href="/static/sprite.svg#minimize-icon"></use>
+                        <use href="../static/sprite.svg#minimize-icon"></use>
                     </svg>
                 </button>
                 <button class="modal-control-button close" onclick="closeThunderModal()" aria-label="close">
                     <svg aria-label="关闭">
-                        <use href="/static/sprite.svg#close-icon"></use>
+                        <use href="../static/sprite.svg#close-icon"></use>
                     </svg>
                 </button>
             </div>
@@ -918,12 +918,12 @@
             <div class="modal-card-controls">
                 <button class="modal-control-button minimize" onclick="minimizeModal('embyModal')" aria-label="minimize">
                     <svg aria-label="最小化">
-                        <use href="/static/sprite.svg#minimize-icon"></use>
+                        <use href="../static/sprite.svg#minimize-icon"></use>
                     </svg>
                 </button>
                 <button class="modal-control-button close" onclick="closeEmbyModal()" aria-label="close">
                     <svg aria-label="关闭">
-                        <use href="/static/sprite.svg#close-icon"></use>
+                        <use href="../static/sprite.svg#close-icon"></use>
                     </svg>
                 </button>
             </div>
@@ -939,7 +939,7 @@
                         <button class="button is-info search-btn" onclick="searchEmby()">
                             <span class="icon">
                                 <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="搜索">
-                                    <use href="/static/sprite.svg#search-btn-icon"></use>
+                                    <use href="../static/sprite.svg#search-btn-icon"></use>
                                 </svg>
                             </span>
                             <span>搜索</span>
@@ -962,12 +962,12 @@
             <div class="modal-card-controls">
                 <button class="modal-control-button minimize" onclick="minimizeModal('duplicateModal')" aria-label="minimize">
                     <svg aria-label="最小化">
-                        <use href="/static/sprite.svg#minimize-icon"></use>
+                        <use href="../static/sprite.svg#minimize-icon"></use>
                     </svg>
                 </button>
                 <button class="modal-control-button close" onclick="closeDuplicateModal()" aria-label="close">
                     <svg aria-label="关闭">
-                        <use href="/static/sprite.svg#close-icon"></use>
+                        <use href="../static/sprite.svg#close-icon"></use>
                     </svg>
                 </button>
             </div>
@@ -1017,7 +1017,7 @@
             <p class="modal-card-title">设置</p>
             <button class="modal-control-button close" onclick="closeSettingsModal()" aria-label="close">
                 <svg aria-label="关闭">
-                    <use href="/static/sprite.svg#close-icon"></use>
+                    <use href="../static/sprite.svg#close-icon"></use>
                 </svg>
             </button>
         </header>
@@ -1036,7 +1036,7 @@
                     <button class="button is-primary add-btn" onclick="addNewTag()">
                         <span class="icon">
                             <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="添加">
-                                <use href="/static/sprite.svg#add-btn-icon"></use>
+                                <use href="../static/sprite.svg#add-btn-icon"></use>
                             </svg>
                         </span>
                         <span>添加</span>
@@ -1062,7 +1062,7 @@
                     <button class="button is-primary add-btn" onclick="addNewRating()">
                         <span class="icon">
                             <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="添加">
-                                <use href="/static/sprite.svg#add-btn-icon"></use>
+                                <use href="../static/sprite.svg#add-btn-icon"></use>
                             </svg>
                         </span>
                         <span>添加</span>
@@ -1093,7 +1093,7 @@
             <p class="modal-card-title"></p>
             <button class="modal-control-button close" onclick="closeImageViewer()" aria-label="close">
                 <svg aria-label="关闭">
-                    <use href="/static/sprite.svg#close-icon"></use>
+                    <use href="../static/sprite.svg#close-icon"></use>
                 </svg>
             </button>
         </header>
@@ -1103,12 +1103,12 @@
                 <div class="nav-buttons">
                     <button class="nav-button prev" onclick="showPrevImage()" style="display: none;">
                         <svg width="24" height="24" fill="currentColor" stroke="none">
-                            <use href="/static/sprite.svg#arrow-left-icon"></use>
+                            <use href="../static/sprite.svg#arrow-left-icon"></use>
                         </svg>
                     </button>
                     <button class="nav-button next" onclick="showNextImage()" style="display: none;">
                         <svg width="24" height="24" fill="currentColor" stroke="none">
-                            <use href="/static/sprite.svg#arrow-right-icon"></use>
+                            <use href="../static/sprite.svg#arrow-right-icon"></use>
                         </svg>
                     </button>
                 </div>
@@ -1117,13 +1117,15 @@
         </section>
     </div>
 </div>
-<script src="/static/main.min.js"></script>
+<script src="../src/config/events.js"></script>
+<script src="../src/handlers/apiHandler.js"></script>
+<script src="../static/main.min.js"></script>
 <div id="alert-container" class="alert-container">
     <div class="alert-card">
         <div class="alert-header">
             <div class="alert-icon">
                 <svg width="24" height="24" fill="currentColor" stroke="none">
-                    <use href="/static/sprite.svg#alert-icon"></use>
+                    <use href="../static/sprite.svg#alert-icon"></use>
                 </svg>
             </div>
             <div class="alert-content">

@@ -17,6 +17,9 @@ Compress(app)
 UPLOAD_FOLDER = '/images'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# 允许的图片格式
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
 # 配置压缩选项
 app.config['COMPRESS_MIMETYPES'] = [
     'text/html',
@@ -94,22 +97,32 @@ def init_db():
             default_dimensions = [
                 "颜值", "身材", "皮肤", "表演", "画面", "剧情"
             ]
+
+            # 检查tags表是否为空
+            cursor.execute("SELECT COUNT(*) FROM tags")
+            tags_count = cursor.fetchone()[0]
             
-            # 插入预设标签
-            for tag in default_tags:
-                try:
-                    cursor.execute("INSERT INTO tags (name) VALUES (%s)", (tag,))
-                except mysql.connector.Error as err:
-                    if err.errno != 1062:  # 忽略重复键错误
-                        raise
+            # 检查ratings_dimensions表是否为空
+            cursor.execute("SELECT COUNT(*) FROM ratings_dimensions")
+            ratings_count = cursor.fetchone()[0]
             
-            # 插入预设评分维度
-            for dimension in default_dimensions:
-                try:
-                    cursor.execute("INSERT INTO ratings_dimensions (name) VALUES (%s)", (dimension,))
-                except mysql.connector.Error as err:
-                    if err.errno != 1062:  # 忽略重复键错误
-                        raise
+            # 插入预设标签（表为空时）
+            if tags_count == 0:
+                for tag in default_tags:
+                    try:
+                        cursor.execute("INSERT INTO tags (name) VALUES (%s)", (tag,))
+                    except mysql.connector.Error as err:
+                        if err.errno != 1062:  # 忽略重复键错误
+                            raise
+            
+            # 插入预设评分维度（表为空时）
+            if ratings_count == 0:
+                for dimension in default_dimensions:
+                    try:
+                        cursor.execute("INSERT INTO ratings_dimensions (name) VALUES (%s)", (dimension,))
+                    except mysql.connector.Error as err:
+                        if err.errno != 1062:  # 忽略重复键错误
+                            raise
                         
             conn.commit()
             return True
@@ -121,10 +134,56 @@ def init_db():
 def index():
     return render_template("index.html")  # 确保 index.html 存在于 templates 文件夹中
 
-@app.route('/api/movies', methods=['POST'])
-def add_movie():
+# src目录的静态文件路由
+@app.route('/src/<path:filename>')
+def serve_src(filename):
+    return send_from_directory('src', filename)
+
+# 图片文件路由
+@app.route('/images/<path:filename>')
+def serve_image(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+# 统一api入口
+@app.route('/api', methods=['POST'])
+def api_handler():
     try:
-        data = request.get_json()
+        # 检查是否为图片上传请求
+        if request.files:
+            return upload_image_handler(None)
+        
+        # JSON请求
+        event_id = request.json.get('e')
+        data = request.json.get('d', {})
+        method = request.json.get('m', 'POST') # 获取原始method
+        
+        handlers = {
+            1001: get_services_config_handler,
+            1002: get_tags_handler,
+            1003: get_ratings_dimensions_handler,
+            1004: add_tag_handler,
+            1005: update_tag_handler,
+            1006: add_rating_dimension_handler,
+            1007: update_rating_dimension_handler,
+            1008: add_movie_handler,
+            1009: check_duplicates_handler,
+            1010: upload_image_handler,
+            1011: search_movies_handler,
+            1012: update_movie_handler,
+            1013: delete_movie_handler
+        }
+        
+        handler = handlers.get(event_id)
+        if not handler:
+            return jsonify({"success": False, "message": "无效的事件ID"}), 400
+            
+        return handler(data, method) # 传递method给处理器
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+def add_movie_handler(data, method='POST'):
+    try:
         title = data.get('title')
         recommended = 1 if data.get('recommended') else 0
         review = data.get('review', '')
@@ -156,10 +215,8 @@ def add_movie():
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
 
-@app.route('/api/movies/<title>', methods=['PUT'])
-def update_movie(title):
+def update_movie_handler(data, method='PUT'):
     try:
-        data = request.get_json()
         title = data.get('title')
         recommended = 1 if data.get('recommended') else 0
         review = data.get('review', '')
@@ -210,29 +267,27 @@ def update_movie(title):
             conn.commit()
 			
         return jsonify({"message": "电影更新成功"}), 200
-    except mysql.connector.Error as err:
-        return jsonify({"error": str(err)}), 500
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/get_ratings_dimensions", methods=["GET"])
-def get_ratings_dimensions():
+def get_ratings_dimensions_handler(data, method='GET'):
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor(dictionary=True)
             cursor.execute("SELECT * FROM ratings_dimensions ORDER BY id")
             dimensions = cursor.fetchall()
             return jsonify({"success": True, "dimensions": dimensions})
-    except mysql.connector.Error as err:
-        print(f"数据库错误: {str(err)}")
-        return jsonify({"success": False, "message": str(err)}), 500
     except Exception as e:
-        print(f"未知错误: {str(e)}")
-        return jsonify({"success": False, "message": f"获取评分维度失败: {str(e)}"}), 500
+        return jsonify({"success": False, "message": str(e)}), 500
 
-@app.route("/search", methods=["GET"])
-def search():
+def search_movies_handler(data, method='GET'):
     try:
+        # 获取搜索参数
+        search_term = data.get('title', '').strip()
+        rating_dimension = data.get('rating_dimension', '').strip()
+        min_rating = data.get('min_rating', '').strip()
+
         with get_db_connection() as conn:
             cursor = conn.cursor(dictionary=True)
             
@@ -243,11 +298,6 @@ def search():
             # 获取所有评分维度
             cursor.execute("SELECT * FROM ratings_dimensions")
             all_dimensions = {str(dim['id']): dim['name'] for dim in cursor.fetchall()}
-            
-            # 获取搜索参数
-            search_term = request.args.get('title', '').strip()
-            rating_dimension = request.args.get('rating_dimension', '').strip()
-            min_rating = request.args.get('min_rating', '').strip()
             
             # 构建基础查询
             query = "SELECT * FROM movies"
@@ -290,30 +340,30 @@ def search():
     except Exception as e:
         return jsonify({"success": False, "message": f"搜索失败: {str(e)}"}), 500
 
-@app.route("/get_tags", methods=["GET"])
-def get_tags():
+def get_tags_handler(data, method='GET'):
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor(dictionary=True)
             cursor.execute("SELECT id, name FROM tags")
             tags = [tag['name'] for tag in cursor.fetchall()]
             return jsonify({"success": True, "data": tags})
-    except mysql.connector.Error as err:
-        print(f"数据库错误: {str(err)}")
-        return jsonify({"success": False, "message": str(err)}), 500
     except Exception as e:
-        print(f"未知错误: {str(e)}")
-        return jsonify({"success": False, "message": "获取标签失败"}), 500
+        return jsonify({"success": False, "message": str(e)}), 500
 
 # 从环境变量中读取参数
-@app.route('/get_services_config')
-def get_services_config():
-    return jsonify({
-        'emby_api_key': os.environ['EMBY_API_KEY'],
-        'emby_server_url': os.environ['EMBY_SERVER_URL'],
-        'jackett_url': os.environ['JACKETT_URL'],
-        'thunder_url': os.environ['THUNDER_URL']
-    })
+def get_services_config_handler(data, method='GET'):
+    try:
+        return jsonify({
+            'success': True,
+            'data': {        
+                'emby_api_key': os.environ.get('EMBY_API_KEY', ''),
+                'emby_server_url': os.environ.get('EMBY_SERVER_URL', ''),
+                'jackett_url': os.environ.get('JACKETT_URL', ''),
+                'thunder_url': os.environ.get('THUNDER_URL', '')
+            }
+        })
+    except Exception as e:
+            return jsonify({"success": False, "message": str(e)}), 500
 
 # 相似度计算相关代码
 def check_title_match(title1, title2):
@@ -333,10 +383,8 @@ def check_title_match(title1, title2):
     return t1 in t2 or t2 in t1
 
 # 查重核对相关代码
-@app.route("/check_duplicates", methods=["POST"])
-def check_duplicates():
+def check_duplicates_handler(data, method='POST'): 
     try:
-        data = request.json
         titles = data.get('titles', [])
         
         with get_db_connection() as conn:
@@ -370,10 +418,8 @@ def check_duplicates():
         return jsonify({"success": False, "message": str(e)}), 500
 
 # 设置功能相关代码
-@app.route("/add_tag", methods=["POST"])
-def add_tag():
+def add_tag_handler(data, method='POST'):
     try:
-        data = request.get_json()
         name = data.get('name', '').strip()
         
         if not name:
@@ -390,10 +436,8 @@ def add_tag():
             return jsonify({"success": False, "message": "标签名称已存在"}), 400
         return jsonify({"success": False, "message": str(err)}), 500
 
-@app.route("/update_tag", methods=["POST"])
-def update_tag():
+def update_tag_handler(data, method='POST'):
     try:
-        data = request.get_json()
         old_name = data.get('old_name', '').strip()
         new_name = data.get('new_name', '').strip()
         
@@ -411,10 +455,8 @@ def update_tag():
             return jsonify({"success": False, "message": "标签名称已存在"}), 400
         return jsonify({"success": False, "message": str(err)}), 500
 
-@app.route("/add_rating_dimension", methods=["POST"])
-def add_rating_dimension():
+def add_rating_dimension_handler(data, method='POST'):
     try:
-        data = request.get_json()
         name = data.get('name', '').strip()
         
         if not name:
@@ -431,10 +473,8 @@ def add_rating_dimension():
             return jsonify({"success": False, "message": "评分维度名称已存在"}), 400
         return jsonify({"success": False, "message": str(err)}), 500
 
-@app.route("/update_rating_dimension", methods=["POST"])
-def update_rating_dimension():
+def update_rating_dimension_handler(data, method='POST'):
     try:
-        data = request.get_json()
         old_name = data.get('old_name', '').strip()
         new_name = data.get('new_name', '').strip()
         
@@ -453,9 +493,9 @@ def update_rating_dimension():
             return jsonify({"success": False, "message": "评分维度名称已存在"}), 400
         return jsonify({"success": False, "message": str(err)}), 500
 
-@app.route("/api/movies/<title>", methods=["DELETE"])
-def delete_movie(title):
+def delete_movie_handler(data, method='DELETE'):
     try:
+        title = data.get('title')
         with get_db_connection() as conn:
             cursor = conn.cursor(dictionary=True)
             
@@ -483,18 +523,9 @@ def delete_movie(title):
             
             return jsonify({"success": True, "message": "电影删除成功"})
 
-    except mysql.connector.Error as err:
-        print(f"数据库错误: {str(err)}")
-        return jsonify({"success": False, "message": str(err)}), 500
     except Exception as e:
         print(f"未知错误: {str(e)}")
         return jsonify({"success": False, "message": "删除操作失败"}), 500
-
-# 图片访问路由
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-@app.route('/images/<path:filename>')
-def serve_image(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # 图片文件验证
 def allowed_file(filename):
@@ -519,8 +550,7 @@ def process_image(image_file):
     img.save(output, format='WebP', quality=85, optimize=True)
     return output.getvalue()
 
-@app.route('/upload_image', methods=['POST'])
-def upload_image():
+def upload_image_handler(data, method='POST'):
     print("开始处理图片上传请求")
     if 'image' not in request.files:
         print("没有接收到文件")

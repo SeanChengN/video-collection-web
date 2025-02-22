@@ -917,7 +917,7 @@ tr.is-duplicate:hover {
     -webkit-tap-highlight-color: transparent;
 }
 .existing-image-item:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px) !important;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 .existing-image-item img {
