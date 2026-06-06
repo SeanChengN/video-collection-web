@@ -1,4 +1,4 @@
-FROM python:3.9-slim-buster
+FROM python:3.13-slim-bookworm
 
 # 镜像信息
 LABEL org.opencontainers.image.source="https://github.com/SeanChengN/video-collection-web" \
