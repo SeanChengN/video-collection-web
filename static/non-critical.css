@@ -62,10 +62,6 @@
 
 
     /* 调整Emby搜索界面 */
-    #embyModal .columns.is-multiline .column.is-one-fifth {
-        width: 50% !important;
-        padding: 0.5rem;
-    }
     .movie-card .card-content {
         padding: 0.6rem;
     }
@@ -235,6 +231,24 @@
 .image.is-2by3 {
     position: relative;
 }
+#embyModal .emby-result-column {
+    flex: none;
+    flex-basis: 25%;
+    max-width: 25%;
+    width: 25% !important;
+}
+@media screen and (max-width: 768px) {
+    #embyModal .columns.is-multiline {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    #embyModal .emby-result-column {
+        flex-basis: 50%;
+        max-width: 50%;
+        width: 50% !important;
+        padding: 0.5rem;
+    }
+}
 .columns.is-multiline .column.is-one-fifth {
     width: 16.666% !important;
 }
@@ -260,6 +274,7 @@
 /* 模态框特定样式 */
 #embyModal .modal-card-body {
     padding: 0 !important;
+    overflow: auto;
 }
 #wtlModal .modal-card-body {
     padding: 0 !important;

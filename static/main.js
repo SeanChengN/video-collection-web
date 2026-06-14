@@ -647,11 +647,70 @@ function closeEmbyModal() {
     ModalManager.close('embyModal');
 }
 
+const EMBY_MODAL_DEFAULT_HEIGHT_RATIO = 0.3;
+const EMBY_MODAL_MAX_HEIGHT_RATIO = 0.9;
+
+function centerEmbyModal() {
+    const modal = document.getElementById('embyModal');
+    const modalCard = modal?.querySelector('.modal-card');
+    if (!modalCard || !modal.classList.contains('is-active')) return;
+
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    const modalWidth = modalCard.offsetWidth;
+    const modalHeight = modalCard.offsetHeight;
+
+    modalCard.style.left = `${Math.max(0, (viewportWidth - modalWidth) / 2)}px`;
+    modalCard.style.top = `${Math.max(0, (viewportHeight - modalHeight) / 2)}px`;
+}
+
+function resetEmbyModalHeight() {
+    const modal = document.getElementById('embyModal');
+    const modalCard = modal?.querySelector('.modal-card');
+    const modalBody = modal?.querySelector('.modal-card-body');
+    if (!modalCard) return;
+
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    modalCard.style.height = `${Math.round(viewportHeight * EMBY_MODAL_DEFAULT_HEIGHT_RATIO)}px`;
+    modalCard.style.maxHeight = `${Math.round(viewportHeight * EMBY_MODAL_MAX_HEIGHT_RATIO)}px`;
+    modalCard.style.overflow = 'hidden';
+    modalCard.style.overflowY = 'hidden';
+    if (modalBody) {
+        modalBody.scrollTop = 0;
+    }
+    centerEmbyModal();
+}
+
+function resizeEmbyModalForResults() {
+    const modal = document.getElementById('embyModal');
+    const modalCard = modal?.querySelector('.modal-card');
+    const modalHead = modal?.querySelector('.modal-card-head');
+    const modalBody = modal?.querySelector('.modal-card-body');
+    if (!modalCard || !modalHead || !modalBody) return;
+
+    modalBody.scrollTop = 0;
+
+    requestAnimationFrame(() => {
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const minHeight = Math.round(viewportHeight * EMBY_MODAL_DEFAULT_HEIGHT_RATIO);
+        const maxHeight = Math.round(viewportHeight * EMBY_MODAL_MAX_HEIGHT_RATIO);
+        const contentHeight = modalHead.offsetHeight + modalBody.scrollHeight;
+        const targetHeight = Math.min(Math.max(contentHeight, minHeight), maxHeight);
+
+        modalCard.style.height = `${targetHeight}px`;
+        modalCard.style.maxHeight = `${maxHeight}px`;
+        modalCard.style.overflow = 'hidden';
+        modalCard.style.overflowY = 'hidden';
+        centerEmbyModal();
+    });
+}
+
 function searchEmby() {
     const query = document.getElementById('emby-search-input').value;
     const resultsDiv = document.getElementById('emby-results');
     
     if (!query.trim()) {
+        resetEmbyModalHeight();
         resultsDiv.innerHTML = '<div class="notification is-warning">请输入搜索内容</div>';
         return;
     }
@@ -662,6 +721,7 @@ function searchEmby() {
         .then(response => response.json())
         .then(data => {
             if (data.Items.length === 0) {
+                resetEmbyModalHeight();
                 resultsDiv.innerHTML = '<div class="notification is-info">未找到相关影片</div>';
                 return;
             }
@@ -672,7 +732,7 @@ function searchEmby() {
             
             data.Items.forEach(movie => {
                 const column = document.createElement('div');
-                column.className = 'column is-one-fifth';
+                column.className = 'column emby-result-column';
                 column.innerHTML = `
                     <div class="card movie-card">
                         <div class="card-image">
@@ -699,8 +759,10 @@ function searchEmby() {
             fragment.appendChild(container);
             resultsDiv.innerHTML = '';
             resultsDiv.appendChild(fragment);
+            resizeEmbyModalForResults();
         })
         .catch(error => {
+            resetEmbyModalHeight();
             resultsDiv.innerHTML = '<div class="notification is-danger">搜索出错，请稍后重试</div>';
             showAlert({
                 title: '搜索出错',
