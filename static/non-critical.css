@@ -194,6 +194,18 @@
     max-width: 100%;
     border-radius: 4px;
 }
+#wtlModal .screenshots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+#wtlModal .screenshot-item img {
+    display: block;
+    width: 100%;
+}
+@media screen and (max-width: 768px) {
+    #wtlModal .screenshots {
+        grid-template-columns: 1fr;
+    }
+}
 
 
 
@@ -278,6 +290,7 @@
 }
 #wtlModal .modal-card-body {
     padding: 0 !important;
+    overflow: auto;
 }
 #thunderModal .modal-card-body {
     padding: 0 !important;

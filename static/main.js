@@ -817,6 +817,7 @@ function openWtlModal() {
         ModalManager.open('wtlModal');
         document.getElementById('wtl-input').value = '';
         document.getElementById('wtl-results').innerHTML = '';
+        resetWtlModalHeight();
     }
 }
 
@@ -824,11 +825,68 @@ function closeWtlModal() {
     ModalManager.close('wtlModal');
 }
 
+const WTL_MODAL_DEFAULT_HEIGHT_RATIO = 0.3;
+const WTL_MODAL_MAX_HEIGHT_RATIO = 0.9;
+
+function centerWtlModal() {
+    const modal = document.getElementById('wtlModal');
+    const modalCard = modal?.querySelector('.modal-card');
+    if (!modalCard || !modal.classList.contains('is-active')) return;
+
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    const modalWidth = modalCard.offsetWidth;
+    const modalHeight = modalCard.offsetHeight;
+
+    modalCard.style.left = `${Math.max(0, (viewportWidth - modalWidth) / 2)}px`;
+    modalCard.style.top = `${Math.max(0, (viewportHeight - modalHeight) / 2)}px`;
+}
+
+function resetWtlModalHeight() {
+    const modal = document.getElementById('wtlModal');
+    const modalCard = modal?.querySelector('.modal-card');
+    const modalBody = modal?.querySelector('.modal-card-body');
+    if (!modalCard) return;
+
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    modalCard.style.height = `${Math.round(viewportHeight * WTL_MODAL_DEFAULT_HEIGHT_RATIO)}px`;
+    modalCard.style.maxHeight = `${Math.round(viewportHeight * WTL_MODAL_MAX_HEIGHT_RATIO)}px`;
+    modalCard.style.overflow = 'hidden';
+    modalCard.style.overflowY = 'hidden';
+    if (modalBody) {
+        modalBody.scrollTop = 0;
+    }
+    centerWtlModal();
+}
+
+function resizeWtlModalForResults() {
+    const modal = document.getElementById('wtlModal');
+    const modalCard = modal?.querySelector('.modal-card');
+    const modalHead = modal?.querySelector('.modal-card-head');
+    const modalBody = modal?.querySelector('.modal-card-body');
+    if (!modalCard || !modalHead || !modalBody) return;
+
+    requestAnimationFrame(() => {
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const minHeight = Math.round(viewportHeight * WTL_MODAL_DEFAULT_HEIGHT_RATIO);
+        const maxHeight = Math.round(viewportHeight * WTL_MODAL_MAX_HEIGHT_RATIO);
+        const contentHeight = modalHead.offsetHeight + modalBody.scrollHeight;
+        const targetHeight = Math.min(Math.max(contentHeight, minHeight), maxHeight);
+
+        modalCard.style.height = `${targetHeight}px`;
+        modalCard.style.maxHeight = `${maxHeight}px`;
+        modalCard.style.overflow = 'hidden';
+        modalCard.style.overflowY = 'hidden';
+        centerWtlModal();
+    });
+}
+
 function searchWtl() {
     const query = document.getElementById('wtl-input').value;
     const resultsDiv = document.getElementById('wtl-results');
     
     if (!query.trim()) {
+        resetWtlModalHeight();
         resultsDiv.innerHTML = '<div class="notification is-warning">请输入链接</div>';
         return;
     }
@@ -849,8 +907,16 @@ function searchWtl() {
                     ${renderScreenshots(data.screenshots)}
                 </div>
             `;
+            resultsDiv.querySelectorAll('img').forEach(img => {
+                if (!img.complete) {
+                    img.addEventListener('load', resizeWtlModalForResults, { once: true });
+                    img.addEventListener('error', resizeWtlModalForResults, { once: true });
+                }
+            });
+            resizeWtlModalForResults();
         })
         .catch(error => {
+            resetWtlModalHeight();
             resultsDiv.innerHTML = '<div class="notification is-danger">查询失败，请检查链接是否正确</div>';
             showAlert({
                 title: '查询失败',
