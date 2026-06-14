@@ -61,3 +61,6 @@ static/*.svg
 
 # 测试文件
 images/
+
+# 其他文件
+undo*
