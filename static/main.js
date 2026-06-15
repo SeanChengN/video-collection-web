@@ -2815,9 +2815,12 @@ async function stepThumbnailVideo(delta) {
         setThumbnailStatus('请先选择可播放的视频');
         return;
     }
-    video.pause();
+    const shouldResume = !video.paused && !video.ended;
     const target = clampThumbnailTime(video.currentTime + delta, video.duration);
     await seekThumbnailVideo(target);
+    if (shouldResume) {
+        video.play().catch(() => {});
+    }
     setThumbnailStatus(`当前时间：${formatThumbnailTime(video.currentTime)} / ${formatThumbnailTime(video.duration)}`);
 }
 

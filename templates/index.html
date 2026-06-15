@@ -1004,6 +1004,10 @@
         <section class="modal-card-body thumbnail-modal-body">
             <div class="thumbnail-layout">
                 <div class="thumbnail-left-pane">
+                    <div class="thumbnail-player-pane">
+                        <video id="thumbnail-video" controls playsinline preload="metadata"></video>
+                        <div id="thumbnail-status" class="thumbnail-status">请选择视频文件</div>
+                    </div>
                     <aside class="thumbnail-browser">
                     <div class="thumbnail-browser-actions">
                         <button class="button is-small" id="thumbnail-up-button" type="button">
@@ -1024,25 +1028,21 @@
                     <div id="thumbnail-breadcrumbs" class="thumbnail-breadcrumbs"></div>
                         <div id="thumbnail-file-list" class="thumbnail-file-list"></div>
                     </aside>
-                    <div class="thumbnail-player-pane">
-                        <video id="thumbnail-video" controls playsinline preload="metadata"></video>
-                        <div id="thumbnail-status" class="thumbnail-status">请选择视频文件</div>
-                    </div>
                 </div>
                 <div class="thumbnail-right-pane">
                     <div class="thumbnail-control-panel">
                         <section class="thumbnail-control-section">
                             <div class="thumbnail-section-title">手动截图</div>
-                            <div class="thumbnail-control-group">
+                            <div class="thumbnail-manual-grid">
                                 <button class="button is-small" id="thumbnail-minute-back" type="button">-1 分</button>
                                 <button class="button is-small" id="thumbnail-five-second-back" type="button">-5 秒</button>
                                 <button class="button is-small" id="thumbnail-second-back" type="button">-1 秒</button>
                                 <button class="button is-small" id="thumbnail-frame-back" type="button">-1 帧</button>
                                 <button class="button is-info is-small" id="thumbnail-capture-current" type="button">截图</button>
-                                <button class="button is-small" id="thumbnail-frame-forward" type="button">+1 帧</button>
-                                <button class="button is-small" id="thumbnail-second-forward" type="button">+1 秒</button>
-                                <button class="button is-small" id="thumbnail-five-second-forward" type="button">+5 秒</button>
                                 <button class="button is-small" id="thumbnail-minute-forward" type="button">+1 分</button>
+                                <button class="button is-small" id="thumbnail-five-second-forward" type="button">+5 秒</button>
+                                <button class="button is-small" id="thumbnail-second-forward" type="button">+1 秒</button>
+                                <button class="button is-small" id="thumbnail-frame-forward" type="button">+1 帧</button>
                             </div>
                         </section>
                         <section class="thumbnail-control-section">
