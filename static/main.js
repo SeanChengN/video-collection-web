@@ -443,6 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'wtlModal',
         'thunderModal',
         'embyModal',
+        'embyPlayerModal',
         'editModal',
         'settingsModal',
         'imageViewerModal'
@@ -705,6 +706,47 @@ function resizeEmbyModalForResults() {
     });
 }
 
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
+}
+
+function openEmbyPlayer(streamUrl, title) {
+    const modal = document.getElementById('embyPlayerModal');
+    const video = document.getElementById('emby-player-video');
+    const titleElement = modal?.querySelector('.modal-card-title');
+    if (!modal || !video || !streamUrl) return;
+
+    if (titleElement) {
+        titleElement.textContent = title ? `Emby: ${title}` : 'Emby Player';
+    }
+
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
+    video.src = streamUrl;
+
+    ModalManager.open('embyPlayerModal');
+    requestAnimationFrame(() => {
+        video.play().catch(() => {});
+    });
+}
+
+function closeEmbyPlayerModal() {
+    const video = document.getElementById('emby-player-video');
+    if (video) {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+    }
+    ModalManager.close('embyPlayerModal');
+}
+
 function searchEmby() {
     const query = document.getElementById('emby-search-input').value;
     const resultsDiv = document.getElementById('emby-results');
@@ -717,10 +759,14 @@ function searchEmby() {
     
     resultsDiv.innerHTML = '<div class="notification is-info">正在搜索...</div>';
     
-    fetch(`${serviceConfig.emby_server_url}/emby/Items?Recursive=true&IncludeItemTypes=Movie&NameStartsWith=${encodeURIComponent(query)}&api_key=${serviceConfig.emby_api_key}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.Items.length === 0) {
+    callApi(event_map.search_emby, { query })
+        .then(result => {
+            if (!result.success) {
+                throw new Error(result.message || 'Emby search failed');
+            }
+
+            const items = result.data?.items || [];
+            if (items.length === 0) {
                 resetEmbyModalHeight();
                 resultsDiv.innerHTML = '<div class="notification is-info">未找到相关影片</div>';
                 return;
@@ -730,28 +776,48 @@ function searchEmby() {
             const container = document.createElement('div');
             container.className = 'columns is-multiline';
             
-            data.Items.forEach(movie => {
+            items.forEach(movie => {
                 const column = document.createElement('div');
                 column.className = 'column emby-result-column';
+                const movieName = movie.name || '';
+                const imageUrl = movie.imageUrl || '';
+                const streamUrl = movie.streamUrl || '';
+                const cardClass = streamUrl ? 'card movie-card emby-playable-card' : 'card movie-card emby-unplayable-card';
+                const cardAttributes = streamUrl
+                    ? `role="button" tabindex="0" aria-label="播放 ${escapeHtml(movieName)}"`
+                    : 'aria-disabled="true"';
                 column.innerHTML = `
-                    <div class="card movie-card">
+                    <div class="${cardClass}" ${cardAttributes}>
                         <div class="card-image">
                             <figure class="image is-2by3">
-                                <img data-src="${serviceConfig.emby_server_url}/emby/Items/${movie.Id}/Images/Primary?tag=${movie.ImageTags.Primary}&api_key=${serviceConfig.emby_api_key}" 
-                                     alt="${movie.Name}"
+                                <img data-src="${escapeHtml(imageUrl)}"
+                                     alt="${escapeHtml(movieName)}"
                                      src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
-                                <div class="runtime-badge">${formatRuntime(movie.RunTimeTicks)}</div>
+                                <div class="runtime-badge">${formatRuntime(movie.runtimeTicks)}</div>
                             </figure>
                         </div>
-                        <div class="card-content fixed-height">
-                            <p class="title is-6 movie-title" data-full-title="${movie.Name}">${movie.Name}</p>
+                        <div class="card-content fixed-height emby-card-content">
+                            <p class="title is-6 movie-title" data-full-title="${escapeHtml(movieName)}">${escapeHtml(movieName)}</p>
                         </div>
                     </div>
                 `;
                 
                 // 为新加载的图片添加懒加载观察
                 const img = column.querySelector('img');
-                imageObserver.observe(img);
+                if (img && imageUrl) {
+                    imageObserver.observe(img);
+                }
+                const movieCard = column.querySelector('.movie-card');
+                if (movieCard && streamUrl) {
+                    const playMovie = () => openEmbyPlayer(streamUrl, movieName);
+                    movieCard.addEventListener('click', playMovie);
+                    movieCard.addEventListener('keydown', event => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            playMovie();
+                        }
+                    });
+                }
                 
                 container.appendChild(column);
             });

@@ -8,6 +8,9 @@ from flask import Flask, render_template, request, jsonify, send_from_directory 
 from contextlib import contextmanager #上下文管理器
 from flask_compress import Compress #压缩代码
 from PIL import Image #图像处理
+import requests
+from urllib.parse import quote
+from flask import Response, stream_with_context
 #import logging
 
 app = Flask(__name__)
@@ -45,6 +48,105 @@ DB_CONFIG = {
     "password": os.environ["DB_PASSWORD"],
     "database": os.environ["DB_DATABASE"]
 }
+
+EMBY_CLIENT_NAME = 'video-collection'
+EMBY_DEVICE_NAME = 'video-collection-server'
+EMBY_DEVICE_ID = os.environ.get('EMBY_DEVICE_ID', 'video-collection-server')
+EMBY_CLIENT_VERSION = '1.0.0'
+EMBY_TOKEN_CACHE = {
+    'access_token': None,
+    'user_id': None
+}
+
+def get_emby_server_url():
+    server_url = os.environ.get('EMBY_SERVER_URL', '').strip().rstrip('/')
+    if not server_url:
+        raise ValueError('EMBY_SERVER_URL is not configured')
+    return server_url
+
+def get_emby_credentials():
+    username = os.environ.get('EMBY_USERNAME', '').strip()
+    password = os.environ.get('EMBY_PASSWORD', '')
+    if not username or not password:
+        raise ValueError('EMBY_USERNAME or EMBY_PASSWORD is not configured')
+    return username, password
+
+def get_emby_headers(access_token=None, accept_json=True):
+    auth_value = (
+        f'MediaBrowser Client="{EMBY_CLIENT_NAME}", '
+        f'Device="{EMBY_DEVICE_NAME}", '
+        f'DeviceId="{EMBY_DEVICE_ID}", '
+        f'Version="{EMBY_CLIENT_VERSION}"'
+    )
+    if access_token:
+        auth_value = f'{auth_value}, Token="{access_token}"'
+    headers = {
+        'X-Emby-Authorization': auth_value
+    }
+    if accept_json:
+        headers['Accept'] = 'application/json'
+    if access_token:
+        headers['X-Emby-Token'] = access_token
+    return headers
+
+def authenticate_emby(force_refresh=False):
+    if EMBY_TOKEN_CACHE['access_token'] and not force_refresh:
+        return EMBY_TOKEN_CACHE['access_token'], EMBY_TOKEN_CACHE['user_id']
+
+    server_url = get_emby_server_url()
+    username, password = get_emby_credentials()
+    response = requests.post(
+        f'{server_url}/emby/Users/AuthenticateByName',
+        json={'Username': username, 'Pw': password},
+        headers=get_emby_headers(),
+        timeout=10
+    )
+
+    if not response.ok:
+        EMBY_TOKEN_CACHE['access_token'] = None
+        EMBY_TOKEN_CACHE['user_id'] = None
+        raise RuntimeError(f'Emby authentication failed: HTTP {response.status_code}')
+
+    auth_data = response.json()
+    access_token = auth_data.get('AccessToken')
+    user = auth_data.get('User') or {}
+    user_id = user.get('Id') or auth_data.get('UserId')
+    if not access_token:
+        raise RuntimeError('Emby authentication did not return an access token')
+
+    EMBY_TOKEN_CACHE['access_token'] = access_token
+    EMBY_TOKEN_CACHE['user_id'] = user_id
+    return access_token, user_id
+
+def emby_request(method, path, params=None, headers=None, stream=False, timeout=15, force_refresh=False):
+    server_url = get_emby_server_url()
+    access_token, _ = authenticate_emby(force_refresh)
+    request_headers = get_emby_headers(access_token, accept_json=not stream)
+    if headers:
+        request_headers.update(headers)
+
+    response = requests.request(
+        method,
+        f'{server_url}{path}',
+        params=params,
+        headers=request_headers,
+        stream=stream,
+        timeout=timeout
+    )
+
+    if response.status_code == 401 and not force_refresh:
+        response.close()
+        return emby_request(
+            method,
+            path,
+            params=params,
+            headers=headers,
+            stream=stream,
+            timeout=timeout,
+            force_refresh=True
+        )
+
+    return response
 
 @contextmanager
 def get_db_connection():
@@ -144,6 +246,100 @@ def serve_src(filename):
 def serve_image(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+@app.route('/emby/image/<item_id>')
+def serve_emby_image(item_id):
+    try:
+        image_tag = request.args.get('tag', '').strip()
+        params = {'tag': image_tag} if image_tag else None
+        upstream = emby_request(
+            'GET',
+            f'/emby/Items/{item_id}/Images/Primary',
+            params=params,
+            stream=True,
+            timeout=20
+        )
+
+        if upstream.status_code == 404:
+            upstream.close()
+            return Response(status=404)
+        if not upstream.ok:
+            status_code = upstream.status_code
+            upstream.close()
+            return Response(status=status_code)
+
+        response_headers = {
+            'Content-Type': upstream.headers.get('Content-Type', 'image/jpeg'),
+            'Cache-Control': 'private, max-age=86400'
+        }
+        if upstream.headers.get('Content-Length'):
+            response_headers['Content-Length'] = upstream.headers['Content-Length']
+
+        def generate():
+            try:
+                for chunk in upstream.iter_content(chunk_size=8192):
+                    if chunk:
+                        yield chunk
+            finally:
+                upstream.close()
+
+        return Response(stream_with_context(generate()), headers=response_headers)
+    except Exception as e:
+        print(f"Emby image proxy failed: {str(e)}")
+        return Response(status=502)
+
+@app.route('/emby/stream/<item_id>')
+def stream_emby_video(item_id):
+    try:
+        upstream_headers = {}
+        range_header = request.headers.get('Range')
+        if range_header:
+            upstream_headers['Range'] = range_header
+
+        upstream = emby_request(
+            'GET',
+            f'/emby/Videos/{item_id}/stream',
+            params={'Static': 'true'},
+            headers=upstream_headers,
+            stream=True,
+            timeout=(10, 60)
+        )
+
+        if upstream.status_code not in (200, 206):
+            status_code = upstream.status_code
+            upstream.close()
+            return Response('Unable to stream this Emby item', status=status_code)
+
+        response_headers = {}
+        for header_name in (
+            'Content-Type',
+            'Content-Length',
+            'Content-Range',
+            'Accept-Ranges',
+            'ETag',
+            'Last-Modified'
+        ):
+            if upstream.headers.get(header_name):
+                response_headers[header_name] = upstream.headers[header_name]
+        response_headers.setdefault('Accept-Ranges', 'bytes')
+
+        def generate():
+            try:
+                for chunk in upstream.iter_content(chunk_size=1024 * 1024):
+                    if chunk:
+                        yield chunk
+            finally:
+                upstream.close()
+
+        return Response(
+            stream_with_context(generate()),
+            status=upstream.status_code,
+            headers=response_headers,
+            direct_passthrough=True
+        )
+    except Exception as e:
+        print(f"Emby stream proxy failed: {str(e)}")
+        return Response('Unable to stream this Emby item', status=502)
+
 # 统一api入口
 @app.route('/api', methods=['POST'])
 def api_handler():
@@ -170,7 +366,8 @@ def api_handler():
             1010: upload_image_handler,
             1011: search_movies_handler,
             1012: update_movie_handler,
-            1013: delete_movie_handler
+            1013: delete_movie_handler,
+            1014: search_emby_handler
         }
         
         handler = handlers.get(event_id)
@@ -356,7 +553,6 @@ def get_services_config_handler(data, method='GET'):
         return jsonify({
             'success': True,
             'data': {        
-                'emby_api_key': os.environ.get('EMBY_API_KEY', ''),
                 'emby_server_url': os.environ.get('EMBY_SERVER_URL', ''),
                 'jackett_url': os.environ.get('JACKETT_URL', ''),
                 'thunder_url': os.environ.get('THUNDER_URL', '')
@@ -366,6 +562,61 @@ def get_services_config_handler(data, method='GET'):
             return jsonify({"success": False, "message": str(e)}), 500
 
 # 相似度计算相关代码
+def search_emby_handler(data, method='POST'):
+    try:
+        query = data.get('query', '').strip()
+        if not query:
+            return jsonify({"success": False, "message": "Search query is required"}), 400
+
+        response = emby_request(
+            'GET',
+            '/emby/Items',
+            params={
+                'Recursive': 'true',
+                'IncludeItemTypes': 'Movie',
+                'NameStartsWith': query
+            }
+        )
+
+        if not response.ok:
+            status_code = response.status_code
+            response.close()
+            return jsonify({
+                "success": False,
+                "message": f"Emby search failed: HTTP {status_code}"
+            }), status_code
+
+        emby_data = response.json()
+        items = []
+        for item in emby_data.get('Items', []):
+            item_id = str(item.get('Id', '')).strip()
+            if not item_id:
+                continue
+
+            image_tag = (item.get('ImageTags') or {}).get('Primary', '')
+            image_url = f'/emby/image/{quote(item_id, safe="")}'
+            if image_tag:
+                image_url = f'{image_url}?tag={quote(str(image_tag), safe="")}'
+
+            items.append({
+                'id': item_id,
+                'name': item.get('Name', ''),
+                'runtimeTicks': item.get('RunTimeTicks'),
+                'imageTag': image_tag,
+                'imageUrl': image_url,
+                'streamUrl': f'/emby/stream/{quote(item_id, safe="")}'
+            })
+
+        return jsonify({
+            "success": True,
+            "data": {
+                "items": items,
+                "totalRecordCount": emby_data.get('TotalRecordCount', len(items))
+            }
+        })
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
 def check_title_match(title1, title2):
     # 转换为小写进行比较
     t1 = title1.lower()

@@ -11,7 +11,8 @@ const event_map = {
     upload_image: 1010,
     search_movies: 1011,
     update_movie: 1012,
-    delete_movie: 1013
+    delete_movie: 1013,
+    search_emby: 1014
 };
 
 window.event_map = event_map;

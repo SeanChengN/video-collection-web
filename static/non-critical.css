@@ -222,13 +222,13 @@
 }
 .movie-title {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     margin-bottom: 0 !important;
     line-height: 1.4;
-    height: 2.8em;
+    height: 4.2em;
 }
 .runtime-badge {
     position: absolute;
@@ -248,6 +248,42 @@
     flex-basis: 25%;
     max-width: 25%;
     width: 25% !important;
+}
+#embyModal .emby-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+#embyModal .emby-playable-card {
+    cursor: pointer;
+    overflow: hidden;
+    outline: none;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+#embyModal .emby-playable-card .image {
+    overflow: hidden;
+}
+#embyModal .emby-playable-card img {
+    transition: transform 0.22s ease, filter 0.22s ease;
+}
+#embyModal .emby-playable-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
+}
+#embyModal .emby-playable-card:hover img {
+    transform: scale(1.035);
+    filter: brightness(1.04);
+}
+#embyModal .emby-playable-card:active {
+    transform: translateY(-1px) scale(0.99);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+}
+#embyModal .emby-playable-card:focus-visible {
+    box-shadow: 0 0 0 3px rgba(50, 115, 220, 0.38), 0 14px 28px rgba(0, 0, 0, 0.18);
+}
+#embyModal .emby-unplayable-card {
+    cursor: default;
+    opacity: 0.72;
 }
 @media screen and (max-width: 768px) {
     #embyModal .columns.is-multiline {
@@ -1605,6 +1641,21 @@ tr.is-duplicate:hover {
     width: 60%;
     height: 30vh;
 }
+#embyPlayerModal .modal-card {
+    width: 72%;
+    height: 75vh;
+}
+#embyPlayerModal .emby-player-body {
+    padding: 0 !important;
+    overflow: hidden;
+    background: #000 !important;
+}
+#emby-player-video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #000;
+}
 
 /* WTL模态框 */
 #wtlModal .modal-card {
@@ -1668,6 +1719,11 @@ tr.is-duplicate:hover {
     #thunderModal .modal-card {
         width: 90% !important;
         height: 90% !important;
+    }
+
+    #embyPlayerModal .modal-card {
+        width: 95% !important;
+        height: 70vh !important;
     }
 
     #imageViewerModal .modal-card {

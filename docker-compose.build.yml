@@ -13,15 +13,16 @@ services:
       DB_USER: username
       DB_PASSWORD: password
       DB_DATABASE: movies
-      EMBY_API_KEY: your-emby-apikey
       EMBY_SERVER_URL: http://your-emby-server-address
+      EMBY_USERNAME: your-emby-username
+      EMBY_PASSWORD: your-emby-password
       JACKETT_URL: http://your-jackett-server-address
       THUNDER_URL: http://your-thunder-server-address
     volumes:
       - ./images:/images
 
   db:
-    image: mariadb:10.5
+    image: mariadb:lts
     container_name: video-collection-db
     restart: unless-stopped
     environment:

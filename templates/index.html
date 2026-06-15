@@ -953,6 +953,26 @@
     </div>
 </div>
 
+<!-- Emby player modal -->
+<div class="modal" id="embyPlayerModal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Emby Player</p>
+            <div class="modal-card-controls">
+                <button class="modal-control-button close" onclick="closeEmbyPlayerModal()" aria-label="close">
+                    <svg aria-label="close">
+                        <use href="../static/sprite.svg#close-icon"></use>
+                    </svg>
+                </button>
+            </div>
+        </header>
+        <section class="modal-card-body emby-player-body">
+            <video id="emby-player-video" controls playsinline preload="metadata"></video>
+        </section>
+    </div>
+</div>
+
 <!-- 查重核对模态框 -->
 <div class="modal" id="duplicateModal">
     <div class="modal-background"></div>
