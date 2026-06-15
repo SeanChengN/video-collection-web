@@ -648,10 +648,12 @@ function openEmbyModal() {
 
 function closeEmbyModal() {
     ModalManager.close('embyModal');
+    clearEmbyModalState();
 }
 
 const EMBY_MODAL_DEFAULT_HEIGHT_RATIO = 0.3;
 const EMBY_MODAL_MAX_HEIGHT_RATIO = 0.9;
+let embySearchRequestId = 0;
 
 function centerEmbyModal() {
     const modal = document.getElementById('embyModal');
@@ -682,6 +684,24 @@ function resetEmbyModalHeight() {
         modalBody.scrollTop = 0;
     }
     centerEmbyModal();
+}
+
+function clearEmbyModalState() {
+    embySearchRequestId += 1;
+    const input = document.getElementById('emby-search-input');
+    const resultsDiv = document.getElementById('emby-results');
+    const modalBody = document.querySelector('#embyModal .modal-card-body');
+
+    if (input) {
+        input.value = '';
+    }
+    if (resultsDiv) {
+        resultsDiv.innerHTML = '';
+    }
+    if (modalBody) {
+        modalBody.scrollTop = 0;
+    }
+    resetEmbyModalHeight();
 }
 
 function resizeEmbyModalForResults() {
@@ -752,6 +772,7 @@ function closeEmbyPlayerModal() {
 function searchEmby() {
     const query = document.getElementById('emby-search-input').value;
     const resultsDiv = document.getElementById('emby-results');
+    const requestId = ++embySearchRequestId;
     
     if (!query.trim()) {
         resetEmbyModalHeight();
@@ -763,6 +784,8 @@ function searchEmby() {
     
     callApi(event_map.search_emby, { query })
         .then(result => {
+            if (requestId !== embySearchRequestId) return;
+
             if (!result.success) {
                 throw new Error(result.message || 'Emby search failed');
             }
@@ -830,6 +853,8 @@ function searchEmby() {
             resizeEmbyModalForResults();
         })
         .catch(error => {
+            if (requestId !== embySearchRequestId) return;
+
             resetEmbyModalHeight();
             resultsDiv.innerHTML = '<div class="notification is-danger">搜索出错，请稍后重试</div>';
             showAlert({
