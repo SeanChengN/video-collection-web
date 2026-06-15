@@ -284,6 +284,7 @@ const ModalManager = {
             'wtlModal': '[onclick*="openWtlModal"]',
             'thunderModal': '[onclick*="openThunderModal"]',
             'embyModal': '[onclick*="openEmbyModal"]',
+            'thumbnailModal': '[onclick*="openThumbnailModal"]',
             'settingsModal': '[onclick*="openSettingsModal"]'
         };
         const selector = buttonMap[modalId];
@@ -443,6 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'wtlModal',
         'thunderModal',
         'embyModal',
+        'thumbnailModal',
         'embyPlayerModal',
         'editModal',
         'settingsModal',
@@ -2379,6 +2381,789 @@ function updatePagination() {
 }
 
 // 图片上传相关代码
+const thumbnailState = {
+    currentPath: '',
+    currentListing: null,
+    selectedVideo: null,
+    captures: [],
+    selectedCaptureIds: new Set(),
+    initialized: false,
+    isBatchRunning: false,
+    abortBatch: false,
+    fpsProbeToken: 0,
+    adaptiveFps: 30,
+    directoryRequestToken: 0,
+    sessionToken: 0
+};
+
+function openThumbnailModal() {
+    if (ModalManager.minimizedModals.has('thumbnailModal')) {
+        ModalManager.restoreModal('thumbnailModal');
+    } else {
+        ModalManager.open('thumbnailModal');
+    }
+    initThumbnailTool();
+    if (!thumbnailState.currentListing) {
+        loadThumbnailDirectory('');
+    }
+}
+
+function closeThumbnailModal() {
+    resetThumbnailToolState();
+    ModalManager.close('thumbnailModal');
+}
+
+function resetThumbnailToolState() {
+    thumbnailState.abortBatch = true;
+    thumbnailState.directoryRequestToken += 1;
+    thumbnailState.fpsProbeToken += 1;
+    thumbnailState.sessionToken += 1;
+
+    const video = document.getElementById('thumbnail-video');
+    if (video) {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+    }
+
+    thumbnailState.currentPath = '';
+    thumbnailState.currentListing = null;
+    thumbnailState.selectedVideo = null;
+    thumbnailState.adaptiveFps = 30;
+    thumbnailState.captures.forEach(capture => URL.revokeObjectURL(capture.url));
+    thumbnailState.captures = [];
+    thumbnailState.selectedCaptureIds.clear();
+    clearThumbnailDragCache();
+
+    const list = document.getElementById('thumbnail-file-list');
+    if (list) list.innerHTML = '';
+
+    const breadcrumbs = document.getElementById('thumbnail-breadcrumbs');
+    if (breadcrumbs) breadcrumbs.innerHTML = '';
+
+    setThumbnailStatus('请选择视频文件');
+    updateThumbnailProgress(0);
+    setThumbnailBatchControls(false);
+
+    const summary = document.getElementById('thumbnail-batch-summary');
+    if (summary) summary.textContent = '预计 0 张';
+
+    renderThumbnailCaptures();
+    syncThumbnailPercentPreset();
+    updateThumbnailSelectionControls();
+}
+
+function initThumbnailTool() {
+    if (thumbnailState.initialized) return;
+
+    const modal = document.getElementById('thumbnailModal');
+    if (!modal) return;
+
+    const video = document.getElementById('thumbnail-video');
+    const upButton = document.getElementById('thumbnail-up-button');
+    const refreshButton = document.getElementById('thumbnail-refresh-button');
+    const frameBack = document.getElementById('thumbnail-frame-back');
+    const frameForward = document.getElementById('thumbnail-frame-forward');
+    const secondBack = document.getElementById('thumbnail-second-back');
+    const secondForward = document.getElementById('thumbnail-second-forward');
+    const fiveSecondBack = document.getElementById('thumbnail-five-second-back');
+    const fiveSecondForward = document.getElementById('thumbnail-five-second-forward');
+    const minuteBack = document.getElementById('thumbnail-minute-back');
+    const minuteForward = document.getElementById('thumbnail-minute-forward');
+    const captureButton = document.getElementById('thumbnail-capture-current');
+    const batchButton = document.getElementById('thumbnail-batch-capture');
+    const stopButton = document.getElementById('thumbnail-stop-batch');
+    const clearButton = document.getElementById('thumbnail-clear-captures');
+    const selectAllButton = document.getElementById('thumbnail-select-all');
+    const percentInput = document.getElementById('thumbnail-percent-step');
+    const presetButtons = modal.querySelectorAll('.thumbnail-percent-preset');
+
+    upButton?.addEventListener('click', () => {
+        if (thumbnailState.currentPath) {
+            loadThumbnailDirectory(getThumbnailParentPath(thumbnailState.currentPath));
+        }
+    });
+    refreshButton?.addEventListener('click', () => loadThumbnailDirectory(thumbnailState.currentPath));
+    frameBack?.addEventListener('click', () => stepThumbnailVideo(-getThumbnailFrameStep()));
+    frameForward?.addEventListener('click', () => stepThumbnailVideo(getThumbnailFrameStep()));
+    secondBack?.addEventListener('click', () => stepThumbnailVideo(-getThumbnailSecondStep()));
+    secondForward?.addEventListener('click', () => stepThumbnailVideo(getThumbnailSecondStep()));
+    fiveSecondBack?.addEventListener('click', () => stepThumbnailVideo(-5));
+    fiveSecondForward?.addEventListener('click', () => stepThumbnailVideo(5));
+    minuteBack?.addEventListener('click', () => stepThumbnailVideo(-60));
+    minuteForward?.addEventListener('click', () => stepThumbnailVideo(60));
+    captureButton?.addEventListener('click', () => captureCurrentThumbnail());
+    batchButton?.addEventListener('click', () => batchCaptureThumbnails());
+    stopButton?.addEventListener('click', () => {
+        thumbnailState.abortBatch = true;
+        setThumbnailStatus('正在停止批量截图...');
+    });
+    clearButton?.addEventListener('click', clearThumbnailCaptures);
+    selectAllButton?.addEventListener('click', toggleAllThumbnailCaptures);
+    percentInput?.addEventListener('input', () => {
+        syncThumbnailPercentPreset();
+        updateThumbnailBatchSummary();
+    });
+    presetButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            if (percentInput) {
+                percentInput.value = button.dataset.thumbnailPercent || '2';
+            }
+            syncThumbnailPercentPreset();
+            updateThumbnailBatchSummary();
+        });
+    });
+
+    video?.addEventListener('loadedmetadata', () => {
+        resetThumbnailVideoControls();
+        autoDetectThumbnailFps(video);
+        updateThumbnailStatusForVideo();
+        updateThumbnailBatchSummary();
+    });
+    video?.addEventListener('durationchange', updateThumbnailBatchSummary);
+    video?.addEventListener('error', () => {
+        setThumbnailStatus('视频无法播放，浏览器可能不支持该编码或封装格式。');
+    });
+
+    thumbnailState.initialized = true;
+    syncThumbnailPercentPreset();
+    updateThumbnailBatchSummary();
+    renderThumbnailCaptures();
+}
+
+function loadThumbnailDirectory(path = '') {
+    const safePath = path || '';
+    const requestToken = ++thumbnailState.directoryRequestToken;
+    setThumbnailFileListLoading();
+    callApi(event_map.list_video_files, { path: safePath })
+        .then(result => {
+            if (requestToken !== thumbnailState.directoryRequestToken) return;
+            if (!result.success) {
+                throw new Error(result.message || '读取视频目录失败');
+            }
+            thumbnailState.currentPath = result.path || '';
+            thumbnailState.currentListing = result;
+            renderThumbnailBrowser(result);
+            if (result.message) {
+                setThumbnailStatus(result.message);
+            }
+        })
+        .catch(error => {
+            if (requestToken !== thumbnailState.directoryRequestToken) return;
+            renderThumbnailBrowser({
+                path: safePath,
+                parent: getThumbnailParentPath(safePath),
+                directories: [],
+                files: []
+            });
+            setThumbnailStatus(error.message || '读取视频目录失败');
+        });
+}
+
+function setThumbnailFileListLoading() {
+    const list = document.getElementById('thumbnail-file-list');
+    if (list) {
+        list.innerHTML = '<div class="thumbnail-empty">正在读取...</div>';
+    }
+}
+
+function renderThumbnailBrowser(data) {
+    renderThumbnailBreadcrumbs(data.path || '');
+    const upButton = document.getElementById('thumbnail-up-button');
+    if (upButton) {
+        upButton.disabled = !(data.path || '');
+    }
+
+    const list = document.getElementById('thumbnail-file-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    const directories = data.directories || [];
+    const files = data.files || [];
+    if (!directories.length && !files.length) {
+        const empty = document.createElement('div');
+        empty.className = 'thumbnail-empty';
+        empty.textContent = '当前目录没有可播放的视频文件';
+        list.appendChild(empty);
+        return;
+    }
+
+    directories.forEach(directory => {
+        list.appendChild(createThumbnailDirectoryRow(directory));
+    });
+    files.forEach(file => {
+        list.appendChild(createThumbnailFileRow(file));
+    });
+}
+
+function renderThumbnailBreadcrumbs(path) {
+    const breadcrumbs = document.getElementById('thumbnail-breadcrumbs');
+    if (!breadcrumbs) return;
+    breadcrumbs.innerHTML = '';
+
+    const rootButton = document.createElement('button');
+    rootButton.type = 'button';
+    rootButton.textContent = 'videos';
+    rootButton.addEventListener('click', () => loadThumbnailDirectory(''));
+    breadcrumbs.appendChild(rootButton);
+
+    let acc = '';
+    path.split('/').filter(Boolean).forEach(part => {
+        acc = acc ? `${acc}/${part}` : part;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = part;
+        const targetPath = acc;
+        button.addEventListener('click', () => loadThumbnailDirectory(targetPath));
+        breadcrumbs.appendChild(button);
+    });
+}
+
+function createThumbnailDirectoryRow(directory) {
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'thumbnail-file-row';
+    if (directory.name.length > 18) {
+        row.classList.add('is-long-name');
+    }
+    row.innerHTML = '<span class="thumbnail-file-name"></span><span class="thumbnail-file-meta">目录</span>';
+    row.querySelector('.thumbnail-file-name').textContent = `/${directory.name}`;
+    row.title = directory.name;
+    row.addEventListener('click', () => loadThumbnailDirectory(directory.path));
+    return row;
+}
+
+function createThumbnailFileRow(file) {
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'thumbnail-file-row';
+    if (file.name.length > 18) {
+        row.classList.add('is-long-name');
+    }
+    if (thumbnailState.selectedVideo?.path === file.path) {
+        row.classList.add('is-selected');
+    }
+    row.innerHTML = '<span class="thumbnail-file-name"></span><span class="thumbnail-file-meta"></span>';
+    row.querySelector('.thumbnail-file-name').textContent = file.name;
+    row.querySelector('.thumbnail-file-meta').textContent = formatThumbnailBytes(file.size);
+    row.title = file.name;
+    row.addEventListener('click', () => selectThumbnailVideo(file));
+    return row;
+}
+
+function selectThumbnailVideo(file) {
+    thumbnailState.selectedVideo = file;
+    const video = document.getElementById('thumbnail-video');
+    if (!video) return;
+
+    video.pause();
+    video.src = file.url;
+    video.load();
+    setThumbnailStatus(`已选择：${file.name}`);
+    renderThumbnailBrowser(thumbnailState.currentListing || { path: thumbnailState.currentPath, directories: [], files: [] });
+}
+
+function updateThumbnailStatusForVideo() {
+    const video = document.getElementById('thumbnail-video');
+    if (!video || !thumbnailState.selectedVideo) return;
+    setThumbnailStatus(`${thumbnailState.selectedVideo.name} · ${formatThumbnailTime(video.duration)}`);
+}
+
+function setThumbnailStatus(message) {
+    const status = document.getElementById('thumbnail-status');
+    if (status) {
+        status.textContent = message;
+    }
+}
+
+function getThumbnailParentPath(path) {
+    const parts = (path || '').split('/').filter(Boolean);
+    parts.pop();
+    return parts.join('/');
+}
+
+function getThumbnailSecondStep() {
+    return 1;
+}
+
+function getThumbnailFrameStep() {
+    const fps = thumbnailState.adaptiveFps || 30;
+    return Number.isFinite(fps) && fps > 0 ? 1 / fps : 1 / 30;
+}
+
+function getThumbnailPercentStep() {
+    const value = parseFloat(document.getElementById('thumbnail-percent-step')?.value || '2');
+    return Number.isFinite(value) && value > 0 && value <= 100 ? value : 2;
+}
+
+function resetThumbnailVideoControls() {
+    thumbnailState.adaptiveFps = 30;
+    syncThumbnailPercentPreset();
+}
+
+function autoDetectThumbnailFps(video) {
+    thumbnailState.fpsProbeToken += 1;
+    const probeToken = thumbnailState.fpsProbeToken;
+    thumbnailState.adaptiveFps = 30;
+
+    if (!video || typeof video.requestVideoFrameCallback !== 'function') {
+        return;
+    }
+
+    const samples = [];
+    let lastMediaTime = null;
+    let isDone = false;
+
+    const finish = () => {
+        if (isDone || probeToken !== thumbnailState.fpsProbeToken) return;
+        isDone = true;
+        if (samples.length < 2) {
+            thumbnailState.adaptiveFps = 30;
+            return;
+        }
+
+        const averageDelta = samples.reduce((sum, delta) => sum + delta, 0) / samples.length;
+        if (averageDelta > 0) {
+            thumbnailState.adaptiveFps = Math.max(1, Math.round(1 / averageDelta));
+        }
+    };
+
+    const sampleFrame = (now, metadata) => {
+        if (probeToken !== thumbnailState.fpsProbeToken || isDone) return;
+        if (lastMediaTime !== null) {
+            const delta = metadata.mediaTime - lastMediaTime;
+            if (delta > 0 && delta < 1) {
+                samples.push(delta);
+            }
+        }
+        lastMediaTime = metadata.mediaTime;
+        if (samples.length >= 6) {
+            finish();
+        } else {
+            video.requestVideoFrameCallback(sampleFrame);
+        }
+    };
+
+    video.requestVideoFrameCallback(sampleFrame);
+    setTimeout(finish, 1200);
+}
+
+function getThumbnailBatchTargets() {
+    const video = document.getElementById('thumbnail-video');
+    if (!isThumbnailVideoReady(video)) return [];
+
+    const percentStep = getThumbnailPercentStep();
+    const targets = [];
+    for (let percent = percentStep; percent <= 100 + 0.0001; percent += percentStep) {
+        targets.push(clampThumbnailTime(video.duration * Math.min(percent, 100) / 100, video.duration));
+    }
+    return targets;
+}
+
+function updateThumbnailBatchSummary() {
+    const summary = document.getElementById('thumbnail-batch-summary');
+    if (!summary) return;
+
+    const video = document.getElementById('thumbnail-video');
+    const percentStep = getThumbnailPercentStep();
+    if (!isThumbnailVideoReady(video)) {
+        summary.textContent = '预计 0 张';
+        return;
+    }
+
+    const targets = getThumbnailBatchTargets();
+    const intervalSeconds = video.duration * percentStep / 100;
+    summary.textContent = `预计 ${targets.length} 张 · 间隔 ${formatThumbnailTime(intervalSeconds)}`;
+}
+
+function syncThumbnailPercentPreset() {
+    const percentStep = getThumbnailPercentStep();
+    document.querySelectorAll('.thumbnail-percent-preset').forEach(button => {
+        const presetValue = parseFloat(button.dataset.thumbnailPercent || '0');
+        button.classList.toggle('is-info', Math.abs(presetValue - percentStep) < 0.0001);
+    });
+}
+
+async function stepThumbnailVideo(delta) {
+    const video = document.getElementById('thumbnail-video');
+    if (!isThumbnailVideoReady(video)) {
+        setThumbnailStatus('请先选择可播放的视频');
+        return;
+    }
+    video.pause();
+    const target = clampThumbnailTime(video.currentTime + delta, video.duration);
+    await seekThumbnailVideo(target);
+    setThumbnailStatus(`当前时间：${formatThumbnailTime(video.currentTime)} / ${formatThumbnailTime(video.duration)}`);
+}
+
+function isThumbnailVideoReady(video) {
+    return Boolean(video && video.src && Number.isFinite(video.duration) && video.duration > 0);
+}
+
+function clampThumbnailTime(time, duration) {
+    const maxTime = Math.max(0, duration - 0.1);
+    return Math.min(Math.max(0, time), maxTime);
+}
+
+function seekThumbnailVideo(time) {
+    const video = document.getElementById('thumbnail-video');
+    return new Promise((resolve, reject) => {
+        if (!video) {
+            reject(new Error('视频元素不存在'));
+            return;
+        }
+        if (Math.abs(video.currentTime - time) < 0.03) {
+            resolve();
+            return;
+        }
+
+        let timeoutId;
+        const cleanup = () => {
+            clearTimeout(timeoutId);
+            video.removeEventListener('seeked', onSeeked);
+            video.removeEventListener('error', onError);
+        };
+        const onSeeked = () => {
+            cleanup();
+            resolve();
+        };
+        const onError = () => {
+            cleanup();
+            reject(new Error('视频定位失败'));
+        };
+
+        timeoutId = setTimeout(() => {
+            cleanup();
+            reject(new Error('视频定位超时'));
+        }, 8000);
+
+        video.addEventListener('seeked', onSeeked, { once: true });
+        video.addEventListener('error', onError, { once: true });
+        video.currentTime = time;
+    });
+}
+
+function captureCurrentThumbnail(options = {}) {
+    const video = document.getElementById('thumbnail-video');
+    if (!isThumbnailVideoReady(video) || !video.videoWidth || !video.videoHeight) {
+        if (!options.silent) {
+            setThumbnailStatus('请先选择并加载可截图的视频');
+        }
+        return Promise.resolve(null);
+    }
+
+    const sessionToken = thumbnailState.sessionToken;
+    return new Promise(resolve => {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(blob => {
+            if (sessionToken !== thumbnailState.sessionToken) {
+                resolve(null);
+                return;
+            }
+            if (!blob) {
+                setThumbnailStatus('截图失败');
+                resolve(null);
+                return;
+            }
+
+            const currentTime = video.currentTime;
+            const fileName = createThumbnailFileName(currentTime);
+            const file = new File([blob], fileName, {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+            });
+            const capture = {
+                id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+                file,
+                url: URL.createObjectURL(file),
+                time: currentTime,
+                name: fileName
+            };
+            thumbnailState.captures.push(capture);
+            renderThumbnailCaptures();
+            setThumbnailStatus(`已截图：${formatThumbnailTime(currentTime)}`);
+            resolve(capture);
+        }, 'image/jpeg', 0.9);
+    });
+}
+
+async function batchCaptureThumbnails() {
+    const video = document.getElementById('thumbnail-video');
+    if (!isThumbnailVideoReady(video)) {
+        setThumbnailStatus('请先选择可播放的视频');
+        return;
+    }
+    if (thumbnailState.isBatchRunning) return;
+
+    const targets = getThumbnailBatchTargets();
+    if (!targets.length) return;
+
+    const batchSessionToken = thumbnailState.sessionToken;
+    thumbnailState.isBatchRunning = true;
+    thumbnailState.abortBatch = false;
+    setThumbnailBatchControls(true);
+    video.pause();
+
+    try {
+        for (let i = 0; i < targets.length; i++) {
+            if (thumbnailState.abortBatch || batchSessionToken !== thumbnailState.sessionToken) break;
+            await seekThumbnailVideo(targets[i]);
+            if (thumbnailState.abortBatch || batchSessionToken !== thumbnailState.sessionToken) break;
+            await captureCurrentThumbnail({ silent: true });
+            if (thumbnailState.abortBatch || batchSessionToken !== thumbnailState.sessionToken) break;
+            updateThumbnailProgress((i + 1) / targets.length * 100);
+            setThumbnailStatus(`批量截图 ${i + 1} / ${targets.length}`);
+        }
+    } catch (error) {
+        if (batchSessionToken === thumbnailState.sessionToken) {
+            setThumbnailStatus(error.message || '批量截图失败');
+        }
+    } finally {
+        thumbnailState.isBatchRunning = false;
+        thumbnailState.abortBatch = false;
+        if (batchSessionToken === thumbnailState.sessionToken) {
+            setThumbnailBatchControls(false);
+        }
+    }
+}
+
+function setThumbnailBatchControls(isRunning) {
+    const batchButton = document.getElementById('thumbnail-batch-capture');
+    const stopButton = document.getElementById('thumbnail-stop-batch');
+    const progress = document.getElementById('thumbnail-batch-progress');
+
+    if (batchButton) batchButton.disabled = isRunning;
+    if (stopButton) stopButton.disabled = !isRunning;
+    if (progress) {
+        progress.style.display = isRunning ? 'block' : 'none';
+        progress.value = 0;
+    }
+}
+
+function updateThumbnailProgress(value) {
+    const progress = document.getElementById('thumbnail-batch-progress');
+    if (progress) {
+        progress.value = Math.max(0, Math.min(100, value));
+    }
+}
+
+function renderThumbnailCaptures() {
+    const grid = document.getElementById('thumbnail-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    if (!thumbnailState.captures.length) {
+        const empty = document.createElement('div');
+        empty.className = 'thumbnail-empty';
+        empty.textContent = '截图将显示在这里';
+        grid.appendChild(empty);
+        updateThumbnailSelectionControls();
+        return;
+    }
+
+    thumbnailState.captures.forEach(capture => {
+        const isSelected = thumbnailState.selectedCaptureIds.has(capture.id);
+        const item = document.createElement('div');
+        item.className = `thumbnail-item${isSelected ? ' is-selected' : ''}`;
+        item.draggable = true;
+        item.dataset.id = capture.id;
+
+        const image = document.createElement('img');
+        image.src = capture.url;
+        image.alt = capture.name;
+
+        const timeBadge = document.createElement('span');
+        timeBadge.className = 'thumbnail-item-time';
+        timeBadge.textContent = formatThumbnailTime(capture.time);
+
+        const selectButton = document.createElement('button');
+        selectButton.className = 'thumbnail-select-toggle';
+        selectButton.type = 'button';
+        selectButton.setAttribute('aria-label', isSelected ? '取消选择' : '选择缩略图');
+        selectButton.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+        selectButton.textContent = '✓';
+        selectButton.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            toggleThumbnailCaptureSelection(capture.id);
+        });
+
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'thumbnail-delete';
+        deleteButton.type = 'button';
+        deleteButton.setAttribute('aria-label', '删除');
+        deleteButton.innerHTML = `
+            <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
+                <use href="../static/sprite.svg#close-icon"></use>
+            </svg>
+        `;
+        deleteButton.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            deleteThumbnailCapture(capture.id);
+        });
+
+        item.append(image, selectButton, timeBadge, deleteButton);
+        item.addEventListener('click', () => jumpThumbnailVideoToCapture(capture));
+        item.addEventListener('dragstart', event => startThumbnailDrag(event, capture, item));
+        item.addEventListener('dragend', () => {
+            setThumbnailDraggingState([], false);
+            setTimeout(clearThumbnailDragCache, 0);
+        });
+        grid.appendChild(item);
+    });
+    updateThumbnailSelectionControls();
+}
+
+function startThumbnailDrag(event, capture, item) {
+    const captures = getThumbnailDragCaptures(capture);
+    setThumbnailDraggingState(captures.map(item => item.id), true);
+    window.currentDraggedThumbnailFiles = captures.map(item => item.file);
+    window.currentDraggedThumbnailFile = captures.length === 1 ? captures[0].file : null;
+    event.dataTransfer.effectAllowed = 'copy';
+    captures.forEach(item => {
+        try {
+            event.dataTransfer.items.add(item.file);
+        } catch (error) {
+            // Some browsers do not allow adding File objects during dragstart.
+        }
+    });
+    event.dataTransfer.setData('text/plain', captures.map(item => item.name).join('\n'));
+    event.dataTransfer.setData('text/uri-list', captures.map(item => item.url).join('\n'));
+    event.dataTransfer.setData('DownloadURL', `${captures[0].file.type}:${captures[0].name}:${captures[0].url}`);
+}
+
+function toggleThumbnailCaptureSelection(captureId) {
+    if (thumbnailState.selectedCaptureIds.has(captureId)) {
+        thumbnailState.selectedCaptureIds.delete(captureId);
+    } else {
+        thumbnailState.selectedCaptureIds.add(captureId);
+    }
+    renderThumbnailCaptures();
+}
+
+function toggleAllThumbnailCaptures() {
+    if (!thumbnailState.captures.length) return;
+
+    const allSelected = thumbnailState.captures.every(capture => thumbnailState.selectedCaptureIds.has(capture.id));
+    thumbnailState.selectedCaptureIds.clear();
+    if (!allSelected) {
+        thumbnailState.captures.forEach(capture => thumbnailState.selectedCaptureIds.add(capture.id));
+    }
+    renderThumbnailCaptures();
+}
+
+function updateThumbnailSelectionControls() {
+    const selectAllButton = document.getElementById('thumbnail-select-all');
+    const selectedCount = document.getElementById('thumbnail-selected-count');
+    const totalCount = thumbnailState.captures.length;
+    const validIds = new Set(thumbnailState.captures.map(capture => capture.id));
+
+    thumbnailState.selectedCaptureIds.forEach(id => {
+        if (!validIds.has(id)) {
+            thumbnailState.selectedCaptureIds.delete(id);
+        }
+    });
+
+    const selectedTotal = thumbnailState.selectedCaptureIds.size;
+    const allSelected = totalCount > 0 && selectedTotal === totalCount;
+    if (selectAllButton) {
+        selectAllButton.disabled = totalCount === 0;
+        selectAllButton.textContent = allSelected ? '取消全选' : '全选';
+        selectAllButton.classList.toggle('is-light', !allSelected);
+    }
+    if (selectedCount) {
+        selectedCount.textContent = `已选 ${selectedTotal} 张`;
+    }
+}
+
+function getThumbnailDragCaptures(capture) {
+    if (thumbnailState.selectedCaptureIds.has(capture.id)) {
+        const selectedCaptures = thumbnailState.captures.filter(item => thumbnailState.selectedCaptureIds.has(item.id));
+        return selectedCaptures.length ? selectedCaptures : [capture];
+    }
+    return [capture];
+}
+
+function setThumbnailDraggingState(captureIds, isDragging) {
+    document.querySelectorAll('.thumbnail-item.dragging').forEach(item => {
+        item.classList.remove('dragging');
+    });
+    if (!isDragging) return;
+
+    const idSet = new Set(captureIds);
+    document.querySelectorAll('.thumbnail-item').forEach(item => {
+        item.classList.toggle('dragging', idSet.has(item.dataset.id));
+    });
+}
+
+function clearThumbnailDragCache() {
+    window.currentDraggedThumbnailFile = null;
+    window.currentDraggedThumbnailFiles = [];
+}
+
+async function jumpThumbnailVideoToCapture(capture) {
+    const video = document.getElementById('thumbnail-video');
+    if (!capture || !isThumbnailVideoReady(video)) return;
+
+    video.pause();
+    try {
+        await seekThumbnailVideo(clampThumbnailTime(capture.time, video.duration));
+        setThumbnailStatus(`已跳转：${formatThumbnailTime(video.currentTime)} / ${formatThumbnailTime(video.duration)}`);
+    } catch (error) {
+        setThumbnailStatus(error.message || '视频定位失败');
+    }
+}
+
+function deleteThumbnailCapture(captureId) {
+    const index = thumbnailState.captures.findIndex(capture => capture.id === captureId);
+    if (index === -1) return;
+    URL.revokeObjectURL(thumbnailState.captures[index].url);
+    thumbnailState.captures.splice(index, 1);
+    thumbnailState.selectedCaptureIds.delete(captureId);
+    renderThumbnailCaptures();
+}
+
+function clearThumbnailCaptures() {
+    thumbnailState.captures.forEach(capture => URL.revokeObjectURL(capture.url));
+    thumbnailState.captures = [];
+    thumbnailState.selectedCaptureIds.clear();
+    clearThumbnailDragCache();
+    renderThumbnailCaptures();
+}
+
+function createThumbnailFileName(time) {
+    const sourceName = thumbnailState.selectedVideo?.name || 'video';
+    const baseName = sourceName.replace(/\.[^.]+$/, '').replace(/[\\/:*?"<>|]+/g, '_');
+    return `${baseName}_${time.toFixed(2)}s.jpg`;
+}
+
+function formatThumbnailBytes(bytes) {
+    if (!Number.isFinite(bytes)) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+    return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
+}
+
+function formatThumbnailTime(value) {
+    if (!Number.isFinite(value)) return '00:00';
+    const totalSeconds = Math.max(0, value);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    const fraction = Math.floor((totalSeconds % 1) * 100);
+    const base = hours > 0
+        ? `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+        : `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    return `${base}.${String(fraction).padStart(2, '0')}`;
+}
+
 function initImageUpload() {
     // 为添加和编辑表单分别初始化上传区域
     initUploadArea('image-upload-area', 'image-input');
@@ -2578,6 +3363,14 @@ function initUploadArea(areaId, inputId) {
             }
         } else {
             uploadArea.classList.remove('dragover');
+            if (Array.isArray(window.currentDraggedThumbnailFiles) && window.currentDraggedThumbnailFiles.length) {
+                handleNewFiles(window.currentDraggedThumbnailFiles);
+                return;
+            }
+            if (window.currentDraggedThumbnailFile) {
+                handleNewFiles([window.currentDraggedThumbnailFile]);
+                return;
+            }
             handleNewFiles(Array.from(e.dataTransfer.files)); // 排除重复文件
         }
     });
@@ -2598,6 +3391,7 @@ function initUploadArea(areaId, inputId) {
 
     // 将uploadedFiles暴露给表单使用
     window[`get${areaId}Files`] = () => uploadedFiles;
+    window[`add${areaId}Files`] = (files) => handleNewFiles(Array.from(files || []));
 }
 
 // 添加预览图片

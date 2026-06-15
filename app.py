@@ -19,9 +19,13 @@ Compress(app)
 # 图片上传常量
 UPLOAD_FOLDER = '/images'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+VIDEO_LIBRARY_ROOT = os.environ.get('VIDEO_LIBRARY_ROOT', '/videos')
 
 # 允许的图片格式
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+ALLOWED_VIDEO_EXTENSIONS = {
+    'mp4', 'webm', 'ogg', 'ogv', 'mov', 'm4v', 'mkv', 'avi', 'wmv', 'flv', 'ts'
+}
 
 # 配置压缩选项
 app.config['COMPRESS_MIMETYPES'] = [
@@ -246,6 +250,66 @@ def serve_src(filename):
 def serve_image(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+def normalize_video_relative_path(path_value=''):
+    rel_path = (path_value or '').strip().replace('\\', '/').strip('/')
+    if not rel_path or rel_path == '.':
+        return ''
+
+    parts = []
+    for part in rel_path.split('/'):
+        if not part or part == '.':
+            continue
+        if part == '..':
+            return None
+        parts.append(part)
+    return '/'.join(parts)
+
+def get_video_library_abs_path(relative_path=''):
+    safe_relative = normalize_video_relative_path(relative_path)
+    if safe_relative is None:
+        return None
+
+    root_path = os.path.realpath(VIDEO_LIBRARY_ROOT)
+    candidate_path = os.path.realpath(os.path.join(root_path, *safe_relative.split('/'))) if safe_relative else root_path
+    try:
+        if os.path.commonpath([root_path, candidate_path]) != root_path:
+            return None
+    except ValueError:
+        return None
+    return candidate_path
+
+def allowed_video_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
+
+def format_video_file_item(directory_relative_path, filename):
+    relative_path = '/'.join(part for part in [directory_relative_path, filename] if part)
+    abs_path = get_video_library_abs_path(relative_path)
+    stat_result = os.stat(abs_path)
+    return {
+        'name': filename,
+        'path': relative_path,
+        'size': stat_result.st_size,
+        'modified': int(stat_result.st_mtime),
+        'url': f"/videos/{quote(relative_path, safe='/')}"
+    }
+
+@app.route('/videos/<path:filename>')
+def serve_video(filename):
+    safe_relative = normalize_video_relative_path(filename)
+    if not safe_relative or not allowed_video_file(safe_relative):
+        return Response(status=404)
+
+    abs_path = get_video_library_abs_path(safe_relative)
+    if not abs_path or not os.path.isfile(abs_path):
+        return Response(status=404)
+
+    return send_from_directory(
+        os.path.dirname(abs_path),
+        os.path.basename(abs_path),
+        conditional=True,
+        as_attachment=False
+    )
+
 @app.route('/emby/image/<item_id>')
 def serve_emby_image(item_id):
     try:
@@ -367,7 +431,8 @@ def api_handler():
             1011: search_movies_handler,
             1012: update_movie_handler,
             1013: delete_movie_handler,
-            1014: search_emby_handler
+            1014: search_emby_handler,
+            1015: list_video_files_handler
         }
         
         handler = handlers.get(event_id)
@@ -779,6 +844,54 @@ def delete_movie_handler(data, method='DELETE'):
         return jsonify({"success": False, "message": "删除操作失败"}), 500
 
 # 图片文件验证
+def list_video_files_handler(data, method='POST'):
+    try:
+        relative_path = normalize_video_relative_path((data or {}).get('path', ''))
+        if relative_path is None:
+            return jsonify({"success": False, "message": "Invalid video directory"}), 400
+
+        directory_path = get_video_library_abs_path(relative_path)
+        if not directory_path or not os.path.isdir(directory_path):
+            return jsonify({
+                "success": True,
+                "path": relative_path,
+                "parent": normalize_video_relative_path(os.path.dirname(relative_path)) if relative_path else '',
+                "directories": [],
+                "files": [],
+                "message": "Video directory is not available"
+            })
+
+        directories = []
+        files = []
+        for entry in os.scandir(directory_path):
+            if entry.name.startswith('.'):
+                continue
+
+            entry_relative_path = '/'.join(part for part in [relative_path, entry.name] if part)
+            try:
+                if entry.is_dir(follow_symlinks=False):
+                    directories.append({
+                        'name': entry.name,
+                        'path': entry_relative_path
+                    })
+                elif entry.is_file(follow_symlinks=False) and allowed_video_file(entry.name):
+                    files.append(format_video_file_item(relative_path, entry.name))
+            except OSError:
+                continue
+
+        directories.sort(key=lambda item: item['name'].lower())
+        files.sort(key=lambda item: item['name'].lower())
+
+        return jsonify({
+            "success": True,
+            "path": relative_path,
+            "parent": normalize_video_relative_path(os.path.dirname(relative_path)) if relative_path else '',
+            "directories": directories,
+            "files": files
+        })
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 

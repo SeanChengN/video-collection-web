@@ -18,8 +18,10 @@ services:
       EMBY_PASSWORD: your-emby-password
       JACKETT_URL: http://your-jackett-server-address
       THUNDER_URL: http://your-thunder-server-address
+      VIDEO_LIBRARY_ROOT: /videos
     volumes:
       - ./images:/images
+      - ./videos:/videos:ro
 
   db:
     image: mariadb:lts

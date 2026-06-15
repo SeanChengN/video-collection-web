@@ -61,6 +61,7 @@ static/*.svg
 
 # 测试文件
 images/
+videos/
 
 # 其他文件
 undo*

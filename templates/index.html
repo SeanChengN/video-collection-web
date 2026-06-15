@@ -387,6 +387,7 @@
             --btn-wtl: rgb(103, 104, 255);
             --btn-thunder: rgb(52, 168, 224);
             --btn-emby: rgb(82, 172, 75);
+            --btn-thumbnail: rgb(224, 82, 117);
         }
         /* 为每个按钮设置对应颜色变量 */
         .function-tools .duplicate-btn { --btn-color: var(--btn-duplicate); }
@@ -394,6 +395,7 @@
         .function-tools .wtl-btn { --btn-color: var(--btn-wtl); }
         .function-tools .thunder-btn { --btn-color: var(--btn-thunder); }
         .function-tools .emby-btn { --btn-color: var(--btn-emby); }
+        .function-tools .thumbnail-btn { --btn-color: var(--btn-thumbnail); }
 
         .function-tools .tool-btn {
             height: 3rem;
@@ -578,6 +580,13 @@
                             <span class="icon">
                                 <svg width="64" height="64" fill="#52ac4b" stroke="none" aria-label="Emby">
                                     <use href="../static/sprite.svg#emby-icon"></use>
+                                </svg>
+                            </span>
+                        </a>
+                        <a href="#" class="button tool-btn thumbnail-btn" onclick="openThumbnailModal(); return false;">
+                            <span class="icon">
+                                <svg width="64" height="64" fill="#e05275" stroke="none" aria-label="视频缩略图提取">
+                                    <use href="../static/sprite.svg#thumbnail-icon"></use>
                                 </svg>
                             </span>
                         </a>
@@ -973,7 +982,101 @@
     </div>
 </div>
 
-<!-- 查重核对模态框 -->
+<!-- 视频缩略图提取模态框 -->
+<div class="modal" id="thumbnailModal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">视频缩略图提取</p>
+            <div class="modal-card-controls">
+                <button class="modal-control-button minimize" onclick="minimizeModal('thumbnailModal')" aria-label="minimize">
+                    <svg aria-label="最小化">
+                        <use href="../static/sprite.svg#minimize-icon"></use>
+                    </svg>
+                </button>
+                <button class="modal-control-button close" onclick="closeThumbnailModal()" aria-label="close">
+                    <svg aria-label="关闭">
+                        <use href="../static/sprite.svg#close-icon"></use>
+                    </svg>
+                </button>
+            </div>
+        </header>
+        <section class="modal-card-body thumbnail-modal-body">
+            <div class="thumbnail-layout">
+                <div class="thumbnail-left-pane">
+                    <aside class="thumbnail-browser">
+                    <div class="thumbnail-browser-actions">
+                        <button class="button is-small" id="thumbnail-up-button" type="button">
+                            <span class="icon">
+                                <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="返回">
+                                    <use href="../static/sprite.svg#arrow-left-icon"></use>
+                                </svg>
+                            </span>
+                        </button>
+                        <button class="button is-small" id="thumbnail-refresh-button" type="button">
+                            <span class="icon">
+                                <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="刷新">
+                                    <use href="../static/sprite.svg#search-btn-icon"></use>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                    <div id="thumbnail-breadcrumbs" class="thumbnail-breadcrumbs"></div>
+                        <div id="thumbnail-file-list" class="thumbnail-file-list"></div>
+                    </aside>
+                    <div class="thumbnail-player-pane">
+                        <video id="thumbnail-video" controls playsinline preload="metadata"></video>
+                        <div id="thumbnail-status" class="thumbnail-status">请选择视频文件</div>
+                    </div>
+                </div>
+                <div class="thumbnail-right-pane">
+                    <div class="thumbnail-control-panel">
+                        <section class="thumbnail-control-section">
+                            <div class="thumbnail-section-title">手动截图</div>
+                            <div class="thumbnail-control-group">
+                                <button class="button is-small" id="thumbnail-minute-back" type="button">-1 分</button>
+                                <button class="button is-small" id="thumbnail-five-second-back" type="button">-5 秒</button>
+                                <button class="button is-small" id="thumbnail-second-back" type="button">-1 秒</button>
+                                <button class="button is-small" id="thumbnail-frame-back" type="button">-1 帧</button>
+                                <button class="button is-info is-small" id="thumbnail-capture-current" type="button">截图</button>
+                                <button class="button is-small" id="thumbnail-frame-forward" type="button">+1 帧</button>
+                                <button class="button is-small" id="thumbnail-second-forward" type="button">+1 秒</button>
+                                <button class="button is-small" id="thumbnail-five-second-forward" type="button">+5 秒</button>
+                                <button class="button is-small" id="thumbnail-minute-forward" type="button">+1 分</button>
+                            </div>
+                        </section>
+                        <section class="thumbnail-control-section">
+                            <div class="thumbnail-section-title">批量截图</div>
+                            <div class="thumbnail-control-group thumbnail-preset-group">
+                                <button class="button is-small thumbnail-percent-preset is-info" type="button" data-thumbnail-percent="2">2%</button>
+                                <button class="button is-small thumbnail-percent-preset" type="button" data-thumbnail-percent="4">4%</button>
+                                <button class="button is-small thumbnail-percent-preset" type="button" data-thumbnail-percent="5">5%</button>
+                                <button class="button is-small thumbnail-percent-preset" type="button" data-thumbnail-percent="10">10%</button>
+                                <label class="thumbnail-percent-label">
+                                    <span>百分比</span>
+                                    <input class="input is-small" id="thumbnail-percent-step" type="number" min="0.1" max="100" step="0.1" value="2">
+                                </label>
+                                <span id="thumbnail-batch-summary" class="thumbnail-batch-summary">预计 0 张</span>
+                            </div>
+                            <div class="thumbnail-control-group">
+                                <button class="button is-primary is-small" id="thumbnail-batch-capture" type="button">批量截图</button>
+                                <button class="button is-warning is-small" id="thumbnail-stop-batch" type="button" disabled>停止</button>
+                                <button class="button is-danger is-small" id="thumbnail-clear-captures" type="button">清空</button>
+                                <button class="button is-info is-small" id="thumbnail-select-all" type="button" disabled>全选</button>
+                                <span id="thumbnail-selected-count" class="thumbnail-selected-count">已选 0 张</span>
+                            </div>
+                        </section>
+                    </div>
+                    <progress id="thumbnail-batch-progress" class="progress is-info is-small" value="0" max="100"></progress>
+                    <div class="thumbnail-grid-scroll">
+                        <div id="thumbnail-grid" class="thumbnail-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
 <div class="modal" id="duplicateModal">
     <div class="modal-background"></div>
     <div class="modal-card">
