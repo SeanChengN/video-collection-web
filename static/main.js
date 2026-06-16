@@ -1533,6 +1533,7 @@ function changePage(page) {
 
 function closeModal() {
     ModalManager.close('editModal');
+    updateThumbnailSelectionControls();
 }
 
 document.getElementById('search-input').addEventListener('input', debounce(searchMovies, 300));
@@ -1913,6 +1914,7 @@ function openModal(movie) {
 
     // 显示模态框
     ModalManager.open('editModal');
+    updateThumbnailSelectionControls();
 }
 
 // 加载编辑标签
@@ -2124,6 +2126,7 @@ async function updateMovie() {
         const result = await callApi(event_map.update_movie, data, 'PUT');
         if (result.message) {
             ModalManager.close('editModal');
+            updateThumbnailSelectionControls();
             // 恢复搜索状态并重新搜索
             restoreSearchState();
             searchMovies();
@@ -2500,6 +2503,9 @@ function initThumbnailTool() {
     const stopButton = document.getElementById('thumbnail-stop-batch');
     const clearButton = document.getElementById('thumbnail-clear-captures');
     const selectAllButton = document.getElementById('thumbnail-select-all');
+    const sendAddButton = document.getElementById('thumbnail-send-add');
+    const sendEditButton = document.getElementById('thumbnail-send-edit');
+    const downloadSelectedButton = document.getElementById('thumbnail-download-selected');
     const percentInput = document.getElementById('thumbnail-percent-step');
     const presetButtons = modal.querySelectorAll('.thumbnail-percent-preset');
 
@@ -2525,6 +2531,9 @@ function initThumbnailTool() {
     });
     clearButton?.addEventListener('click', clearThumbnailCaptures);
     selectAllButton?.addEventListener('click', toggleAllThumbnailCaptures);
+    sendAddButton?.addEventListener('click', () => sendSelectedThumbnailCapturesToUploadArea('image-upload-area', '添加电影'));
+    sendEditButton?.addEventListener('click', () => sendSelectedThumbnailCapturesToUploadArea('edit-image-upload-area', '编辑电影'));
+    downloadSelectedButton?.addEventListener('click', downloadSelectedThumbnailCaptures);
     percentInput?.addEventListener('input', () => {
         syncThumbnailPercentPreset();
         updateThumbnailBatchSummary();
@@ -3089,6 +3098,9 @@ function toggleAllThumbnailCaptures() {
 function updateThumbnailSelectionControls() {
     const selectAllButton = document.getElementById('thumbnail-select-all');
     const selectedCount = document.getElementById('thumbnail-selected-count');
+    const sendAddButton = document.getElementById('thumbnail-send-add');
+    const sendEditButton = document.getElementById('thumbnail-send-edit');
+    const downloadSelectedButton = document.getElementById('thumbnail-download-selected');
     const totalCount = thumbnailState.captures.length;
     const validIds = new Set(thumbnailState.captures.map(capture => capture.id));
 
@@ -3099,6 +3111,7 @@ function updateThumbnailSelectionControls() {
     });
 
     const selectedTotal = thumbnailState.selectedCaptureIds.size;
+    const hasSelected = selectedTotal > 0;
     const allSelected = totalCount > 0 && selectedTotal === totalCount;
     if (selectAllButton) {
         selectAllButton.disabled = totalCount === 0;
@@ -3108,6 +3121,100 @@ function updateThumbnailSelectionControls() {
     if (selectedCount) {
         selectedCount.textContent = `已选 ${selectedTotal} 张`;
     }
+    if (sendAddButton) {
+        sendAddButton.disabled = !hasSelected || typeof window['addimage-upload-areaFiles'] !== 'function';
+    }
+    if (sendEditButton) {
+        const editModalOpen = isThumbnailEditModalOpen();
+        sendEditButton.disabled = !hasSelected || !editModalOpen || typeof window['addedit-image-upload-areaFiles'] !== 'function';
+        sendEditButton.title = editModalOpen ? '' : '请先打开编辑电影窗口';
+    }
+    if (downloadSelectedButton) {
+        downloadSelectedButton.disabled = !hasSelected;
+    }
+}
+
+function getSelectedThumbnailCaptures() {
+    return thumbnailState.captures.filter(capture => thumbnailState.selectedCaptureIds.has(capture.id));
+}
+
+function isThumbnailEditModalOpen() {
+    return document.getElementById('editModal')?.classList.contains('is-active') || false;
+}
+
+function sendSelectedThumbnailCapturesToUploadArea(areaId, label) {
+    const selectedCaptures = getSelectedThumbnailCaptures();
+    if (!selectedCaptures.length) {
+        showAlert({
+            title: '请选择缩略图',
+            message: '请先选中需要复用的缩略图。',
+            type: 'warning',
+            showCancel: false
+        });
+        return;
+    }
+
+    if (areaId === 'edit-image-upload-area' && !isThumbnailEditModalOpen()) {
+        showAlert({
+            title: '编辑窗口未打开',
+            message: '请先打开要编辑的电影，再把缩略图加入编辑电影图片区。',
+            type: 'warning',
+            showCancel: false
+        });
+        updateThumbnailSelectionControls();
+        return;
+    }
+
+    const addFiles = window[`add${areaId}Files`];
+    if (typeof addFiles !== 'function') {
+        showAlert({
+            title: '加入失败',
+            message: `${label}图片区还没有准备好，请稍后再试。`,
+            type: 'error',
+            showCancel: false
+        });
+        updateThumbnailSelectionControls();
+        return;
+    }
+
+    addFiles(selectedCaptures.map(capture => capture.file));
+    setThumbnailStatus(`已加入 ${selectedCaptures.length} 张缩略图到${label}图片区`);
+    showAlert({
+        title: '已加入',
+        message: `已将 ${selectedCaptures.length} 张缩略图加入${label}图片区。`,
+        type: 'success',
+        showCancel: false
+    });
+}
+
+function downloadSelectedThumbnailCaptures() {
+    const selectedCaptures = getSelectedThumbnailCaptures();
+    if (!selectedCaptures.length) {
+        showAlert({
+            title: '请选择缩略图',
+            message: '请先选中需要下载的缩略图。',
+            type: 'warning',
+            showCancel: false
+        });
+        return;
+    }
+
+    selectedCaptures.forEach(capture => {
+        const link = document.createElement('a');
+        link.href = capture.url;
+        link.download = capture.name;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    });
+
+    setThumbnailStatus(`已开始下载 ${selectedCaptures.length} 张缩略图`);
+    showAlert({
+        title: '开始下载',
+        message: `已触发 ${selectedCaptures.length} 张缩略图下载，移动端浏览器可能会逐个确认或保存。`,
+        type: 'success',
+        showCancel: false
+    });
 }
 
 function getThumbnailDragCaptures(capture) {

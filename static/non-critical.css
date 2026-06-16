@@ -699,6 +699,12 @@
     line-height: 2.1rem;
     white-space: nowrap;
 }
+.thumbnail-reuse-group {
+    margin-top: 0.5rem;
+}
+.thumbnail-reuse-group .button.is-small {
+    flex: 0 1 auto;
+}
 
 /*----------------------------------------
   查重核对相关样式
@@ -2081,34 +2087,100 @@ tr.is-duplicate:hover {
         width: 90% !important;
         height: 90% !important;
     }
+    #thumbnailModal .modal-card-body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
     .thumbnail-layout {
-        grid-template-columns: 1fr;
-        grid-template-rows: minmax(320px, 45%) minmax(0, 1fr);
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        min-height: 100%;
     }
     .thumbnail-left-pane {
+        flex: 0 0 auto;
         border-right: none;
         border-bottom: 1px solid rgba(255, 255, 255, 0.45);
     }
+    .thumbnail-browser {
+        flex: 0 0 auto;
+        min-height: 190px;
+        max-height: 32vh;
+        padding: 0.75rem;
+    }
+    .thumbnail-browser-actions {
+        margin-bottom: 0.5rem;
+    }
+    .thumbnail-breadcrumbs {
+        margin-bottom: 0.5rem;
+    }
+    .thumbnail-file-list {
+        min-height: 110px;
+        overflow-y: auto;
+    }
+    .thumbnail-right-pane {
+        flex: 0 0 auto;
+        overflow: visible;
+        gap: 0.6rem;
+        padding: 0.75rem;
+    }
     .thumbnail-player-pane {
+        flex: 0 0 auto;
+        padding: 0.75rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.45);
     }
     #thumbnail-video {
-        max-height: 22vh;
-        min-height: 130px;
+        max-height: 24vh;
+        min-height: 118px;
     }
     .thumbnail-control-panel {
         grid-template-columns: 1fr;
+        gap: 0.55rem;
+    }
+    .thumbnail-control-section {
+        min-width: 0;
+        padding: 0.55rem;
+    }
+    #thumbnailModal .button.is-small {
+        height: 2rem !important;
+        min-height: 2rem !important;
+        padding: 0 0.55rem !important;
+        font-size: 0.8rem !important;
+    }
+    #thumbnailModal .input.is-small {
+        height: 2rem !important;
+        padding: 0 0.5rem !important;
+        font-size: 0.85rem !important;
     }
     .thumbnail-manual-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(5, minmax(2.7rem, 1fr));
+        gap: 0.35rem;
+    }
+    .thumbnail-manual-grid .button.is-small {
+        min-height: 2rem;
+        padding: 0 0.3rem !important;
+        font-size: 0.75rem !important;
     }
     #thumbnail-capture-current {
-        grid-column: 1 / -1;
-        grid-row: auto;
-        min-height: 2.4rem;
+        grid-column: 5;
+        grid-row: 1 / span 2;
+        height: 100% !important;
+        min-height: 4.35rem !important;
+    }
+    .thumbnail-control-group {
+        gap: 0.4rem;
+    }
+    .thumbnail-control-group .button.is-small {
+        padding: 0 0.55rem;
+    }
+    .thumbnail-reuse-group .button.is-small {
+        flex: 1 1 8rem;
     }
     .thumbnail-grid-scroll {
-        min-height: 220px;
+        flex: 0 0 auto;
+        min-height: 260px;
+        max-height: 48vh;
         overflow-y: auto;
     }
     .thumbnail-grid {
