@@ -1454,6 +1454,15 @@ tr.is-duplicate:hover {
     object-fit: cover;
     border-radius: 4px;
 }
+.movie-recommended-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.movie-recommended-text,
+.mobile-ratings-list {
+    display: none;
+}
 
 /* 大图片容器样式 */
 #imageViewerModal .modal-card {
@@ -2404,6 +2413,242 @@ tr.is-duplicate:hover {
         height: 2em !important;
         padding: 0 1rem !important;
         width: 4.0em !important;
+    }
+
+    #search-results {
+        margin-top: 0.75rem;
+    }
+    #search-results .table-container {
+        overflow: visible !important;
+    }
+    #search-results .movie-results-table {
+        display: block;
+        width: 100%;
+        background: transparent;
+        border: none;
+    }
+    #search-results .movie-results-table tbody {
+        display: grid;
+        gap: 0.9rem;
+    }
+    #search-results .movie-results-table tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "title title"
+            "recommended action"
+            "review review"
+            "tags tags"
+            "ratings ratings";
+        align-content: start;
+        gap: 0.55rem 0.85rem;
+        margin: 0;
+        padding: 0.9rem;
+        border: 1px solid rgba(219, 219, 219, 0.9);
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(10, 10, 10, 0.08);
+    }
+    #search-results .movie-results-table td {
+        min-width: 0;
+        max-width: none;
+        border: none;
+        padding: 0;
+        color: #363636;
+        font-size: 0.9rem;
+        font-weight: 400;
+        line-height: 1.45;
+        white-space: normal;
+    }
+    #search-results .movie-results-table td::before {
+        color: #7a7a7a;
+        font-size: 0.78rem;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+    #search-results .movie-results-table .movie-title-cell {
+        grid-area: title;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid rgba(219, 219, 219, 0.75);
+    }
+    #search-results .movie-results-table .movie-title-cell::before,
+    #search-results .movie-results-table .movie-action-cell::before,
+    #search-results .movie-results-table .movie-recommended-cell::before {
+        content: none;
+    }
+    #search-results .movie-results-table .movie-title-with-image {
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+    #search-results .movie-results-table .movie-preview-image {
+        width: 82px;
+        height: 108px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f5f5f5;
+    }
+    #search-results .movie-results-table .movie-preview-image img {
+        border-radius: 8px;
+    }
+    #search-results .movie-results-table .movie-title-text {
+        display: -webkit-box;
+        overflow: hidden;
+        color: #242424;
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.35;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        word-break: break-word;
+    }
+    #search-results .movie-results-table .movie-recommended-cell {
+        grid-area: recommended;
+        display: flex;
+        align-items: center;
+    }
+    #search-results .movie-results-table .movie-recommended-chip {
+        min-height: 1.8rem;
+        border-radius: 999px;
+        background: #f5f5f5;
+        color: #666;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 0.25rem 0.55rem;
+    }
+    #search-results .movie-results-table .movie-recommended-chip.is-recommended {
+        background: rgba(255, 123, 0, 0.12);
+        color: #b55300;
+    }
+    #search-results .movie-results-table .movie-recommended-text {
+        display: inline;
+    }
+    #search-results .movie-results-table .review-cell {
+        grid-area: review;
+    }
+    #search-results .movie-results-table .tags-cell {
+        grid-area: tags;
+    }
+    #search-results .movie-results-table .ratings-cell {
+        grid-area: ratings;
+        overflow: hidden !important;
+    }
+    #search-results .movie-results-table .review-cell,
+    #search-results .movie-results-table .tags-cell,
+    #search-results .movie-results-table .ratings-cell {
+        display: grid;
+        grid-template-columns: 3.5rem minmax(0, 1fr);
+        align-items: start;
+        gap: 0.55rem;
+        border-top: 1px solid rgba(219, 219, 219, 0.72);
+        background: rgba(245, 245, 245, 0.5);
+        border-radius: 6px;
+        padding: 0.55rem 0.6rem;
+    }
+    #search-results .movie-results-table .review-cell::before,
+    #search-results .movie-results-table .tags-cell::before,
+    #search-results .movie-results-table .ratings-cell::before {
+        display: block;
+        width: 3.5rem;
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: start;
+        align-self: start;
+        padding-top: 0;
+        text-align: left;
+    }
+    #search-results .movie-results-table .movie-review-text,
+    #search-results .movie-results-table .movie-tags-text,
+    #search-results .movie-results-table .mobile-ratings-list {
+        grid-column: 2;
+        grid-row: 1;
+        align-self: start;
+        width: 100%;
+        min-width: 0;
+    }
+    #search-results .movie-results-table .movie-review-text,
+    #search-results .movie-results-table .movie-tags-text {
+        display: -webkit-box;
+        overflow: hidden;
+        color: #4a4a4a;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        word-break: break-word;
+    }
+    #search-results .movie-results-table .movie-review-text.is-empty::before {
+        content: "暂无评价";
+        color: #9a9a9a;
+    }
+    #search-results .movie-results-table .movie-tags-text.is-empty::before {
+        content: "暂无标签";
+        color: #9a9a9a;
+    }
+    #search-results .movie-results-table .desktop-ratings-dropdown,
+    #search-results .movie-results-table .desktop-ratings-empty {
+        display: none;
+    }
+    #search-results .movie-results-table .mobile-ratings-list {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+    #search-results .movie-results-table .mobile-ratings-list.is-empty {
+        color: #9a9a9a;
+    }
+    #search-results .movie-results-table .mobile-ratings-list .rating-item {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 0.35rem;
+        flex-wrap: wrap;
+    }
+    #search-results .movie-results-table .mobile-ratings-list .dimension-name {
+        color: #4a4a4a;
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+    #search-results .movie-results-table .mobile-ratings-list .stars {
+        display: inline-flex;
+        gap: 0.08rem;
+    }
+    #search-results .movie-results-table .mobile-ratings-list .stars svg {
+        width: 14px;
+        height: 14px;
+    }
+    #search-results .movie-results-table .movie-action-cell {
+        grid-area: action;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+    #search-results .movie-results-table .movie-action-cell .button {
+        width: auto !important;
+        min-width: 4.5rem !important;
+        height: 2.1rem !important;
+        min-height: 2.1rem !important;
+        padding: 0 0.8rem !important;
+        font-size: 0.9rem !important;
+    }
+    #pagination .pagination {
+        gap: 0.45rem;
+        flex-wrap: wrap;
+    }
+    #pagination .pagination-list {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+    }
+    #pagination .pagination-link,
+    #pagination .pagination-previous,
+    #pagination .pagination-next {
+        height: 2.15rem !important;
+        min-height: 2.15rem !important;
+        padding: 0 0.7rem !important;
+        font-size: 0.85rem !important;
     }
 }
 

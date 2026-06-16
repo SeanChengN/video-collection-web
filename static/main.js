@@ -2169,7 +2169,7 @@ function displayCurrentPage() {
 
     // 创建表格
     const table = document.createElement('table');
-    table.className = 'table is-fullwidth is-striped is-hoverable';
+    table.className = 'table is-fullwidth is-striped is-hoverable movie-results-table';
 
     // 创建表头
     const thead = document.createElement('thead');
@@ -2220,8 +2220,11 @@ function displayCurrentPage() {
             }).join('') : '';
 
         // 根据是否有评分决定显示内容
+        const mobileRatingsHtml = movieRatings.length > 0
+            ? `<div class="mobile-ratings-list">${ratingsHtml}</div>`
+            : '<div class="mobile-ratings-list is-empty">暂无评分</div>';
         const ratingsCell = movieRatings.length > 0 ? 
-            `<div class="dropdown is-hoverable">
+            `<div class="dropdown is-hoverable desktop-ratings-dropdown">
                 <div class="dropdown-trigger">
                     <button class="button is-small">
                         <span>查看评分</span>
@@ -2232,31 +2235,40 @@ function displayCurrentPage() {
                         ${ratingsHtml}
                     </div>
                 </div>
-            </div>` :
-            '<button class="button is-small" disabled>暂无评分</button>';
+            </div>
+            ${mobileRatingsHtml}` :
+            `<button class="button is-small desktop-ratings-empty" disabled>暂无评分</button>
+            ${mobileRatingsHtml}`;
 
             tr.innerHTML = `
-            <td class="hoverable">
+            <td class="movie-title-cell hoverable" data-label="电影名称">
                 ${movie.image_filename ? `
                     <div class="movie-title-with-image">
                         <div class="movie-preview-image" onclick="openImageViewer('${movie.image_filename}', '${movie.title}')">
                             <img src="../images/${movie.image_filename.split(',')[0]}" alt="预览图">
                         </div>
-                        <span title="${movie.title}">${movie.title}</span>
+                        <span class="movie-title-text" title="${movie.title}">${movie.title}</span>
                     </div>
                 ` : `
-                    <span title="${movie.title}">${movie.title}</span>
+                    <span class="movie-title-text" title="${movie.title}">${movie.title}</span>
                 `}
             </td>
-            <td>
-                <svg width="20" height="20" fill="${movie.recommended ? '#ff7b00' : '#515151'}" stroke="none" aria-label="${movie.recommended ? '推荐' : '不推荐'}">
-                    <use href="../static/sprite.svg#${movie.recommended ? 'recommend-light-icon' : 'recommend-icon'}"></use>
-                </svg>
+            <td class="movie-recommended-cell" data-label="推荐">
+                <span class="movie-recommended-chip${movie.recommended ? ' is-recommended' : ''}">
+                    <svg width="20" height="20" fill="${movie.recommended ? '#ff7b00' : '#515151'}" stroke="none" aria-label="${movie.recommended ? '推荐' : '不推荐'}">
+                        <use href="../static/sprite.svg#${movie.recommended ? 'recommend-light-icon' : 'recommend-icon'}"></use>
+                    </svg>
+                    <span class="movie-recommended-text">${movie.recommended ? '推荐' : '未推荐'}</span>
+                </span>
             </td>
-            <td class="hoverable" title="${movie.review || ''}">${movie.review || ''}</td>
-            <td class="hoverable" title="${movie.tag_names || ''}">${movie.tag_names || ''}</td>
-            <td class="ratings-cell">${ratingsCell}</td>
-            <td>
+            <td class="hoverable review-cell" data-label="评价" title="${movie.review || ''}">
+                <span class="movie-review-text${movie.review ? '' : ' is-empty'}">${movie.review || ''}</span>
+            </td>
+            <td class="hoverable tags-cell" data-label="标签" title="${movie.tag_names || ''}">
+                <span class="movie-tags-text${movie.tag_names ? '' : ' is-empty'}">${movie.tag_names || ''}</span>
+            </td>
+            <td class="ratings-cell" data-label="评分">${ratingsCell}</td>
+            <td class="movie-action-cell" data-label="操作">
                 <button class="button is-small is-info edit-btn" onclick='openModal(${JSON.stringify(movie)})'>
                     <span>编辑</span>
                 </button>
