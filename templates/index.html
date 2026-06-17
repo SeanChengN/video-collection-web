@@ -1005,7 +1005,7 @@
             <div class="thumbnail-layout">
                 <div class="thumbnail-left-pane">
                     <div class="thumbnail-player-pane">
-                        <video id="thumbnail-video" controls playsinline preload="metadata"></video>
+                        <video id="thumbnail-video" controls playsinline preload="auto"></video>
                         <div id="thumbnail-status" class="thumbnail-status">请选择视频文件</div>
                     </div>
                     <aside class="thumbnail-browser">
@@ -1034,15 +1034,19 @@
                         <section class="thumbnail-control-section">
                             <div class="thumbnail-section-title">手动截图</div>
                             <div class="thumbnail-manual-grid">
+                                <button class="button is-small" id="thumbnail-five-minute-back" type="button">-5 分</button>
                                 <button class="button is-small" id="thumbnail-minute-back" type="button">-1 分</button>
                                 <button class="button is-small" id="thumbnail-five-second-back" type="button">-5 秒</button>
                                 <button class="button is-small" id="thumbnail-second-back" type="button">-1 秒</button>
                                 <button class="button is-small" id="thumbnail-frame-back" type="button">-1 帧</button>
-                                <button class="button is-info is-small" id="thumbnail-capture-current" type="button">截图</button>
+                                <button class="button is-small" id="thumbnail-five-minute-forward" type="button">+5 分</button>
                                 <button class="button is-small" id="thumbnail-minute-forward" type="button">+1 分</button>
                                 <button class="button is-small" id="thumbnail-five-second-forward" type="button">+5 秒</button>
                                 <button class="button is-small" id="thumbnail-second-forward" type="button">+1 秒</button>
                                 <button class="button is-small" id="thumbnail-frame-forward" type="button">+1 帧</button>
+                            </div>
+                            <div class="thumbnail-manual-capture">
+                                <button class="button is-info is-small" id="thumbnail-capture-current" type="button">截图</button>
                             </div>
                         </section>
                         <section class="thumbnail-control-section">
@@ -1056,12 +1060,11 @@
                                     <span>百分比</span>
                                     <input class="input is-small" id="thumbnail-percent-step" type="number" min="0.1" max="100" step="0.1" value="2">
                                 </label>
-                                <span id="thumbnail-batch-summary" class="thumbnail-batch-summary">预计 0 张</span>
+                                <span id="thumbnail-batch-summary" class="thumbnail-batch-summary"></span>
                             </div>
                             <div class="thumbnail-control-group">
                                 <button class="button is-primary is-small" id="thumbnail-batch-capture" type="button">批量截图</button>
-                                <button class="button is-warning is-small" id="thumbnail-stop-batch" type="button" disabled>停止</button>
-                                <button class="button is-danger is-small" id="thumbnail-clear-captures" type="button">清空</button>
+                                <button class="button is-danger is-small" id="thumbnail-clear-captures" type="button" disabled>清空</button>
                                 <button class="button is-info is-small" id="thumbnail-select-all" type="button" disabled>全选</button>
                                 <span id="thumbnail-selected-count" class="thumbnail-selected-count">已选 0 张</span>
                             </div>

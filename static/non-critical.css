@@ -415,6 +415,9 @@
     overflow: hidden;
     transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
 }
+.thumbnail-file-row.has-copy {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+}
 .thumbnail-file-row:hover,
 .thumbnail-file-row.is-selected {
     transform: translateY(-1px);
@@ -447,6 +450,41 @@
     color: #7a7a7a;
     font-size: 0.78rem;
     white-space: nowrap;
+}
+.thumbnail-copy-name {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.76);
+    color: #515151;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.thumbnail-copy-name:hover {
+    transform: translateY(-1px);
+    background: #3273dc;
+    color: #fff;
+    box-shadow: 0 3px 8px rgba(50, 115, 220, 0.28);
+}
+.thumbnail-copy-name:active {
+    transform: scale(0.95);
+}
+.thumbnail-copy-name.is-success {
+    background: #48c78e;
+    color: #fff;
+}
+.thumbnail-copy-name.is-danger {
+    background: #ff3860;
+    color: #fff;
+}
+.thumbnail-copy-name svg {
+    width: 14px;
+    height: 14px;
 }
 .thumbnail-empty {
     color: #7a7a7a;
@@ -497,6 +535,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 0.5rem;
+    margin-top: 0.5rem;
 }
 .thumbnail-manual-grid {
     display: grid;
@@ -519,10 +558,12 @@
     padding: 0 0.5rem;
 }
 #thumbnail-capture-current {
-    grid-column: 5;
-    grid-row: 1 / span 2;
-    height: 100%;
-    min-height: 4.7rem;
+    width: 100%;
+    min-height: 2.1rem;
+}
+.thumbnail-manual-capture {
+    display: flex;
+    margin-top: 0.5rem;
 }
 .thumbnail-input-group label {
     display: flex;
@@ -552,6 +593,9 @@
     font-size: 0.85rem;
     min-height: 1.4rem;
     white-space: nowrap;
+}
+.thumbnail-batch-summary:empty {
+    display: none;
 }
 #thumbnail-batch-progress {
     display: none;
@@ -2172,10 +2216,8 @@ tr.is-duplicate:hover {
         font-size: 0.75rem !important;
     }
     #thumbnail-capture-current {
-        grid-column: 5;
-        grid-row: 1 / span 2;
-        height: 100% !important;
-        min-height: 4.35rem !important;
+        height: 2rem !important;
+        min-height: 2rem !important;
     }
     .thumbnail-control-group {
         gap: 0.4rem;
