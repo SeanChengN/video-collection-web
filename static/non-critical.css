@@ -371,7 +371,7 @@
     flex-direction: column;
     min-width: 0;
     min-height: 0;
-    flex: 1 1 auto;
+    flex: 1 1 0;
     padding: 1rem;
 }
 .thumbnail-browser-actions {
@@ -398,14 +398,19 @@
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-    overflow: auto;
+    flex: 1 1 0;
     min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
 }
 .thumbnail-file-row {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.5rem;
+    flex: 0 0 auto;
+    min-height: 2.75rem;
     border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.68);
@@ -416,7 +421,7 @@
     transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
 }
 .thumbnail-file-row.has-copy {
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto 2rem;
 }
 .thumbnail-file-row:hover,
 .thumbnail-file-row.is-selected {
@@ -427,12 +432,21 @@
 .thumbnail-file-name {
     display: block;
     min-width: 0;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.thumbnail-file-row.is-long-name:hover .thumbnail-file-name,
-.thumbnail-file-row.is-long-name.is-selected .thumbnail-file-name {
+.thumbnail-file-name-text {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.thumbnail-file-row.is-long-name:hover .thumbnail-file-name-text,
+.thumbnail-file-row.is-long-name.is-selected .thumbnail-file-name-text {
+    display: inline-block;
     min-width: max-content;
     overflow: visible;
     text-overflow: clip;
@@ -447,15 +461,19 @@
     }
 }
 .thumbnail-file-meta {
+    justify-self: end;
     color: #7a7a7a;
     font-size: 0.78rem;
+    min-width: max-content;
     white-space: nowrap;
 }
 .thumbnail-copy-name {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    justify-self: end;
     width: 1.8rem;
+    min-width: 1.8rem;
     height: 1.8rem;
     border: none;
     border-radius: 6px;
@@ -2169,8 +2187,11 @@ tr.is-duplicate:hover {
         margin-bottom: 0.5rem;
     }
     .thumbnail-file-list {
+        flex: 1 1 0;
         min-height: 110px;
         overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-gutter: stable;
     }
     .thumbnail-right-pane {
         flex: 0 0 auto;

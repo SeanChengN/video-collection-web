@@ -2691,8 +2691,8 @@ function createThumbnailDirectoryRow(directory) {
     if (directory.name.length > 18) {
         row.classList.add('is-long-name');
     }
-    row.innerHTML = '<span class="thumbnail-file-name"></span><span class="thumbnail-file-meta">目录</span>';
-    row.querySelector('.thumbnail-file-name').textContent = `/${directory.name}`;
+    row.innerHTML = '<span class="thumbnail-file-name"><span class="thumbnail-file-name-text"></span></span><span class="thumbnail-file-meta">目录</span>';
+    row.querySelector('.thumbnail-file-name-text').textContent = `/${directory.name}`;
     row.title = directory.name;
     row.addEventListener('click', () => loadThumbnailDirectory(directory.path));
     return row;
@@ -2710,7 +2710,7 @@ function createThumbnailFileRow(file) {
         row.classList.add('is-selected');
     }
     row.innerHTML = `
-        <span class="thumbnail-file-name"></span>
+        <span class="thumbnail-file-name"><span class="thumbnail-file-name-text"></span></span>
         <span class="thumbnail-file-meta"></span>
         <button class="thumbnail-copy-name" type="button" aria-label="复制文件名">
             <svg fill="currentColor" stroke="none" aria-label="复制">
@@ -2718,7 +2718,7 @@ function createThumbnailFileRow(file) {
             </svg>
         </button>
     `;
-    row.querySelector('.thumbnail-file-name').textContent = file.name;
+    row.querySelector('.thumbnail-file-name-text').textContent = file.name;
     row.querySelector('.thumbnail-file-meta').textContent = formatThumbnailBytes(file.size);
     row.title = file.name;
     row.addEventListener('click', () => selectThumbnailVideo(file));
