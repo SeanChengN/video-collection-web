@@ -343,8 +343,15 @@
   视频缩略图提取
 ----------------------------------------*/
 .thumbnail-layout {
+    --thumbnail-browser-width: 440px;
+    --thumbnail-controls-width: fit-content(420px);
     display: grid;
-    grid-template-columns: minmax(280px, 34%) minmax(0, 1fr);
+    grid-template-columns: var(--thumbnail-browser-width) minmax(0, 1fr) var(--thumbnail-controls-width);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas:
+        "browser player controls"
+        "progress progress progress"
+        "thumbnails thumbnails thumbnails";
     height: 100%;
     min-height: 0;
 }
@@ -354,24 +361,23 @@
     min-height: 0;
 }
 .thumbnail-left-pane {
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid rgba(255, 255, 255, 0.45);
-    background: rgba(255, 255, 255, 0.22);
+    display: contents;
 }
 .thumbnail-right-pane {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    overflow: hidden;
-    padding: 1rem;
+    display: contents;
 }
 .thumbnail-browser {
+    grid-area: browser;
     display: flex;
     flex-direction: column;
     min-width: 0;
     min-height: 0;
+    max-height: 38vh;
     flex: 1 1 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.45);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.22);
+    overflow: hidden;
     padding: 1rem;
 }
 .thumbnail-browser-actions {
@@ -405,6 +411,7 @@
     scrollbar-gutter: stable;
 }
 .thumbnail-file-row {
+    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
@@ -418,16 +425,36 @@
     padding: 0.55rem 0.65rem;
     text-align: left;
     overflow: hidden;
-    transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.thumbnail-file-row::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: #e05275;
+    opacity: 0;
+    transition: opacity 0.2s ease;
 }
 .thumbnail-file-row.has-copy {
     grid-template-columns: minmax(0, 1fr) auto 2rem;
 }
-.thumbnail-file-row:hover,
-.thumbnail-file-row.is-selected {
+.thumbnail-file-row:hover {
     transform: translateY(-1px);
     border-color: rgba(50, 115, 220, 0.35);
     background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 4px 10px rgba(50, 115, 220, 0.12);
+}
+.thumbnail-file-row.is-selected {
+    transform: translateY(-1px);
+    border-color: rgba(224, 82, 117, 0.58);
+    background:
+        radial-gradient(70% 120% at 0% 50%, rgba(224, 82, 117, 0.18), rgba(224, 82, 117, 0) 70%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 246, 249, 0.9));
+    box-shadow: 0 6px 14px rgba(224, 82, 117, 0.18);
+}
+.thumbnail-file-row.is-selected::before {
+    opacity: 1;
 }
 .thumbnail-file-name {
     display: block;
@@ -481,24 +508,26 @@
     color: #515151;
     cursor: pointer;
     padding: 0;
-    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 .thumbnail-copy-name:hover {
-    transform: translateY(-1px);
+    transform: translateY(-1px) scale(1.04);
     background: #3273dc;
     color: #fff;
-    box-shadow: 0 3px 8px rgba(50, 115, 220, 0.28);
+    box-shadow: 0 5px 12px rgba(50, 115, 220, 0.3);
 }
 .thumbnail-copy-name:active {
-    transform: scale(0.95);
+    transform: scale(0.92);
 }
 .thumbnail-copy-name.is-success {
     background: #48c78e;
     color: #fff;
+    box-shadow: 0 5px 12px rgba(72, 199, 142, 0.28);
 }
 .thumbnail-copy-name.is-danger {
     background: #ff3860;
     color: #fff;
+    box-shadow: 0 5px 12px rgba(255, 56, 96, 0.28);
 }
 .thumbnail-copy-name svg {
     width: 14px;
@@ -510,18 +539,27 @@
     text-align: center;
 }
 .thumbnail-player-pane {
+    grid-area: player;
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    justify-self: stretch;
+    align-self: start;
+    width: 100%;
     min-width: 0;
     flex: 0 0 auto;
     padding: 0.85rem 1rem 1rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.45);
     border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.16);
 }
 #thumbnail-video {
+    display: block;
     width: 100%;
-    max-height: 30vh;
-    min-height: 140px;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
     background: #111;
     border-radius: 8px;
 }
@@ -531,16 +569,30 @@
     font-size: 0.9rem;
 }
 .thumbnail-control-panel {
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+    grid-area: controls;
+    display: flex;
+    flex-direction: column;
     gap: 0.65rem;
     flex: 0 0 auto;
+    justify-self: start;
+    align-self: start;
+    min-width: 0;
+    width: max-content;
+    max-width: 100%;
+    overflow: visible;
+    padding: 1rem;
 }
 .thumbnail-control-section {
     border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.34);
     padding: 0.65rem;
+}
+.thumbnail-batch-section,
+.thumbnail-manual-section {
+    align-self: stretch;
+    width: auto;
+    max-width: 100%;
 }
 .thumbnail-section-title {
     color: #363636;
@@ -554,6 +606,8 @@
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 0.5rem;
+    width: fit-content;
+    max-width: 100%;
 }
 .thumbnail-manual-grid {
     display: grid;
@@ -581,7 +635,105 @@
 }
 .thumbnail-manual-capture {
     display: flex;
+    width: 100%;
     margin-top: 0.5rem;
+}
+#thumbnailModal .thumbnail-manual-grid .button.is-small,
+#thumbnailModal .thumbnail-manual-capture .button.is-small,
+#thumbnailModal .thumbnail-batch-section .button.is-small {
+    --thumbnail-action-color: #e05275;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-color: color-mix(in srgb, var(--thumbnail-action-color) 22%, rgba(0, 0, 0, 0.08));
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0)),
+        radial-gradient(80% 100% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 10%, transparent), transparent 72%);
+    box-shadow: 0 2px 6px color-mix(in srgb, var(--thumbnail-action-color) 18%, transparent);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, filter 0.2s ease, background-color 0.2s ease;
+}
+#thumbnailModal .thumbnail-manual-grid .button.is-small::before,
+#thumbnailModal .thumbnail-manual-capture .button.is-small::before,
+#thumbnailModal .thumbnail-batch-section .button.is-small::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(70% 70% at 50% 100%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 70%),
+        linear-gradient(0deg, var(--thumbnail-action-color), var(--thumbnail-action-color));
+    transition: opacity 0.2s ease;
+}
+#thumbnailModal .thumbnail-manual-grid .button.is-small:not(:disabled):not([disabled]):hover,
+#thumbnailModal .thumbnail-manual-capture .button.is-small:not(:disabled):not([disabled]):hover,
+#thumbnailModal .thumbnail-batch-section .button.is-small:not(:disabled):not([disabled]):hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--thumbnail-action-color) 62%, transparent);
+    background-image:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0)),
+        radial-gradient(85% 110% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 24%, transparent), transparent 70%);
+    box-shadow: 0 7px 15px color-mix(in srgb, var(--thumbnail-action-color) 38%, transparent);
+}
+#thumbnailModal .thumbnail-manual-grid .button.is-small:not(:disabled):not([disabled]):hover::before,
+#thumbnailModal .thumbnail-manual-capture .button.is-small:not(:disabled):not([disabled]):hover::before,
+#thumbnailModal .thumbnail-batch-section .button.is-small:not(:disabled):not([disabled]):hover::before {
+    opacity: 0.28;
+}
+#thumbnailModal .thumbnail-manual-grid .button.is-small:not(:disabled):not([disabled]):active,
+#thumbnailModal .thumbnail-manual-capture .button.is-small:not(:disabled):not([disabled]):active,
+#thumbnailModal .thumbnail-batch-section .button.is-small:not(:disabled):not([disabled]):active {
+    transform: scale(0.96) translateY(1px);
+    box-shadow: 0 2px 6px color-mix(in srgb, var(--thumbnail-action-color) 22%, transparent);
+}
+#thumbnailModal .thumbnail-manual-grid .button.is-small:focus-visible,
+#thumbnailModal .thumbnail-manual-capture .button.is-small:focus-visible,
+#thumbnailModal .thumbnail-batch-section .button.is-small:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--thumbnail-action-color) 56%, transparent);
+    outline-offset: 2px;
+}
+#thumbnailModal .thumbnail-manual-grid .button.is-small:disabled,
+#thumbnailModal .thumbnail-manual-grid .button.is-small[disabled],
+#thumbnailModal .thumbnail-manual-capture .button.is-small:disabled,
+#thumbnailModal .thumbnail-manual-capture .button.is-small[disabled],
+#thumbnailModal .thumbnail-batch-section .button.is-small:disabled,
+#thumbnailModal .thumbnail-batch-section .button.is-small[disabled] {
+    transform: none;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+#thumbnailModal .thumbnail-manual-grid .button.is-small {
+    --thumbnail-action-color: #4a9dec;
+}
+#thumbnailModal #thumbnail-capture-current {
+    --thumbnail-action-color: #3298dc;
+    box-shadow: 0 5px 13px rgba(50, 152, 220, 0.3);
+}
+#thumbnailModal #thumbnail-capture-current:not(:disabled):not([disabled]):hover {
+    box-shadow: 0 9px 20px rgba(50, 152, 220, 0.42);
+}
+#thumbnailModal .thumbnail-percent-preset.is-info,
+#thumbnailModal #thumbnail-select-all {
+    --thumbnail-action-color: #3298dc;
+}
+#thumbnailModal #thumbnail-batch-capture.is-primary {
+    --thumbnail-action-color: #00d1b2;
+}
+#thumbnailModal #thumbnail-batch-capture.is-warning {
+    --thumbnail-action-color: #ffb70f;
+    box-shadow: 0 5px 14px rgba(255, 183, 15, 0.36);
+}
+#thumbnailModal #thumbnail-clear-captures {
+    --thumbnail-action-color: #ff3860;
+}
+#thumbnailModal #thumbnail-send-add,
+#thumbnailModal #thumbnail-send-edit {
+    --thumbnail-action-color: #3273dc;
+}
+#thumbnailModal #thumbnail-download-selected,
+#thumbnailModal .thumbnail-control-panel .button.is-light {
+    --thumbnail-action-color: #7a7a7a;
 }
 .thumbnail-input-group label {
     display: flex;
@@ -616,15 +768,44 @@
     display: none;
 }
 #thumbnail-batch-progress {
+    grid-area: progress;
     display: none;
-    margin: 0;
+    margin: 0.75rem 1rem 0;
+}
+@media (prefers-reduced-motion: reduce) {
+    .thumbnail-file-row,
+    .thumbnail-copy-name,
+    #thumbnailModal .thumbnail-manual-grid .button.is-small,
+    #thumbnailModal .thumbnail-manual-capture .button.is-small,
+    #thumbnailModal .thumbnail-batch-section .button.is-small {
+        transition-duration: 0.01ms !important;
+        animation: none !important;
+    }
+    .thumbnail-file-row:hover,
+    .thumbnail-file-row.is-selected,
+    .thumbnail-copy-name:hover,
+    .thumbnail-copy-name:active,
+    #thumbnailModal .thumbnail-manual-grid .button.is-small:hover,
+    #thumbnailModal .thumbnail-manual-grid .button.is-small:active,
+    #thumbnailModal .thumbnail-manual-capture .button.is-small:hover,
+    #thumbnailModal .thumbnail-manual-capture .button.is-small:active,
+    #thumbnailModal .thumbnail-batch-section .button.is-small:hover,
+    #thumbnailModal .thumbnail-batch-section .button.is-small:active {
+        transform: none !important;
+    }
+    .thumbnail-file-row.is-long-name:hover .thumbnail-file-name-text,
+    .thumbnail-file-row.is-long-name.is-selected .thumbnail-file-name-text {
+        animation: none !important;
+    }
 }
 .thumbnail-grid-scroll {
+    grid-area: thumbnails;
     flex: 1 1 0;
-    min-height: 260px;
+    height: 100%;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 0 0.25rem 0.25rem 0;
+    padding: 0.75rem 1rem 1rem;
     scrollbar-gutter: stable;
 }
 .thumbnail-grid {
@@ -766,6 +947,20 @@
 }
 .thumbnail-reuse-group .button.is-small {
     flex: 0 1 auto;
+}
+@media screen and (max-width: 1280px) and (min-width: 769px) {
+    .thumbnail-layout {
+        --thumbnail-browser-width: 400px;
+    }
+    .thumbnail-batch-section {
+        width: 100%;
+    }
+}
+@media screen and (max-width: 1100px) and (min-width: 769px) {
+    .thumbnail-layout {
+        --thumbnail-browser-width: minmax(260px, 36%);
+        --thumbnail-controls-width: fit-content(380px);
+    }
 }
 
 /*----------------------------------------
@@ -2170,6 +2365,8 @@ tr.is-duplicate:hover {
         min-height: 100%;
     }
     .thumbnail-left-pane {
+        display: flex;
+        flex-direction: column;
         flex: 0 0 auto;
         border-right: none;
         border-bottom: 1px solid rgba(255, 255, 255, 0.45);
@@ -2178,6 +2375,8 @@ tr.is-duplicate:hover {
         flex: 0 0 auto;
         min-height: 190px;
         max-height: 32vh;
+        border-right: none;
+        background: rgba(255, 255, 255, 0.22);
         padding: 0.75rem;
     }
     .thumbnail-browser-actions {
@@ -2194,6 +2393,8 @@ tr.is-duplicate:hover {
         scrollbar-gutter: stable;
     }
     .thumbnail-right-pane {
+        display: flex;
+        flex-direction: column;
         flex: 0 0 auto;
         overflow: visible;
         gap: 0.6rem;
@@ -2201,20 +2402,30 @@ tr.is-duplicate:hover {
     }
     .thumbnail-player-pane {
         flex: 0 0 auto;
+        justify-self: stretch;
+        width: 100%;
         padding: 0.75rem;
+        border-right: none;
         border-bottom: 1px solid rgba(255, 255, 255, 0.45);
     }
     #thumbnail-video {
-        max-height: 24vh;
-        min-height: 118px;
+        height: auto;
     }
     .thumbnail-control-panel {
-        grid-template-columns: 1fr;
         gap: 0.55rem;
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
     }
     .thumbnail-control-section {
         min-width: 0;
         padding: 0.55rem;
+    }
+    .thumbnail-batch-section {
+        width: 100%;
+    }
+    .thumbnail-manual-section {
+        width: 100%;
     }
     #thumbnailModal .button.is-small {
         height: 2rem !important;
@@ -2232,13 +2443,19 @@ tr.is-duplicate:hover {
         gap: 0.35rem;
     }
     .thumbnail-manual-grid .button.is-small {
+        width: 100%;
+        min-width: 0;
         min-height: 2rem;
         padding: 0 0.3rem !important;
         font-size: 0.75rem !important;
     }
     #thumbnail-capture-current {
+        width: 100%;
         height: 2rem !important;
         min-height: 2rem !important;
+    }
+    .thumbnail-manual-capture {
+        width: 100%;
     }
     .thumbnail-control-group {
         gap: 0.4rem;
@@ -2254,6 +2471,7 @@ tr.is-duplicate:hover {
         min-height: 260px;
         max-height: 48vh;
         overflow-y: auto;
+        padding: 0 0.25rem 0.25rem 0;
     }
     .thumbnail-grid {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
