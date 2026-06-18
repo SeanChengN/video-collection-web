@@ -881,7 +881,8 @@ function openJackettModal() {
         ModalManager.restoreModal('jackettModal');
     } else {
         ModalManager.open('jackettModal');
-        document.querySelector('#jackettModal iframe').src = `${serviceConfig.jackett_url}/UI/Dashboard#search`;
+        const route = serviceConfig.service_routes?.jackett || '/services/jackett';
+        document.querySelector('#jackettModal iframe').src = `${route}?path=${encodeURIComponent('/UI/Dashboard#search')}`;
     }
 }
 
@@ -894,7 +895,8 @@ function openThunderModal() {
         ModalManager.restoreModal('thunderModal');
     } else {
         ModalManager.open('thunderModal');
-        document.querySelector('#thunderModal iframe').src = serviceConfig.thunder_url;
+        const route = serviceConfig.service_routes?.thunder || '/services/thunder';
+        document.querySelector('#thunderModal iframe').src = route;
     }
 }
 
@@ -1773,12 +1775,13 @@ function openModal(movie) {
         const images = movie.image_filename.split(',');
         images.forEach((filename, index) => {
             if (filename.trim()) {
+                const imageUrl = `../images/${filename.trim()}`;
                 const imageWrapper = document.createElement('div');
                 imageWrapper.className = 'existing-image-item';
                 imageWrapper.draggable = true; // 添加可拖拽属性
                 imageWrapper.dataset.index = index; // 添加索引用于排序
                 imageWrapper.innerHTML = `
-                    <img src="../images/${filename.trim()}" alt="预览图">
+                    <img src="${imageUrl}" alt="预览图">
                     <button class="delete-existing-image" data-filename="${filename.trim()}" type="button">
                         <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
                             <use href="../static/sprite.svg#close-icon"></use>
@@ -2239,13 +2242,19 @@ function displayCurrentPage() {
             ${mobileRatingsHtml}` :
             `<button class="button is-small desktop-ratings-empty" disabled>暂无评分</button>
             ${mobileRatingsHtml}`;
+        const firstImageFilename = movie.image_filename
+            ? movie.image_filename.split(',')[0].trim()
+            : '';
+        const firstImageUrl = firstImageFilename
+            ? `../images/${firstImageFilename}`
+            : '';
 
             tr.innerHTML = `
             <td class="movie-title-cell hoverable" data-label="电影名称">
                 ${movie.image_filename ? `
                     <div class="movie-title-with-image">
                         <div class="movie-preview-image" onclick="openImageViewer('${movie.image_filename}', '${movie.title}')">
-                            <img src="../images/${movie.image_filename.split(',')[0]}" alt="预览图">
+                            <img src="${firstImageUrl}" alt="预览图">
                         </div>
                         <span class="movie-title-text" title="${movie.title}">${movie.title}</span>
                     </div>

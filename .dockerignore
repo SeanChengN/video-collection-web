@@ -1,67 +1,68 @@
-# 版本控制
+# Version control
 .git
 .gitignore
 .gitattributes
 
-# Python
+# Local environment and secrets
+.env*
+
+# Docker metadata and local orchestration
+Dockerfile
+dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Python cache and local environments
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
 venv/
 ENV/
 
-# 开发工具
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Docker
-Dockerfile
-.dockerignore
-docker-compose.yml
-dokcer-compose.build.yml
-
-# 系统
-.DS_Store
-
-# Node.js
+# Node tooling not needed by the runtime image
 node_modules/
 package*.json
-main.js
-non-critical.css
+static/main.js
+static/non-critical.css
 
-# 数据库
+# Runtime data and local media
+db_data/
+images/
+videos/
+movies/
 mysql/
 performance_schema/
-*.0121
-*.1319
 .my-healthcheck.cnf
 aria*
 ib*
-mysql*
+undo*
 multi-master.info
-movies/
+mysql_upgrade_info
+*.0121
+*.1319
+NUL
 
-# 设计文件
+# Design/source assets not used directly by the app
 *.ai
 *.psd
 favicon.*
 icon.*
-
-# 日志和临时文件
-*.log
-memo.txt
-
-# 未合并图标文件
 static/*.svg
 !static/sprite.svg
 
-# 测试文件
-images/
-videos/
-
-# 其他文件
-undo*
+# Editor, OS, logs, and local notes
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.log
+memo.txt

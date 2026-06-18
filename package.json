@@ -1,0 +1,17 @@
+{
+  "name": "video-collection",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build-js": "terser static/main.js -o static/main.min.js -c -m",
+    "build-css": "cleancss -O2 static/non-critical.css -o static/styles.min.css",
+    "build": "npm run build-js && npm run build-css",
+    "cleanup": "docker stop video-collection && docker rm video-collection && docker rmi video-collection-web",
+    "try": "npm run build && npm run cleanup && docker-compose up -d"
+  },
+  "devDependencies": {
+    "clean-css-cli": "^5.6.3",
+    "terser": "^5.37.0"
+  }
+}

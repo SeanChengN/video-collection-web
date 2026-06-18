@@ -1,31 +1,55 @@
 import os #文件操作
 import io #处理图像数据流
+import hmac
+import logging
 import mysql.connector #数据库连接
 import time #时间处理
 import uuid #UUID生成
 import json #JSON处理
-from flask import Flask, render_template, request, jsonify, send_from_directory #Flask框架
+from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, session, url_for #Flask框架
 from contextlib import contextmanager #上下文管理器
 from flask_compress import Compress #压缩代码
-from PIL import Image #图像处理
+from PIL import Image, ImageOps, UnidentifiedImageError #图像处理
 import requests
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 from flask import Response, stream_with_context
-#import logging
+from werkzeug.exceptions import RequestEntityTooLarge
 
 app = Flask(__name__)
 Compress(app)
+logging.basicConfig(
+    level=os.environ.get('LOG_LEVEL', 'INFO').upper(),
+    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+def env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+def env_int(name, default):
+    try:
+        return int(os.environ.get(name, default))
+    except (TypeError, ValueError):
+        return default
 
 # 图片上传常量
 UPLOAD_FOLDER = '/images'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 VIDEO_LIBRARY_ROOT = os.environ.get('VIDEO_LIBRARY_ROOT', '/videos')
+MAX_IMAGE_UPLOAD_MB = max(1, env_int('MAX_IMAGE_UPLOAD_MB', 10))
+MAX_IMAGE_UPLOAD_BYTES = MAX_IMAGE_UPLOAD_MB * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = MAX_IMAGE_UPLOAD_BYTES
 
 # 允许的图片格式
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+ALLOWED_STORED_IMAGE_EXTENSIONS = {'webp', 'png', 'jpg', 'jpeg'}
 ALLOWED_VIDEO_EXTENSIONS = {
     'mp4', 'webm', 'ogg', 'ogv', 'mov', 'm4v', 'mkv', 'avi', 'wmv', 'flv', 'ts'
 }
+Image.MAX_IMAGE_PIXELS = env_int('MAX_IMAGE_PIXELS', 20000000)
 
 # 配置压缩选项
 app.config['COMPRESS_MIMETYPES'] = [
@@ -39,11 +63,141 @@ app.config['COMPRESS_MIMETYPES'] = [
 app.config['COMPRESS_LEVEL'] = 6
 app.config['COMPRESS_MIN_SIZE'] = 500
 
-# 配置日志
-#logging.basicConfig(
-#    level=logging.INFO,
-#    format='%(asctime)s - %(levelname)s - %(message)s'
-#)
+def json_error(message='Request failed', status=500):
+    return jsonify({"success": False, "message": message}), status
+
+def log_exception(action, exc):
+    logger.exception("%s failed: %s", action, exc)
+
+def json_exception(action, exc, message='Request failed'):
+    log_exception(action, exc)
+    return json_error(message, 500)
+
+def configured_access_token():
+    return os.environ.get('APP_ACCESS_TOKEN', '').strip()
+
+def access_token_required():
+    return bool(configured_access_token())
+
+AUTH_SESSION_KEY = 'app_authenticated'
+app.secret_key = configured_access_token() or os.urandom(32)
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax'
+)
+
+def is_authenticated_session():
+    return session.get(AUTH_SESSION_KEY) is True
+
+def safe_next_path(value):
+    value = (value or '/').strip()
+    parsed = urlsplit(value)
+    if parsed.scheme or parsed.netloc:
+        return '/'
+    if not parsed.path.startswith('/') or parsed.path.startswith('//'):
+        return '/'
+    return parsed.path + (f'?{parsed.query}' if parsed.query else '')
+
+def current_request_path():
+    return request.full_path.rstrip('?') or '/'
+
+def unauthorized_response():
+    if request.path == '/api' or request.path.startswith('/api/'):
+        return json_error('Unauthorized', 401)
+    if request.method == 'GET' and request.accept_mimetypes.accept_html:
+        return redirect(url_for('auth', next=current_request_path()))
+    return Response('Unauthorized', status=401)
+
+@app.before_request
+def require_app_session_auth():
+    if not access_token_required():
+        return None
+    if request.endpoint == 'auth':
+        return None
+    if is_authenticated_session():
+        return None
+    return unauthorized_response()
+
+@app.route('/auth', methods=['GET', 'POST'])
+def auth():
+    next_path = safe_next_path(request.values.get('next', '/'))
+    if not access_token_required():
+        return redirect(next_path)
+    if is_authenticated_session():
+        return redirect(next_path)
+
+    error = False
+    if request.method == 'POST':
+        provided_token = request.form.get('token', '').strip()
+        if provided_token and hmac.compare_digest(provided_token, configured_access_token()):
+            session[AUTH_SESSION_KEY] = True
+            session.permanent = False
+            return redirect(next_path)
+        session.pop(AUTH_SESSION_KEY, None)
+        error = True
+
+    return render_template('auth.html', error=error, next_path=next_path), 401 if error else 200
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_request_too_large(error):
+    return json_error(f'Uploaded file is too large. Max size is {MAX_IMAGE_UPLOAD_MB} MB.', 413)
+
+def normalize_upload_filename(filename):
+    filename = (filename or '').strip()
+    if not filename:
+        return None
+    if filename != os.path.basename(filename):
+        return None
+    if filename in {'.', '..'} or '/' in filename or '\\' in filename:
+        return None
+    if not allowed_stored_image_file(filename):
+        return None
+    return filename
+
+def get_upload_file_path(filename):
+    safe_filename = normalize_upload_filename(filename)
+    if not safe_filename:
+        return None
+
+    root_path = os.path.realpath(app.config['UPLOAD_FOLDER'])
+    candidate_path = os.path.realpath(os.path.join(root_path, safe_filename))
+    try:
+        if os.path.commonpath([root_path, candidate_path]) != root_path:
+            return None
+    except ValueError:
+        return None
+    return candidate_path
+
+def delete_uploaded_image(filename):
+    file_path = get_upload_file_path(filename)
+    if not file_path:
+        logger.warning("Rejected unsafe image delete path: %r", filename)
+        return False
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        return True
+    return False
+
+def get_service_url(service_name):
+    env_name = {
+        'jackett': 'JACKETT_URL',
+        'thunder': 'THUNDER_URL'
+    }.get(service_name)
+    if not env_name:
+        return ''
+    return os.environ.get(env_name, '').strip().rstrip('/')
+
+def build_service_redirect_url(service_name):
+    service_url = get_service_url(service_name)
+    if not service_url:
+        return None
+
+    path = request.args.get('path', '').strip()
+    if path and not path.startswith('/'):
+        path = f'/{path}'
+    if '..' in path.replace('\\', '/').split('/'):
+        return None
+    return f'{service_url}{path}'
 
 # 数据库连接配置，从环境变量中读取
 DB_CONFIG = {
@@ -233,7 +387,7 @@ def init_db():
             conn.commit()
             return True
     except Exception as e:
-        print(f"初始化数据库失败: {str(e)}")
+        log_exception('Database initialization', e)
         return False
 
 @app.route("/")
@@ -248,7 +402,10 @@ def serve_src(filename):
 # 图片文件路由
 @app.route('/images/<path:filename>')
 def serve_image(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    safe_filename = normalize_upload_filename(filename)
+    if not safe_filename:
+        return Response(status=404)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], safe_filename, conditional=True)
 
 def normalize_video_relative_path(path_value=''):
     rel_path = (path_value or '').strip().replace('\\', '/').strip('/')
@@ -348,7 +505,7 @@ def serve_emby_image(item_id):
 
         return Response(stream_with_context(generate()), headers=response_headers)
     except Exception as e:
-        print(f"Emby image proxy failed: {str(e)}")
+        log_exception('Emby image proxy', e)
         return Response(status=502)
 
 @app.route('/emby/stream/<item_id>')
@@ -401,8 +558,15 @@ def stream_emby_video(item_id):
             direct_passthrough=True
         )
     except Exception as e:
-        print(f"Emby stream proxy failed: {str(e)}")
+        log_exception('Emby stream proxy', e)
         return Response('Unable to stream this Emby item', status=502)
+
+@app.route('/services/<service_name>')
+def service_redirect(service_name):
+    target_url = build_service_redirect_url(service_name)
+    if not target_url:
+        return Response(status=404)
+    return redirect(target_url)
 
 # 统一api入口
 @app.route('/api', methods=['POST'])
@@ -413,9 +577,10 @@ def api_handler():
             return upload_image_handler(None)
         
         # JSON请求
-        event_id = request.json.get('e')
-        data = request.json.get('d', {})
-        method = request.json.get('m', 'POST') # 获取原始method
+        payload = request.get_json(silent=True) or {}
+        event_id = payload.get('e')
+        data = payload.get('d', {})
+        method = payload.get('m', 'POST') # 获取原始method
         
         handlers = {
             1001: get_services_config_handler,
@@ -442,7 +607,7 @@ def api_handler():
         return handler(data, method) # 传递method给处理器
         
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        return json_exception('API handler', e)
 
 def add_movie_handler(data, method='POST'):
     try:
@@ -475,7 +640,8 @@ def add_movie_handler(data, method='POST'):
             conn.commit()
         return jsonify({"message": "电影添加成功"}), 200
     except mysql.connector.Error as err:
-        return jsonify({"error": str(err)}), 500
+        log_exception('Add movie', err)
+        return jsonify({"error": "电影添加失败"}), 500
 
 def update_movie_handler(data, method='PUT'):
     try:
@@ -504,8 +670,16 @@ def update_movie_handler(data, method='PUT'):
 
             # 处理图片文件删除
             if original_images:
-                current_images = set(image_filenames.split(',') if image_filenames else [])
-                original_images_set = set(original_images)
+                current_images = {
+                    normalize_upload_filename(filename)
+                    for filename in (image_filenames.split(',') if image_filenames else [])
+                }
+                current_images.discard(None)
+                original_images_set = {
+                    normalize_upload_filename(filename)
+                    for filename in original_images
+                }
+                original_images_set.discard(None)
                 
                 # 找出需要删除的图片
                 images_to_delete = original_images_set - current_images
@@ -513,11 +687,9 @@ def update_movie_handler(data, method='PUT'):
                 # 删除不再使用的图片文件
                 for filename in images_to_delete:
                     try:
-                        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                        if os.path.exists(file_path):
-                            os.remove(file_path)
+                        delete_uploaded_image(filename)
                     except Exception as e:
-                        print(f"删除图片文件失败: {filename}, 错误: {str(e)}")
+                        logger.warning("Failed to delete image %r: %s", filename, e)
             
             # 更新数据库记录
             cursor.execute("""
@@ -531,7 +703,7 @@ def update_movie_handler(data, method='PUT'):
         return jsonify({"message": "电影更新成功"}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return json_exception('Update movie', e, '电影更新失败')
 
 def get_ratings_dimensions_handler(data, method='GET'):
     try:
@@ -541,7 +713,7 @@ def get_ratings_dimensions_handler(data, method='GET'):
             dimensions = cursor.fetchall()
             return jsonify({"success": True, "dimensions": dimensions})
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        return json_exception('Get ratings dimensions', e)
 
 def search_movies_handler(data, method='GET'):
     try:
@@ -600,7 +772,7 @@ def search_movies_handler(data, method='GET'):
             return jsonify({"success": True, "data": movies})
             
     except Exception as e:
-        return jsonify({"success": False, "message": f"搜索失败: {str(e)}"}), 500
+        return json_exception('Search movies', e, '搜索失败')
 
 def get_tags_handler(data, method='GET'):
     try:
@@ -610,21 +782,28 @@ def get_tags_handler(data, method='GET'):
             tags = [tag['name'] for tag in cursor.fetchall()]
             return jsonify({"success": True, "data": tags})
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        return json_exception('Get tags', e)
 
 # 从环境变量中读取参数
 def get_services_config_handler(data, method='GET'):
     try:
         return jsonify({
             'success': True,
-            'data': {        
-                'emby_server_url': os.environ.get('EMBY_SERVER_URL', ''),
-                'jackett_url': os.environ.get('JACKETT_URL', ''),
-                'thunder_url': os.environ.get('THUNDER_URL', '')
+            'data': {
+                'auth_required': access_token_required(),
+                'services': {
+                    'emby': bool(os.environ.get('EMBY_SERVER_URL', '').strip()),
+                    'jackett': bool(get_service_url('jackett')),
+                    'thunder': bool(get_service_url('thunder'))
+                },
+                'service_routes': {
+                    'jackett': '/services/jackett',
+                    'thunder': '/services/thunder'
+                }
             }
         })
     except Exception as e:
-            return jsonify({"success": False, "message": str(e)}), 500
+            return json_exception('Get services config', e)
 
 # 相似度计算相关代码
 def search_emby_handler(data, method='POST'):
@@ -680,7 +859,7 @@ def search_emby_handler(data, method='POST'):
             }
         })
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        return json_exception('Emby search', e, 'Emby search failed')
 
 def check_title_match(title1, title2):
     # 转换为小写进行比较
@@ -731,7 +910,7 @@ def check_duplicates_handler(data, method='POST'):
                 "matched_titles": matched_titles
             })
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        return json_exception('Check duplicates', e)
 
 # 设置功能相关代码
 def add_tag_handler(data, method='POST'):
@@ -750,7 +929,8 @@ def add_tag_handler(data, method='POST'):
     except mysql.connector.Error as err:
         if err.errno == 1062:  # 重复键错误
             return jsonify({"success": False, "message": "标签名称已存在"}), 400
-        return jsonify({"success": False, "message": str(err)}), 500
+        log_exception('Add tag', err)
+        return json_error('标签添加失败', 500)
 
 def update_tag_handler(data, method='POST'):
     try:
@@ -769,7 +949,8 @@ def update_tag_handler(data, method='POST'):
     except mysql.connector.Error as err:
         if err.errno == 1062:  # 重复键错误
             return jsonify({"success": False, "message": "标签名称已存在"}), 400
-        return jsonify({"success": False, "message": str(err)}), 500
+        log_exception('Update tag', err)
+        return json_error('标签更新失败', 500)
 
 def add_rating_dimension_handler(data, method='POST'):
     try:
@@ -787,7 +968,8 @@ def add_rating_dimension_handler(data, method='POST'):
     except mysql.connector.Error as err:
         if err.errno == 1062:  # 重复键错误
             return jsonify({"success": False, "message": "评分维度名称已存在"}), 400
-        return jsonify({"success": False, "message": str(err)}), 500
+        log_exception('Add rating dimension', err)
+        return json_error('评分维度添加失败', 500)
 
 def update_rating_dimension_handler(data, method='POST'):
     try:
@@ -807,7 +989,8 @@ def update_rating_dimension_handler(data, method='POST'):
     except mysql.connector.Error as err:
         if err.errno == 1062:  # 重复键错误
             return jsonify({"success": False, "message": "评分维度名称已存在"}), 400
-        return jsonify({"success": False, "message": str(err)}), 500
+        log_exception('Update rating dimension', err)
+        return json_error('评分维度更新失败', 500)
 
 def delete_movie_handler(data, method='DELETE'):
     try:
@@ -829,9 +1012,7 @@ def delete_movie_handler(data, method='DELETE'):
                 image_files = movie['image_filename'].split(',')
                 for filename in image_files:
                     if filename.strip():
-                        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename.strip())
-                        if os.path.exists(file_path):
-                            os.remove(file_path)
+                        delete_uploaded_image(filename.strip())
 
             # 删除数据库记录
             cursor.execute("DELETE FROM movies WHERE title = %s", (title,))
@@ -840,7 +1021,7 @@ def delete_movie_handler(data, method='DELETE'):
             return jsonify({"success": True, "message": "电影删除成功"})
 
     except Exception as e:
-        print(f"未知错误: {str(e)}")
+        log_exception('Delete movie', e)
         return jsonify({"success": False, "message": "删除操作失败"}), 500
 
 # 图片文件验证
@@ -890,60 +1071,79 @@ def list_video_files_handler(data, method='POST'):
             "files": files
         })
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        return json_exception('List video files', e, 'Unable to list video files')
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def allowed_stored_image_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_STORED_IMAGE_EXTENSIONS
+
 def process_image(image_file):
-    # 打开图片
-    img = Image.open(image_file)
-    
-    # 计算等比例缩放尺寸,以720p为基准
-    width, height = img.size
-    target_height = 720
-    # 计算缩放比例并得到新的宽度
-    ratio = target_height / height
-    new_width = int(width * ratio)
-    
-    # 等比例缩放到目标尺寸
-    img = img.resize((new_width, target_height), Image.Resampling.LANCZOS)
-    
-    # 转换为WebP格式并压缩
-    output = io.BytesIO()
-    img.save(output, format='WebP', quality=85, optimize=True)
-    return output.getvalue()
+    image_file.stream.seek(0)
+    with Image.open(image_file.stream) as candidate:
+        candidate.verify()
+
+    image_file.stream.seek(0)
+    with Image.open(image_file.stream) as img:
+        img = ImageOps.exif_transpose(img)
+        width, height = img.size
+        if not width or not height:
+            raise ValueError('Invalid image dimensions')
+
+        target_height = 720
+        if height > target_height:
+            ratio = target_height / height
+            new_width = max(1, int(width * ratio))
+            img = img.resize((new_width, target_height), Image.Resampling.LANCZOS)
+
+        if img.mode not in ('RGB', 'RGBA'):
+            img = img.convert('RGB')
+
+        output = io.BytesIO()
+        img.save(output, format='WebP', quality=85, optimize=True)
+        return output.getvalue()
 
 def upload_image_handler(data, method='POST'):
-    print("开始处理图片上传请求")
     if 'image' not in request.files:
-        print("没有接收到文件")
-        return jsonify({'success': False, 'message': '没有文件'})
+        return jsonify({'success': False, 'message': '没有文件'}), 400
         
     file = request.files['image']
  
-    if file and allowed_file(file.filename):
-        # 使用timestamp + uuid确保文件名唯一
-        timestamp = int(time.time())
-        unique_id = str(uuid.uuid4())[:8] 
-        filename = f"{timestamp}_{unique_id}.webp"
-        
-        # 处理并保存图片
-        try:
-            processed_image = process_image(file)
-            with open(os.path.join(UPLOAD_FOLDER, filename), 'wb') as f:
-                f.write(processed_image)
-            print(f"图片保存成功: {filename}")
-            return jsonify({
-                'success': True,
-                'filename': filename
-            })
-        except Exception as e:
-            print(f"图片处理失败: {str(e)}")
-            return jsonify({'success': False, 'message': f'图片处理失败: {str(e)}'})
+    if not file or not allowed_file(file.filename):
+        return jsonify({'success': False, 'message': '仅支持 PNG/JPG/JPEG 图片'}), 400
+
+    timestamp = int(time.time())
+    unique_id = str(uuid.uuid4())[:8]
+    filename = f"{timestamp}_{unique_id}.webp"
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+    try:
+        processed_image = process_image(file)
+        file_path = get_upload_file_path(filename)
+        if not file_path:
+            logger.error("Generated upload filename was rejected: %s", filename)
+            return jsonify({'success': False, 'message': '图片保存失败'}), 500
+
+        with open(file_path, 'wb') as f:
+            f.write(processed_image)
+        return jsonify({
+            'success': True,
+            'filename': filename
+        })
+    except (UnidentifiedImageError, Image.DecompressionBombError, OSError, ValueError) as e:
+        logger.warning("Rejected image upload %r: %s", file.filename, e)
+        return jsonify({'success': False, 'message': '图片无效或无法处理'}), 400
+    except Exception as e:
+        log_exception('Image upload', e)
+        return jsonify({'success': False, 'message': '图片处理失败'}), 500
 
 if __name__ == "__main__":
     if init_db():
-        app.run(debug=True, host='0.0.0.0', port=5000) #  指定 host='0.0.0.0' 使 Flask 监听所有网络接口
+        app.run(
+            debug=env_bool('APP_DEBUG', False) or env_bool('FLASK_DEBUG', False),
+            host=os.environ.get('FLASK_RUN_HOST', '0.0.0.0'),
+            port=env_int('FLASK_RUN_PORT', 5000)
+        ) #  指定 host='0.0.0.0' 使 Flask 监听所有网络接口
     else:
-        print("数据库初始化失败，程序退出")
+        logger.error("数据库初始化失败，程序退出")

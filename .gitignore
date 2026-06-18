@@ -1,0 +1,64 @@
+# Local environment and secrets
+.env*
+!.env.example
+
+# Runtime data
+db_data/
+images/
+videos/
+movies/
+mysql/
+performance_schema/
+.my-healthcheck.cnf
+aria*
+ib*
+undo*
+multi-master.info
+mysql_upgrade_info
+*.0121
+*.1319
+NUL
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+ENV/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local Docker override
+docker-compose.yml
+
+# Editor and OS files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs and local notes
+*.log
+memo.txt
+
+# Design/source assets not used directly by the app
+*.ai
+*.psd
+favicon.*
+icon.*
+static/*.svg
+!static/sprite.svg

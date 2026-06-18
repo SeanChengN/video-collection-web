@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Collection - Access</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f4f7fb;
+            --panel: #ffffff;
+            --text: #1f2937;
+            --muted: #667085;
+            --border: #d8dee9;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --danger: #b42318;
+            --danger-bg: #fff1f0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            background:
+                linear-gradient(135deg, rgba(37, 99, 235, 0.09), transparent 38%),
+                linear-gradient(315deg, rgba(22, 163, 74, 0.08), transparent 34%),
+                var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .auth-dialog {
+            width: min(92vw, 380px);
+            padding: 28px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel);
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+        }
+
+        .auth-title {
+            margin: 0 0 8px;
+            font-size: 1.35rem;
+            line-height: 1.2;
+        }
+
+        .auth-copy {
+            margin: 0 0 22px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .auth-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .auth-input {
+            width: 100%;
+            height: 44px;
+            padding: 0 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font: inherit;
+        }
+
+        .auth-input:focus {
+            border-color: var(--primary);
+            outline: 3px solid rgba(37, 99, 235, 0.16);
+        }
+
+        .auth-error {
+            margin: 12px 0 0;
+            padding: 10px 12px;
+            border-radius: 6px;
+            background: var(--danger-bg);
+            color: var(--danger);
+            font-size: 0.95rem;
+        }
+
+        .auth-button {
+            width: 100%;
+            height: 44px;
+            margin-top: 18px;
+            border: 0;
+            border-radius: 6px;
+            background: var(--primary);
+            color: #ffffff;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .auth-button:hover,
+        .auth-button:focus {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+    <main class="auth-dialog" role="dialog" aria-labelledby="auth-title" aria-modal="true">
+        <h1 class="auth-title" id="auth-title">Video Collection</h1>
+        <p class="auth-copy">请输入访问令牌继续。</p>
+        <form method="post" action="{{ url_for('auth') }}">
+            <input type="hidden" name="next" value="{{ next_path }}">
+            <label class="auth-label" for="token">Access Token</label>
+            <input
+                class="auth-input"
+                id="token"
+                name="token"
+                type="password"
+                autocomplete="current-password"
+                autofocus
+                required
+            >
+            {% if error %}
+            <p class="auth-error">令牌无效，请重试。</p>
+            {% endif %}
+            <button class="auth-button" type="submit">进入</button>
+        </form>
+    </main>
+</body>
+</html>
