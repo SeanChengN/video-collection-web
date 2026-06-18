@@ -322,6 +322,16 @@ if (window.addEventListener) {
 const itemsPerPage = 10; // 每页显示10条
 let currentPage = 1;
 let totalPages = 0;
+function buildImageUrl(filename) {
+    const parts = String(filename || '')
+        .trim()
+        .split('/')
+        .filter(part => part);
+    if (parts.length === 0) {
+        return '';
+    }
+    return `../images/${parts.map(part => encodeURIComponent(part)).join('/')}`;
+}
 let allMovies = []; // 存储所有搜索结果
 
 // 定义全局配置变量
@@ -1747,7 +1757,7 @@ function openModal(movie) {
         const images = movie.image_filename.split(',');
         images.forEach((filename, index) => {
             if (filename.trim()) {
-                const imageUrl = `../images/${filename.trim()}`;
+                const imageUrl = buildImageUrl(filename);
                 const imageWrapper = document.createElement('div');
                 imageWrapper.className = 'existing-image-item';
                 imageWrapper.draggable = true; // 添加可拖拽属性
@@ -2216,7 +2226,7 @@ function displayCurrentPage() {
             ? movie.image_filename.split(',')[0].trim()
             : '';
         const firstImageUrl = firstImageFilename
-            ? `../images/${firstImageFilename}`
+            ? buildImageUrl(firstImageFilename)
             : '';
 
             tr.innerHTML = `
@@ -3819,7 +3829,7 @@ function updateViewerImage() {
     viewer.onload = scheduleImageViewerResize;
     resetImageViewerScroll();
     viewer.style.height = 'auto';
-    viewer.src = `../images/${currentImages[currentImageIndex].trim()}`;
+    viewer.src = buildImageUrl(currentImages[currentImageIndex]);
     if (viewer.complete) {
         scheduleImageViewerResize();
     }

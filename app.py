@@ -146,13 +146,30 @@ def normalize_upload_filename(filename):
     filename = (filename or '').strip()
     if not filename:
         return None
-    if filename != os.path.basename(filename):
+    if filename.startswith('/') or '\\' in filename:
         return None
-    if filename in {'.', '..'} or '/' in filename or '\\' in filename:
+    parts = filename.split('/')
+    if len(parts) not in {1, 2}:
         return None
-    if not allowed_stored_image_file(filename):
+    if any(not part or part in {'.', '..'} for part in parts):
         return None
-    return filename
+
+    if len(parts) == 1:
+        basename = parts[0]
+        if basename != os.path.basename(basename):
+            return None
+        if not allowed_stored_image_file(basename):
+            return None
+        return basename
+
+    year, basename = parts
+    if len(year) != 4 or not year.isdigit():
+        return None
+    if basename != os.path.basename(basename):
+        return None
+    if not allowed_stored_image_file(basename):
+        return None
+    return f'{year}/{basename}'
 
 def get_upload_file_path(filename):
     safe_filename = normalize_upload_filename(filename)
@@ -160,7 +177,7 @@ def get_upload_file_path(filename):
         return None
 
     root_path = os.path.realpath(app.config['UPLOAD_FOLDER'])
-    candidate_path = os.path.realpath(os.path.join(root_path, safe_filename))
+    candidate_path = os.path.realpath(os.path.join(root_path, *safe_filename.split('/')))
     try:
         if os.path.commonpath([root_path, candidate_path]) != root_path:
             return None
@@ -1500,7 +1517,8 @@ def upload_image_handler(data, method='POST'):
 
     timestamp = int(time.time())
     unique_id = str(uuid.uuid4())[:8]
-    filename = f"{timestamp}_{unique_id}.webp"
+    image_year = time.strftime('%Y', time.localtime(timestamp))
+    filename = f"{image_year}/{timestamp}_{unique_id}.webp"
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     try:
@@ -1510,6 +1528,7 @@ def upload_image_handler(data, method='POST'):
             logger.error("Generated upload filename was rejected: %s", filename)
             return jsonify({'success': False, 'message': '图片保存失败'}), 500
 
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, 'wb') as f:
             f.write(processed_image)
         return jsonify({
