@@ -609,6 +609,17 @@
     width: fit-content;
     max-width: 100%;
 }
+.thumbnail-batch-section .thumbnail-control-group {
+    width: 100%;
+}
+.thumbnail-batch-section .button.is-small {
+    flex: 1 1 auto;
+    min-width: 3.6rem;
+}
+.thumbnail-batch-section .thumbnail-percent-label,
+.thumbnail-batch-section .thumbnail-selected-count {
+    flex: 0 0 auto;
+}
 .thumbnail-manual-grid {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -2372,9 +2383,10 @@ tr.is-duplicate:hover {
         border-bottom: 1px solid rgba(255, 255, 255, 0.45);
     }
     .thumbnail-browser {
+        order: 1;
         flex: 0 0 auto;
-        min-height: 190px;
-        max-height: 32vh;
+        min-height: 270px;
+        max-height: 42vh;
         border-right: none;
         background: rgba(255, 255, 255, 0.22);
         padding: 0.75rem;
@@ -2387,7 +2399,7 @@ tr.is-duplicate:hover {
     }
     .thumbnail-file-list {
         flex: 1 1 0;
-        min-height: 110px;
+        min-height: 190px;
         overflow-y: auto;
         overflow-x: hidden;
         scrollbar-gutter: stable;
@@ -2401,6 +2413,7 @@ tr.is-duplicate:hover {
         padding: 0.75rem;
     }
     .thumbnail-player-pane {
+        order: 2;
         flex: 0 0 auto;
         justify-self: stretch;
         width: 100%;
@@ -2422,9 +2435,11 @@ tr.is-duplicate:hover {
         padding: 0.55rem;
     }
     .thumbnail-batch-section {
+        order: 2;
         width: 100%;
     }
     .thumbnail-manual-section {
+        order: 1;
         width: 100%;
     }
     #thumbnailModal .button.is-small {
