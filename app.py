@@ -315,6 +315,298 @@ def get_db_connection():
         if conn.is_connected():
             conn.close()
 
+MOVIE_METADATA_MIGRATION = '2026_06_18_normalize_movie_metadata'
+
+def table_exists(cursor, table_name):
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s
+    """, (table_name,))
+    return cursor.fetchone()[0] > 0
+
+def column_exists(cursor, table_name, column_name):
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = %s
+          AND COLUMN_NAME = %s
+    """, (table_name, column_name))
+    return cursor.fetchone()[0] > 0
+
+def index_exists(cursor, table_name, index_name):
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = %s
+          AND INDEX_NAME = %s
+    """, (table_name, index_name))
+    return cursor.fetchone()[0] > 0
+
+def ensure_index(cursor, table_name, index_name, create_sql):
+    if not index_exists(cursor, table_name, index_name):
+        cursor.execute(create_sql)
+
+def migration_recorded(cursor, version):
+    cursor.execute(
+        "SELECT 1 FROM schema_migrations WHERE version = %s LIMIT 1",
+        (version,)
+    )
+    return cursor.fetchone() is not None
+
+def record_schema_migration(cursor, version):
+    cursor.execute(
+        "INSERT IGNORE INTO schema_migrations (version) VALUES (%s)",
+        (version,)
+    )
+
+def parse_legacy_id_list(value):
+    ids = []
+    seen = set()
+    for item in str(value or '').split(','):
+        item = item.strip()
+        if not item:
+            continue
+        try:
+            item_id = int(item)
+        except (TypeError, ValueError):
+            continue
+        if item_id <= 0 or item_id in seen:
+            continue
+        seen.add(item_id)
+        ids.append(item_id)
+    return ids
+
+def parse_tag_names(value):
+    names = []
+    seen = set()
+    for item in str(value or '').split(','):
+        name = item.strip()
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        names.append(name)
+    return names
+
+def parse_ratings_string(value):
+    ratings_by_dimension = {}
+    for item in str(value or '').split(','):
+        item = item.strip()
+        if ':' not in item:
+            continue
+        dimension_id, rating = item.split(':', 1)
+        try:
+            dimension_id = int(dimension_id.strip())
+            rating = int(rating.strip())
+        except (TypeError, ValueError):
+            continue
+        if dimension_id <= 0 or rating < 1 or rating > 5:
+            continue
+        ratings_by_dimension[dimension_id] = rating
+    return list(ratings_by_dimension.items())
+
+def parse_positive_int(value, default, minimum=1, maximum=None):
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return default
+    if number < minimum:
+        return minimum
+    if maximum is not None and number > maximum:
+        return maximum
+    return number
+
+def row_value(row, key='id'):
+    if isinstance(row, dict):
+        return row.get(key)
+    return row[0]
+
+def resolve_tag_ids(cursor, tag_names):
+    tag_ids = []
+    for tag_name in tag_names:
+        cursor.execute("SELECT id FROM tags WHERE name = %s", (tag_name,))
+        result = cursor.fetchone()
+        if result:
+            tag_ids.append(row_value(result))
+    return tag_ids
+
+def replace_movie_tags(cursor, movie_title, tag_ids):
+    cursor.execute("DELETE FROM movie_tags WHERE movie_title = %s", (movie_title,))
+    for tag_id in tag_ids:
+        cursor.execute("""
+            INSERT IGNORE INTO movie_tags (movie_title, tag_id)
+            VALUES (%s, %s)
+        """, (movie_title, tag_id))
+
+def replace_movie_ratings(cursor, movie_title, ratings_value):
+    cursor.execute("DELETE FROM movie_ratings WHERE movie_title = %s", (movie_title,))
+    for dimension_id, rating in parse_ratings_string(ratings_value):
+        cursor.execute("""
+            INSERT INTO movie_ratings (movie_title, dimension_id, rating)
+            SELECT %s, id, %s
+            FROM ratings_dimensions
+            WHERE id = %s
+            ON DUPLICATE KEY UPDATE rating = VALUES(rating)
+        """, (movie_title, rating, dimension_id))
+
+def sync_movie_metadata(cursor, movie_title, tag_names_value, ratings_value):
+    tag_ids = resolve_tag_ids(cursor, parse_tag_names(tag_names_value))
+    replace_movie_tags(cursor, movie_title, tag_ids)
+    replace_movie_ratings(cursor, movie_title, ratings_value)
+
+def hydrate_movie_rows(cursor, movies):
+    if not movies:
+        return movies
+
+    titles = [movie['title'] for movie in movies]
+    placeholders = ','.join(['%s'] * len(titles))
+
+    cursor.execute(f"""
+        SELECT mt.movie_title, t.name
+        FROM movie_tags mt
+        JOIN tags t ON t.id = mt.tag_id
+        WHERE mt.movie_title IN ({placeholders})
+        ORDER BY t.name
+    """, titles)
+    tags_by_title = {}
+    for row in cursor.fetchall():
+        tags_by_title.setdefault(row['movie_title'], []).append(row['name'])
+
+    cursor.execute(f"""
+        SELECT mr.movie_title, rd.id AS dimension_id, rd.name AS dimension_name, mr.rating
+        FROM movie_ratings mr
+        JOIN ratings_dimensions rd ON rd.id = mr.dimension_id
+        WHERE mr.movie_title IN ({placeholders})
+        ORDER BY rd.id
+    """, titles)
+    ratings_by_title = {}
+    for row in cursor.fetchall():
+        ratings_by_title.setdefault(row['movie_title'], []).append(row)
+
+    for movie in movies:
+        title = movie['title']
+        movie['tag_names'] = ', '.join(tags_by_title.get(title, []))
+
+        ratings = ratings_by_title.get(title, [])
+        movie['ratings'] = ','.join(
+            f"{rating['dimension_id']}:{rating['rating']}"
+            for rating in ratings
+        )
+        movie['ratings_display'] = {
+            rating['dimension_name']: int(rating['rating'])
+            for rating in ratings
+        }
+
+        added_date = movie.get('added_date')
+        if hasattr(added_date, 'strftime'):
+            movie['formatted_added_date'] = added_date.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            movie['formatted_added_date'] = str(added_date or '')
+
+    return movies
+
+def resolve_rating_dimension_id(cursor, value):
+    value = str(value or '').strip()
+    if not value:
+        return None
+
+    if value.isdigit():
+        cursor.execute("SELECT id FROM ratings_dimensions WHERE id = %s", (int(value),))
+    else:
+        cursor.execute("SELECT id FROM ratings_dimensions WHERE name = %s", (value,))
+    result = cursor.fetchone()
+    return row_value(result) if result else None
+
+def migrate_movie_metadata_schema(conn, cursor):
+    has_legacy_tags = column_exists(cursor, 'movies', 'tags')
+    has_legacy_ratings = column_exists(cursor, 'movies', 'ratings')
+
+    if not has_legacy_tags and not has_legacy_ratings:
+        if not migration_recorded(cursor, MOVIE_METADATA_MIGRATION):
+            record_schema_migration(cursor, MOVIE_METADATA_MIGRATION)
+        return
+
+    logger.info("Migrating legacy movies tags/ratings columns to relation tables")
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS movies_legacy_backup (
+            title VARCHAR(255) PRIMARY KEY,
+            tags VARCHAR(255),
+            ratings VARCHAR(255),
+            backed_up_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    """)
+
+    tags_expr = 'tags' if has_legacy_tags else 'NULL'
+    ratings_expr = 'ratings' if has_legacy_ratings else 'NULL'
+    cursor.execute(f"""
+        INSERT INTO movies_legacy_backup (title, tags, ratings)
+        SELECT title, {tags_expr}, {ratings_expr}
+        FROM movies
+        ON DUPLICATE KEY UPDATE
+            tags = VALUES(tags),
+            ratings = VALUES(ratings),
+            backed_up_at = CURRENT_TIMESTAMP
+    """)
+
+    cursor.execute("SELECT id FROM tags")
+    valid_tag_ids = {row[0] for row in cursor.fetchall()}
+    cursor.execute("SELECT id FROM ratings_dimensions")
+    valid_dimension_ids = {row[0] for row in cursor.fetchall()}
+
+    cursor.execute("DELETE mt FROM movie_tags mt JOIN movies m ON m.title = mt.movie_title")
+    cursor.execute("DELETE mr FROM movie_ratings mr JOIN movies m ON m.title = mr.movie_title")
+
+    cursor.execute(f"SELECT title, {tags_expr} AS tags, {ratings_expr} AS ratings FROM movies")
+    legacy_movies = cursor.fetchall()
+
+    expected_tag_rows = 0
+    expected_rating_rows = 0
+    for title, legacy_tags, legacy_ratings in legacy_movies:
+        tag_ids = [tag_id for tag_id in parse_legacy_id_list(legacy_tags) if tag_id in valid_tag_ids]
+        for tag_id in tag_ids:
+            cursor.execute("""
+                INSERT IGNORE INTO movie_tags (movie_title, tag_id)
+                VALUES (%s, %s)
+            """, (title, tag_id))
+        expected_tag_rows += len(tag_ids)
+
+        ratings = [
+            (dimension_id, rating)
+            for dimension_id, rating in parse_ratings_string(legacy_ratings)
+            if dimension_id in valid_dimension_ids
+        ]
+        for dimension_id, rating in ratings:
+            cursor.execute("""
+                INSERT INTO movie_ratings (movie_title, dimension_id, rating)
+                VALUES (%s, %s, %s)
+                ON DUPLICATE KEY UPDATE rating = VALUES(rating)
+            """, (title, dimension_id, rating))
+        expected_rating_rows += len(ratings)
+
+    cursor.execute("SELECT COUNT(*) FROM movie_tags mt JOIN movies m ON m.title = mt.movie_title")
+    actual_tag_rows = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM movie_ratings mr JOIN movies m ON m.title = mr.movie_title")
+    actual_rating_rows = cursor.fetchone()[0]
+
+    if actual_tag_rows != expected_tag_rows or actual_rating_rows != expected_rating_rows:
+        conn.rollback()
+        raise RuntimeError(
+            "Movie metadata migration validation failed: "
+            f"tags {actual_tag_rows}/{expected_tag_rows}, "
+            f"ratings {actual_rating_rows}/{expected_rating_rows}"
+        )
+
+    conn.commit()
+
+    if has_legacy_tags:
+        cursor.execute("ALTER TABLE movies DROP COLUMN tags")
+    if has_legacy_ratings:
+        cursor.execute("ALTER TABLE movies DROP COLUMN ratings")
+    record_schema_migration(cursor, MOVIE_METADATA_MIGRATION)
+
 # 初始化数据库
 def init_db():
     try:
@@ -326,10 +618,14 @@ def init_db():
                     title VARCHAR(255) PRIMARY KEY,
                     recommended BOOLEAN,
                     review TEXT,
-                    tags VARCHAR(255),
-					ratings VARCHAR(255),
                     image_filename TEXT,
                     added_date DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS schema_migrations (
+                    version VARCHAR(100) PRIMARY KEY,
+                    applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
             # 创建tags表
@@ -345,6 +641,49 @@ def init_db():
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     name VARCHAR(50) UNIQUE
                 )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS movie_tags (
+                    movie_title VARCHAR(255) NOT NULL,
+                    tag_id INT NOT NULL,
+                    PRIMARY KEY (movie_title, tag_id),
+                    CONSTRAINT fk_movie_tags_movie
+                        FOREIGN KEY (movie_title) REFERENCES movies(title)
+                        ON DELETE CASCADE ON UPDATE CASCADE,
+                    CONSTRAINT fk_movie_tags_tag
+                        FOREIGN KEY (tag_id) REFERENCES tags(id)
+                        ON DELETE CASCADE ON UPDATE CASCADE
+                )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS movie_ratings (
+                    movie_title VARCHAR(255) NOT NULL,
+                    dimension_id INT NOT NULL,
+                    rating TINYINT NOT NULL,
+                    PRIMARY KEY (movie_title, dimension_id),
+                    CONSTRAINT fk_movie_ratings_movie
+                        FOREIGN KEY (movie_title) REFERENCES movies(title)
+                        ON DELETE CASCADE ON UPDATE CASCADE,
+                    CONSTRAINT fk_movie_ratings_dimension
+                        FOREIGN KEY (dimension_id) REFERENCES ratings_dimensions(id)
+                        ON DELETE CASCADE ON UPDATE CASCADE,
+                    CONSTRAINT chk_movie_rating_range CHECK (rating BETWEEN 1 AND 5)
+                )
+            """)
+
+            ensure_index(cursor, 'movies', 'idx_movies_added_date', """
+                CREATE INDEX idx_movies_added_date ON movies (added_date)
+            """)
+            ensure_index(cursor, 'movie_tags', 'idx_movie_tags_tag_movie', """
+                CREATE INDEX idx_movie_tags_tag_movie ON movie_tags (tag_id, movie_title)
+            """)
+            ensure_index(cursor, 'movie_ratings', 'idx_movie_ratings_dimension_rating_title', """
+                CREATE INDEX idx_movie_ratings_dimension_rating_title
+                ON movie_ratings (dimension_id, rating, movie_title)
+            """)
+            ensure_index(cursor, 'movie_ratings', 'idx_movie_ratings_movie_rating', """
+                CREATE INDEX idx_movie_ratings_movie_rating
+                ON movie_ratings (movie_title, rating)
             """)
             
             # 预设标签
@@ -384,6 +723,7 @@ def init_db():
                         if err.errno != 1062:  # 忽略重复键错误
                             raise
                         
+            migrate_movie_metadata_schema(conn, cursor)
             conn.commit()
             return True
     except Exception as e:
@@ -614,29 +954,16 @@ def add_movie_handler(data, method='POST'):
         title = data.get('title')
         recommended = 1 if data.get('recommended') else 0
         review = data.get('review', '')
-        tag_names = data.get('tags', '').split(',')
         ratings = data.get('ratings', '')
         image_filenames = data.get('image_filenames', '')
 
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            
-            # 获取标签名称对应的ID
-            tag_ids = []
-            for tag_name in tag_names:
-                if tag_name.strip():
-                    cursor.execute("SELECT id FROM tags WHERE name = %s", (tag_name.strip(),))
-                    result = cursor.fetchone()
-                    if result:
-                        tag_ids.append(str(result[0]))
-            
-            # 将标签ID用逗号连接
-            tags = ','.join(tag_ids)
-
             cursor.execute("""
-                INSERT INTO movies (title, recommended, review, tags, ratings, image_filename)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, (title, recommended, review, tags, ratings, image_filenames))
+                INSERT INTO movies (title, recommended, review, image_filename)
+                VALUES (%s, %s, %s, %s)
+            """, (title, recommended, review, image_filenames))
+            sync_movie_metadata(cursor, title, data.get('tags', ''), ratings)
             conn.commit()
         return jsonify({"message": "电影添加成功"}), 200
     except mysql.connector.Error as err:
@@ -648,25 +975,12 @@ def update_movie_handler(data, method='PUT'):
         title = data.get('title')
         recommended = 1 if data.get('recommended') else 0
         review = data.get('review', '')
-        tag_names = data.get('tags', '').split(',')
         ratings = data.get('ratings', '')
         image_filenames = data.get('image_filenames', '')
         original_images = json.loads(data.get('original_images', '[]'))
 
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            
-            # 获取标签名称对应的ID
-            tag_ids = []
-            for tag_name in tag_names:
-                if tag_name.strip():
-                    cursor.execute("SELECT id FROM tags WHERE name = %s", (tag_name.strip(),))
-                    result = cursor.fetchone()
-                    if result:
-                        tag_ids.append(str(result[0]))
-
-            # 将标签ID用逗号连接
-            tags = ','.join(tag_ids)
 
             # 处理图片文件删除
             if original_images:
@@ -694,9 +1008,10 @@ def update_movie_handler(data, method='PUT'):
             # 更新数据库记录
             cursor.execute("""
                 UPDATE movies 
-                SET recommended = %s, review = %s, tags = %s, ratings = %s, image_filename = %s
+                SET recommended = %s, review = %s, image_filename = %s
                 WHERE title = %s
-            """, (recommended, review, tags, ratings, image_filenames, title))
+            """, (recommended, review, image_filenames, title))
+            sync_movie_metadata(cursor, title, data.get('tags', ''), ratings)
 
             conn.commit()
 			
@@ -715,62 +1030,130 @@ def get_ratings_dimensions_handler(data, method='GET'):
     except Exception as e:
         return json_exception('Get ratings dimensions', e)
 
+def search_movies_sql_handler(data):
+    data = data or {}
+    search_term = str(data.get('title') or '').strip()
+    rating_dimension = str(data.get('rating_dimension') or '').strip()
+    min_rating_raw = str(data.get('min_rating') or '').strip()
+    selected_tag_names = parse_tag_names(data.get('tags', ''))
+    page = parse_positive_int(data.get('page'), 1, 1)
+    per_page = parse_positive_int(data.get('per_page'), 10, 1, 100)
+
+    with get_db_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+        where_clauses = []
+        params = []
+
+        if search_term:
+            where_clauses.append("(m.title LIKE %s OR m.review LIKE %s)")
+            params.extend([f'%{search_term}%', f'%{search_term}%'])
+
+        if selected_tag_names:
+            tag_ids = resolve_tag_ids(cursor, selected_tag_names)
+            if len(tag_ids) != len(selected_tag_names):
+                return jsonify({
+                    "success": True,
+                    "data": [],
+                    "pagination": {
+                        "page": 1,
+                        "per_page": per_page,
+                        "total": 0,
+                        "total_pages": 0
+                    }
+                })
+
+            for index, tag_id in enumerate(tag_ids):
+                alias = f"mt_filter_{index}"
+                where_clauses.append(
+                    f"EXISTS (SELECT 1 FROM movie_tags {alias} "
+                    f"WHERE {alias}.movie_title = m.title AND {alias}.tag_id = %s)"
+                )
+                params.append(tag_id)
+
+        min_rating = None
+        if min_rating_raw:
+            min_rating = parse_positive_int(min_rating_raw, None, 1, 5)
+            if min_rating is None:
+                return json_error('Invalid minimum rating', 400)
+
+        rating_dimension_id = None
+        if rating_dimension:
+            rating_dimension_id = resolve_rating_dimension_id(cursor, rating_dimension)
+            if rating_dimension_id is None:
+                return jsonify({
+                    "success": True,
+                    "data": [],
+                    "pagination": {
+                        "page": 1,
+                        "per_page": per_page,
+                        "total": 0,
+                        "total_pages": 0
+                    }
+                })
+
+        if min_rating is not None and rating_dimension_id is not None:
+            where_clauses.append("""
+                EXISTS (
+                    SELECT 1
+                    FROM movie_ratings mr_filter
+                    WHERE mr_filter.movie_title = m.title
+                      AND mr_filter.dimension_id = %s
+                      AND mr_filter.rating >= %s
+                )
+            """)
+            params.extend([rating_dimension_id, min_rating])
+        elif min_rating is not None:
+            where_clauses.append("""
+                EXISTS (
+                    SELECT 1
+                    FROM movie_ratings mr_any
+                    WHERE mr_any.movie_title = m.title
+                )
+            """)
+            where_clauses.append("""
+                NOT EXISTS (
+                    SELECT 1
+                    FROM movie_ratings mr_low
+                    WHERE mr_low.movie_title = m.title
+                      AND mr_low.rating < %s
+                )
+            """)
+            params.append(min_rating)
+
+        where_sql = f" WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+
+        cursor.execute(f"SELECT COUNT(*) AS total FROM movies m{where_sql}", params)
+        total = cursor.fetchone()['total']
+        total_pages = (total + per_page - 1) // per_page if total else 0
+        if total_pages and page > total_pages:
+            page = total_pages
+        offset = (page - 1) * per_page if total else 0
+
+        query_params = list(params)
+        query_params.extend([per_page, offset])
+        cursor.execute(f"""
+            SELECT m.title, m.recommended, m.review, m.image_filename, m.added_date
+            FROM movies m
+            {where_sql}
+            ORDER BY m.added_date DESC
+            LIMIT %s OFFSET %s
+        """, query_params)
+        movies = hydrate_movie_rows(cursor, cursor.fetchall())
+
+        return jsonify({
+            "success": True,
+            "data": movies,
+            "pagination": {
+                "page": page,
+                "per_page": per_page,
+                "total": total,
+                "total_pages": total_pages
+            }
+        })
+
 def search_movies_handler(data, method='GET'):
     try:
-        # 获取搜索参数
-        search_term = data.get('title', '').strip()
-        rating_dimension = data.get('rating_dimension', '').strip()
-        min_rating = data.get('min_rating', '').strip()
-
-        with get_db_connection() as conn:
-            cursor = conn.cursor(dictionary=True)
-            
-            # 获取所有标签数据
-            cursor.execute("SELECT * FROM tags")
-            all_tags = {str(tag['id']): tag['name'] for tag in cursor.fetchall()}
-            
-            # 获取所有评分维度
-            cursor.execute("SELECT * FROM ratings_dimensions")
-            all_dimensions = {str(dim['id']): dim['name'] for dim in cursor.fetchall()}
-            
-            # 构建基础查询
-            query = "SELECT * FROM movies"
-            params = []
-            where_clauses = []			
-			
-            if search_term:
-                where_clauses.append("(title LIKE %s OR review LIKE %s)")
-                params.extend([f'%{search_term}%', f'%{search_term}%'])
-            
-            if where_clauses:
-                query += " WHERE " + " AND ".join(where_clauses)
-            
-            query += " ORDER BY added_date DESC"			
-			
-            cursor.execute(query, params)
-            movies = cursor.fetchall()
-            
-            # 处理每部电影的数据
-            for movie in movies:
-                # 处理标签显示
-                movie['tag_names'] = ', '.join(all_tags.get(tag_id, '') 
-                    for tag_id in (movie['tags'].split(',') if movie['tags'] else []))
-                
-                # 处理评分显示
-                if movie['ratings']:
-                    movie['ratings_display'] = {
-                        all_dimensions.get(dim_id, ''): int(rating)
-                        for dim_id, rating in (pair.split(':') 
-                        for pair in movie['ratings'].split(',') if ':' in pair)
-                    }
-                else:
-                    movie['ratings_display'] = {}
-                
-                # 格式化日期显示
-                movie['formatted_added_date'] = movie['added_date'].strftime('%Y-%m-%d %H:%M:%S')
-            
-            return jsonify({"success": True, "data": movies})
-            
+        return search_movies_sql_handler(data)
     except Exception as e:
         return json_exception('Search movies', e, '搜索失败')
 
@@ -1015,6 +1398,8 @@ def delete_movie_handler(data, method='DELETE'):
                         delete_uploaded_image(filename.strip())
 
             # 删除数据库记录
+            cursor.execute("DELETE FROM movie_tags WHERE movie_title = %s", (title,))
+            cursor.execute("DELETE FROM movie_ratings WHERE movie_title = %s", (title,))
             cursor.execute("DELETE FROM movies WHERE title = %s", (title,))
             conn.commit()
             

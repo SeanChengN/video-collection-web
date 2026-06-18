@@ -1366,7 +1366,7 @@ function loadFilters() {
                 
                 data.dimensions.forEach(dimension => {
                     const option = document.createElement('option');
-                    option.value = dimension.name;
+                    option.value = dimension.id;
                     option.textContent = dimension.name;
                     dimensionSelect.appendChild(option);
                 });
@@ -1421,7 +1421,10 @@ function getSelectedTags() {
 }
 
 // 按要求搜索电影
-function searchMovies() {
+function searchMovies(page = 1) {
+    const requestedPage = Number(page);
+    currentPage = Number.isFinite(requestedPage) && requestedPage > 0 ? Math.floor(requestedPage) : 1;
+
     const title = document.getElementById('search-input').value.trim();
     const ratingDimension = document.getElementById('rating-dimension-filter').value;
     const minRating = document.getElementById('min-rating-filter').value;
@@ -1429,51 +1432,23 @@ function searchMovies() {
     const messageDiv = document.getElementById('search-message');
     const resultsDiv = document.getElementById('search-results');
 
-    // 构建搜索参数
     const searchParams = {
         title,
         rating_dimension: ratingDimension,
         min_rating: minRating,
-        tags: selectedTags.join(',')
+        tags: selectedTags.join(','),
+        page: currentPage,
+        per_page: itemsPerPage
     };
 
-    // 显示加载提示
-    //messageDiv.innerHTML = '<div class="notification is-info">正在搜索...</div>';
     callApi(event_map.search_movies, searchParams, 'GET')
         .then(result => {
             if (result.success) {
-                // 处理过滤
-                let filteredMovies = result.data;
-                
-                // 标签过滤
-                if (selectedTags.length > 0) {
-                    filteredMovies = filteredMovies.filter(movie => {
-                        const movieTags = movie.tag_names.split(', ');
-                        return selectedTags.every(tag => movieTags.includes(tag));
-                    });
-                }
-                
-                // 评分过滤
-                if (minRating) {
-                    const minRatingValue = parseInt(minRating);
-                    filteredMovies = filteredMovies.filter(movie => {
-                        const ratings = movie.ratings_display || {};
-                        
-                        if (ratingDimension) {
-                            // 特定维度过滤
-                            return ratings[ratingDimension] >= minRatingValue;
-                        } else {
-                            // 全部维度过滤（所有维度都必须达到最低评分要求）
-                            const ratingValues = Object.values(ratings);
-                            return ratingValues.length > 0 && // 确保有评分
-                                   ratingValues.every(rating => rating >= minRatingValue);
-                        }
-                    });
-                }
-    
-                allMovies = filteredMovies;
-                totalPages = Math.ceil(allMovies.length / itemsPerPage);
-                
+                const pagination = result.pagination || {};
+                allMovies = Array.isArray(result.data) ? result.data : [];
+                currentPage = pagination.page || currentPage;
+                totalPages = pagination.total_pages || 0;
+
                 if (allMovies.length === 0) {
                     messageDiv.innerHTML = '<div class="notification is-info">未找到电影</div>';
                     resultsDiv.innerHTML = '';
@@ -1481,10 +1456,8 @@ function searchMovies() {
                     return;
                 }
 
-                // 不再默认回到首页
-                //currentPage = 1;
                 displayCurrentPage();
-                messageDiv.innerHTML = ''; 
+                messageDiv.innerHTML = '';
             } else {
                 messageDiv.innerHTML = `<div class="notification is-warning">${result.message || '搜索失败'}</div>`;
             }
@@ -1495,7 +1468,6 @@ function searchMovies() {
             document.getElementById('pagination').innerHTML = '';
         });
 }
-
 function displayPagination() {
     const paginationHtml = `
         <nav class="pagination is-centered" role="navigation" aria-label="pagination">
@@ -1529,7 +1501,7 @@ function generatePaginationItems() {
 function changePage(page) {
     if (page >= 1 && page <= totalPages) {
         currentPage = page;
-        displayCurrentPage();
+        searchMovies(page);
     }
 }
 
@@ -2020,7 +1992,7 @@ function deleteMovie() {
                         closeModal();
                         // 恢复搜索状态并重新搜索
                         restoreSearchState();
-                        searchMovies();
+                        searchMovies(currentPage);
                         showAlert({
                             title: '删除成功',
                             message: result.message || '电影已删除',
@@ -2132,7 +2104,7 @@ async function updateMovie() {
             updateThumbnailSelectionControls();
             // 恢复搜索状态并重新搜索
             restoreSearchState();
-            searchMovies();
+            searchMovies(currentPage);
         } else {
             showAlert({
                 title: '更新失败',
@@ -2162,9 +2134,7 @@ function displayCurrentPage() {
         return;
     }
 
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    const pageItems = allMovies.slice(start, end);
+    const pageItems = allMovies;
 
     // 创建表格容器
     const tableContainer = document.createElement('div');
