@@ -1069,6 +1069,19 @@ function openSettingsModal() {
 
 function closeSettingsModal() {
     ModalManager.close('settingsModal');
+    refreshMainSettingsData();
+}
+
+function refreshMainSettingsData() {
+    Promise.all([
+        loadTags(),
+        loadRatingsDimensions(),
+        loadFilters()
+    ]).then(() => {
+        if (allMovies.length > 0) {
+            searchMovies(currentPage);
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -1094,8 +1107,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 加载设置内容
 function loadSettings() {
-    loadSettingsTags();
-    loadSettingsRatingDimensions();
+    return Promise.all([
+        loadSettingsTags(),
+        loadSettingsRatingDimensions()
+    ]);
 }
 
 // 开始编辑
@@ -1141,9 +1156,10 @@ function saveTagEdit(button, oldName) {
             nameDiv.textContent = newName;
             // 更新编辑表单中的值
             input.value = newName;
+            tr.dataset.name = newName;
             // 更新按钮的 onclick 属性以使用新名称
             const saveButton = tr.querySelector('.edit-form button');
-            saveButton.setAttribute('onclick', `saveTagEdit(this, '${newName}')`);
+            saveButton.setAttribute('onclick', "saveTagEdit(this, this.closest('tr').dataset.name)");
             // 隐藏编辑表单
             cancelEdit(button);
         } else {
@@ -1179,9 +1195,10 @@ function saveRatingEdit(button, oldName) {
             nameDiv.textContent = newName;
             // 更新编辑表单中的值
             input.value = newName;
+            tr.dataset.name = newName;
             // 更新按钮的 onclick 属性以使用新名称
             const saveButton = tr.querySelector('.edit-form button');
-            saveButton.setAttribute('onclick', `saveRatingEdit(this, '${newName}')`);
+            saveButton.setAttribute('onclick', "saveRatingEdit(this, this.closest('tr').dataset.name)");
             // 隐藏编辑表单
             cancelEdit(button);
         } else {
@@ -1260,18 +1277,18 @@ function addNewRating() {
 
 // 加载设置界面的标签列表
 function loadSettingsTags() {
-    callApi(event_map.get_tags)
+    return callApi(event_map.get_tags)
         .then(result => {
             if (result.success) {
                 const tagsList = document.getElementById('tagsList');
                 tagsList.innerHTML = result.data.map(tag => `
-                    <tr>
+                    <tr data-name="${escapeHtml(tag)}">
                         <td>
                             <div class="item-content">
-                                <div class="tag-name">${tag}</div>
+                                <div class="tag-name">${escapeHtml(tag)}</div>
                                 <div class="edit-form">
-                                    <input type="text" class="input" value="${tag}">
-                                    <button class="button is-success is-small save-btn-small" onclick="saveTagEdit(this, '${tag}')">
+                                    <input type="text" class="input" value="${escapeHtml(tag)}">
+                                    <button class="button is-success is-small save-btn-small" onclick="saveTagEdit(this, this.closest('tr').dataset.name)">
                                         <span class="icon">
                                             <svg width="10" height="10" fill="currentColor" stroke="none" aria-label="保存">
                                                 <use href="../static/sprite.svg#save-btn-icon"></use>
@@ -1283,10 +1300,15 @@ function loadSettingsTags() {
                                 </div>
                             </div>
                         </td>
-                        <td>
-                            <button class="button is-small is-info edit-btn" onclick="startEdit(this)">
-                                <span>编辑</span>
-                            </button>
+                        <td class="settings-actions-column">
+                            <div class="settings-actions">
+                                <button class="button is-info is-small edit-btn settings-action-btn" onclick="startEdit(this)">
+                                    <span>编辑</span>
+                                </button>
+                                <button class="button is-danger is-small settings-action-btn settings-delete-btn" onclick="deleteTag(this)">
+                                    <span>删除</span>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `).join('');
@@ -1299,18 +1321,18 @@ function loadSettingsTags() {
 
 // 加载设置界面的评分维度列表
 function loadSettingsRatingDimensions() {
-    callApi(event_map.get_ratings_dimensions)
+    return callApi(event_map.get_ratings_dimensions)
         .then(result => {
             if (result.success) {
                 const ratingsList = document.getElementById('ratingsList');
                 ratingsList.innerHTML = result.dimensions.map(dimension => `
-                    <tr>
+                    <tr data-id="${dimension.id}" data-name="${escapeHtml(dimension.name)}">
                         <td>
                             <div class="item-content">
-                                <div class="rating-name">${dimension.name}</div>
+                                <div class="rating-name">${escapeHtml(dimension.name)}</div>
                                 <div class="edit-form">
-                                    <input type="text" class="input" value="${dimension.name}">
-                                    <button class="button is-success is-small save-btn-small" onclick="saveRatingEdit(this, '${dimension.name}')">
+                                    <input type="text" class="input" value="${escapeHtml(dimension.name)}">
+                                    <button class="button is-success is-small save-btn-small" onclick="saveRatingEdit(this, this.closest('tr').dataset.name)">
                                         <span class="icon">
                                             <svg width="10" height="10" fill="currentColor" stroke="none" aria-label="保存">
                                                 <use href="../static/sprite.svg#save-btn-icon"></use>
@@ -1322,10 +1344,15 @@ function loadSettingsRatingDimensions() {
                                 </div>
                             </div>
                         </td>
-                        <td>
-                            <button class="button is-small is-info edit-btn" onclick="startEdit(this)">
-                                <span>编辑</span>
-                            </button>
+                        <td class="settings-actions-column">
+                            <div class="settings-actions">
+                                <button class="button is-info is-small edit-btn settings-action-btn" onclick="startEdit(this)">
+                                    <span>编辑</span>
+                                </button>
+                                <button class="button is-danger is-small settings-action-btn settings-delete-btn" onclick="deleteRatingDimension(this)">
+                                    <span>删除</span>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `).join('');
@@ -1336,8 +1363,103 @@ function loadSettingsRatingDimensions() {
         });
 }
 
+function deleteTag(button) {
+    const tr = button.closest('tr');
+    const name = tr?.dataset.name || '';
+    if (!name) return;
+
+    callApi(event_map.delete_tag, { name, preview: true }, 'DELETE')
+        .then(result => {
+            if (!result.success) {
+                showAlert({
+                    title: '删除失败',
+                    message: result.message || '标签不存在',
+                    type: 'error',
+                    showCancel: false
+                });
+                return;
+            }
+
+            const usageCount = result.usage_count || 0;
+            showAlert({
+                title: '删除标签',
+                message: usageCount > 0
+                    ? `标签“${name}”正在被 ${usageCount} 部电影使用。确认删除并清除这些关联吗？`
+                    : `确认删除标签“${name}”吗？`,
+                type: 'warning',
+                confirmText: '删除',
+                cancelText: '取消',
+                onConfirm: () => confirmDeleteTag(name)
+            });
+        });
+}
+
+function confirmDeleteTag(name) {
+    callApi(event_map.delete_tag, { name, confirm: true }, 'DELETE')
+        .then(result => {
+            if (result.success) {
+                loadSettings();
+            } else {
+                showAlert({
+                    title: '删除失败',
+                    message: result.message || '标签删除失败',
+                    type: 'error',
+                    showCancel: false
+                });
+            }
+        });
+}
+
+function deleteRatingDimension(button) {
+    const tr = button.closest('tr');
+    const dimensionId = tr?.dataset.id || '';
+    const name = tr?.dataset.name || '';
+    if (!dimensionId) return;
+
+    callApi(event_map.delete_rating_dimension, { id: dimensionId, preview: true }, 'DELETE')
+        .then(result => {
+            if (!result.success) {
+                showAlert({
+                    title: '删除失败',
+                    message: result.message || '评分维度不存在',
+                    type: 'error',
+                    showCancel: false
+                });
+                return;
+            }
+
+            const usageCount = result.usage_count || 0;
+            showAlert({
+                title: '删除评分维度',
+                message: usageCount > 0
+                    ? `评分维度“${name}”正在被 ${usageCount} 部电影使用。确认删除并清除这些评分吗？`
+                    : `确认删除评分维度“${name}”吗？`,
+                type: 'warning',
+                confirmText: '删除',
+                cancelText: '取消',
+                onConfirm: () => confirmDeleteRatingDimension(dimensionId)
+            });
+        });
+}
+
+function confirmDeleteRatingDimension(dimensionId) {
+    callApi(event_map.delete_rating_dimension, { id: dimensionId, confirm: true }, 'DELETE')
+        .then(result => {
+            if (result.success) {
+                loadSettings();
+            } else {
+                showAlert({
+                    title: '删除失败',
+                    message: result.message || '评分维度删除失败',
+                    type: 'error',
+                    showCancel: false
+                });
+            }
+        });
+}
+
 function loadTags() {
-    callApi(event_map.get_tags)
+    return callApi(event_map.get_tags)
         .then(result => {
             if (result.success) {
                 const addTagsDiv = document.getElementById('add-tags');
@@ -1367,11 +1489,14 @@ const debounce = (func, wait) => {
 
 // 加载标签和评分维度
 function loadFilters() {
+    const dimensionSelect = document.getElementById('rating-dimension-filter');
+    const previousRatingDimension = dimensionSelect ? dimensionSelect.value : '';
+    const previousSelectedTags = getSelectedTags();
+
     // 加载评分维度
-    callApi(event_map.get_ratings_dimensions)
+    const ratingsRequest = callApi(event_map.get_ratings_dimensions)
         .then(data => {
             if (data.success) {
-                const dimensionSelect = document.getElementById('rating-dimension-filter');
                 dimensionSelect.innerHTML = '<option value="">全部维度</option>';
                 
                 data.dimensions.forEach(dimension => {
@@ -1380,6 +1505,9 @@ function loadFilters() {
                     option.textContent = dimension.name;
                     dimensionSelect.appendChild(option);
                 });
+                if ([...dimensionSelect.options].some(option => option.value === previousRatingDimension)) {
+                    dimensionSelect.value = previousRatingDimension;
+                }
             }
         })
         .catch(error => {
@@ -1392,7 +1520,7 @@ function loadFilters() {
         });
 
     // 加载标签
-    callApi(event_map.get_tags)
+    const tagsRequest = callApi(event_map.get_tags)
         .then(data => {
             if (data.success) {
                 const tagsFilter = document.getElementById('tags-filter');
@@ -1402,6 +1530,7 @@ function loadFilters() {
                     const tagSpan = document.createElement('span');
                     tagSpan.className = 'tag';
                     tagSpan.textContent = tagName;
+                    tagSpan.classList.toggle('is-selected', previousSelectedTags.includes(tagName));
                     tagSpan.onclick = () => toggleFilterTag(tagSpan);
                     tagsFilter.appendChild(tagSpan);
                 });
@@ -1415,6 +1544,8 @@ function loadFilters() {
                 showCancel: false
             });
         });
+
+    return Promise.all([ratingsRequest, tagsRequest]);
 }
 
 // 切换标签选中状态
@@ -1564,7 +1695,7 @@ let ratingsDimensions = [];
 
 // 加载评分维度
 function loadRatingsDimensions() {
-    callApi(event_map.get_ratings_dimensions)
+    return callApi(event_map.get_ratings_dimensions)
         .then(result => {
             if (result.success) {
                 ratingsDimensions = result.dimensions;
@@ -1578,6 +1709,8 @@ function loadRatingsDimensions() {
 function createRatingForms() {
     // 添加电影 表单的评分区域
     const addRatingsContainer = document.getElementById('add-ratings-container');
+    if (!addRatingsContainer) return;
+    addRatingsContainer.innerHTML = '';
     ratingsDimensions.forEach(dimension => {
         // 为添加电影 表单创建评分字段
         const addField = createRatingField(dimension, false);

@@ -954,7 +954,9 @@ def api_handler():
             1012: update_movie_handler,
             1013: delete_movie_handler,
             1014: search_emby_handler,
-            1015: list_video_files_handler
+            1015: list_video_files_handler,
+            1016: delete_tag_handler,
+            1017: delete_rating_dimension_handler
         }
         
         handler = handlers.get(event_id)
@@ -1352,6 +1354,45 @@ def update_tag_handler(data, method='POST'):
         log_exception('Update tag', err)
         return json_error('标签更新失败', 500)
 
+def delete_tag_handler(data, method='DELETE'):
+    try:
+        data = data or {}
+        name = data.get('name', '').strip()
+        preview = bool(data.get('preview'))
+        confirm = bool(data.get('confirm'))
+
+        if not name:
+            return jsonify({"success": False, "message": "标签名称不能为空"}), 400
+
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT id, name FROM tags WHERE name = %s", (name,))
+            tag = cursor.fetchone()
+            if not tag:
+                return jsonify({"success": False, "message": "标签不存在"}), 404
+
+            cursor.execute(
+                "SELECT COUNT(DISTINCT movie_title) AS usage_count FROM movie_tags WHERE tag_id = %s",
+                (tag['id'],)
+            )
+            usage_count = cursor.fetchone()['usage_count']
+
+            if preview or not confirm:
+                return jsonify({
+                    "success": True,
+                    "exists": True,
+                    "usage_count": usage_count,
+                    "name": tag['name']
+                })
+
+            cursor.execute("DELETE FROM movie_tags WHERE tag_id = %s", (tag['id'],))
+            cursor.execute("DELETE FROM tags WHERE id = %s", (tag['id'],))
+            conn.commit()
+
+        return jsonify({"success": True, "usage_count": usage_count})
+    except Exception as e:
+        return json_exception('Delete tag', e, '标签删除失败')
+
 def add_rating_dimension_handler(data, method='POST'):
     try:
         name = data.get('name', '').strip()
@@ -1391,6 +1432,46 @@ def update_rating_dimension_handler(data, method='POST'):
             return jsonify({"success": False, "message": "评分维度名称已存在"}), 400
         log_exception('Update rating dimension', err)
         return json_error('评分维度更新失败', 500)
+
+def delete_rating_dimension_handler(data, method='DELETE'):
+    try:
+        data = data or {}
+        dimension_id = parse_positive_int(data.get('id') or data.get('dimension_id'), None, 1)
+        preview = bool(data.get('preview'))
+        confirm = bool(data.get('confirm'))
+
+        if dimension_id is None:
+            return jsonify({"success": False, "message": "评分维度无效"}), 400
+
+        with get_db_connection() as conn:
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT id, name FROM ratings_dimensions WHERE id = %s", (dimension_id,))
+            dimension = cursor.fetchone()
+            if not dimension:
+                return jsonify({"success": False, "message": "评分维度不存在"}), 404
+
+            cursor.execute(
+                "SELECT COUNT(DISTINCT movie_title) AS usage_count FROM movie_ratings WHERE dimension_id = %s",
+                (dimension_id,)
+            )
+            usage_count = cursor.fetchone()['usage_count']
+
+            if preview or not confirm:
+                return jsonify({
+                    "success": True,
+                    "exists": True,
+                    "usage_count": usage_count,
+                    "id": dimension['id'],
+                    "name": dimension['name']
+                })
+
+            cursor.execute("DELETE FROM movie_ratings WHERE dimension_id = %s", (dimension_id,))
+            cursor.execute("DELETE FROM ratings_dimensions WHERE id = %s", (dimension_id,))
+            conn.commit()
+
+        return jsonify({"success": True, "usage_count": usage_count})
+    except Exception as e:
+        return json_exception('Delete rating dimension', e, '评分维度删除失败')
 
 def delete_movie_handler(data, method='DELETE'):
     try:

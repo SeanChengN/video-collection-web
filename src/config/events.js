@@ -13,7 +13,9 @@ const event_map = {
     update_movie: 1012,
     delete_movie: 1013,
     search_emby: 1014,
-    list_video_files: 1015
+    list_video_files: 1015,
+    delete_tag: 1016,
+    delete_rating_dimension: 1017
 };
 
 window.event_map = event_map;
