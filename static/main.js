@@ -34,6 +34,118 @@ async function cachedFetch(url, options = {}) {
 
 
 // 图片懒加载观察器
+function clearElement(element) {
+    if (!element) return;
+    while (element.firstChild) {
+        element.removeChild(element.firstChild);
+    }
+}
+
+function appendChildren(parent, children = []) {
+    children.forEach(child => {
+        if (child === null || child === undefined || child === false) return;
+        parent.appendChild(typeof child === 'string' ? document.createTextNode(child) : child);
+    });
+    return parent;
+}
+
+function createEl(tagName, options = {}, children = []) {
+    const element = document.createElement(tagName);
+    const {
+        className,
+        text,
+        attrs = {},
+        dataset = {},
+        props = {}
+    } = options;
+
+    if (className) element.className = className;
+    if (text !== undefined) element.textContent = text;
+    Object.entries(attrs).forEach(([name, value]) => {
+        if (value === false || value === null || value === undefined) return;
+        if (value === true) {
+            element.setAttribute(name, '');
+        } else {
+            element.setAttribute(name, String(value));
+        }
+    });
+    Object.entries(dataset).forEach(([name, value]) => {
+        if (value !== null && value !== undefined) {
+            element.dataset[name] = String(value);
+        }
+    });
+    Object.entries(props).forEach(([name, value]) => {
+        element[name] = value;
+    });
+
+    return appendChildren(element, children);
+}
+
+function createSpriteSvg(iconId, options = {}) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const {
+        width = 14,
+        height = 14,
+        fill = 'currentColor',
+        ariaLabel = ''
+    } = options;
+
+    svg.setAttribute('width', String(width));
+    svg.setAttribute('height', String(height));
+    svg.setAttribute('fill', fill);
+    svg.setAttribute('stroke', 'none');
+    if (ariaLabel) {
+        svg.setAttribute('aria-label', ariaLabel);
+    }
+
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', `../static/sprite.svg#${iconId}`);
+    svg.appendChild(use);
+    return svg;
+}
+
+function createActionButton({ className, text, action, dataset = {}, children = [] }) {
+    const button = createEl('button', {
+        className,
+        attrs: { type: 'button' },
+        dataset: { action, ...dataset }
+    });
+
+    if (children.length) {
+        appendChildren(button, children);
+    } else {
+        button.appendChild(createEl('span', { text }));
+    }
+    return button;
+}
+
+function createNotification(type, message) {
+    return createEl('div', {
+        className: `notification is-${type}`,
+        text: message
+    });
+}
+
+function setNotification(container, type, message) {
+    if (!container) return;
+    clearElement(container);
+    container.appendChild(createNotification(type, message));
+}
+
+function createStarsFragment(rating) {
+    const fragment = document.createDocumentFragment();
+    const safeRating = Number(rating) || 0;
+    for (let i = 1; i <= 5; i++) {
+        fragment.appendChild(createSpriteSvg('rating-star-icon', {
+            width: 16,
+            height: 16,
+            fill: i <= safeRating ? getStarColor(safeRating) : '#d3d3d3',
+            ariaLabel: '星级'
+        }));
+    }
+    return fragment;
+}
+
 const imageObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -335,6 +447,90 @@ function buildImageUrl(filename) {
 let allMovies = []; // 存储所有搜索结果
 
 // 定义全局配置变量
+let dynamicDelegatesInitialized = false;
+
+function initDynamicEventDelegates() {
+    if (dynamicDelegatesInitialized) return;
+    dynamicDelegatesInitialized = true;
+
+    const settingsModal = document.getElementById('settingsModal');
+    if (settingsModal) {
+        settingsModal.addEventListener('click', event => {
+            const actionElement = event.target.closest('[data-action]');
+            if (!actionElement || !settingsModal.contains(actionElement)) return;
+
+            const row = actionElement.closest('tr');
+            switch (actionElement.dataset.action) {
+                case 'start-setting-edit':
+                    startEdit(actionElement);
+                    break;
+                case 'cancel-setting-edit':
+                    cancelEdit(actionElement);
+                    break;
+                case 'save-tag':
+                    saveTagEdit(actionElement, row ? row.dataset.name : '');
+                    break;
+                case 'save-rating':
+                    saveRatingEdit(actionElement, row ? row.dataset.name : '');
+                    break;
+                case 'delete-tag':
+                    deleteTag(actionElement);
+                    break;
+                case 'delete-rating-dimension':
+                    deleteRatingDimension(actionElement);
+                    break;
+            }
+        });
+    }
+
+    const searchResults = document.getElementById('search-results');
+    if (searchResults) {
+        searchResults.addEventListener('click', event => {
+            const actionElement = event.target.closest('[data-action]');
+            if (!actionElement || !searchResults.contains(actionElement)) return;
+
+            if (actionElement.dataset.action === 'edit-movie') {
+                const index = Number(actionElement.dataset.movieIndex);
+                if (Number.isInteger(index) && allMovies[index]) {
+                    openModal(allMovies[index]);
+                }
+            }
+
+            if (actionElement.dataset.action === 'open-image-viewer') {
+                openImageViewer(actionElement.dataset.images || '', actionElement.dataset.title || '');
+            }
+        });
+
+        searchResults.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            const actionElement = event.target.closest('[data-action="open-image-viewer"]');
+            if (!actionElement || !searchResults.contains(actionElement)) return;
+            event.preventDefault();
+            openImageViewer(actionElement.dataset.images || '', actionElement.dataset.title || '');
+        });
+    }
+
+    const pagination = document.getElementById('pagination');
+    if (pagination) {
+        pagination.addEventListener('click', event => {
+            const pageElement = event.target.closest('[data-action="change-page"]');
+            if (!pageElement || !pagination.contains(pageElement)) return;
+            event.preventDefault();
+            if (pageElement.hasAttribute('disabled') || pageElement.getAttribute('aria-disabled') === 'true') return;
+            changePage(Number(pageElement.dataset.page));
+        });
+    }
+
+    const duplicateTable = document.getElementById('duplicate-table');
+    if (duplicateTable) {
+        duplicateTable.addEventListener('click', event => {
+            const copyButton = event.target.closest('[data-action="copy-extra"]');
+            if (!copyButton || !duplicateTable.contains(copyButton)) return;
+            copyToClipboard(copyButton.dataset.copyValue || '', copyButton);
+        });
+    }
+}
+
 let serviceConfig = {};
 
 // 页面加载时获取所有服务配置
@@ -560,11 +756,11 @@ function checkDuplicates() {
                     <tbody>
                         ${newMovies.map(movie => `
                             <tr>
-                                <td title="${movie.title}">${movie.title}</td>
-                                <td title="${movie.matchedTitle || ''}">${movie.matchedTitle || ''}</td>
-                                <td title="${movie.extra}">${movie.extra}</td>
+                                <td title="${escapeHtml(movie.title)}">${escapeHtml(movie.title)}</td>
+                                <td title="${escapeHtml(movie.matchedTitle || '')}">${escapeHtml(movie.matchedTitle || '')}</td>
+                                <td title="${escapeHtml(movie.extra)}">${escapeHtml(movie.extra)}</td>
                                 <td>
-                                    <button class="button is-small copy-btn" onclick="copyToClipboard('${movie.extra.replace(/'/g, "\\'")}', this)">
+                                    <button class="button is-small copy-btn" type="button" data-action="copy-extra" data-copy-value="${escapeHtml(movie.extra)}">
                                         <span class="icon">
                                             <svg width="20" height="20" fill="#888888" stroke="none" aria-label="复制">
                                                 <use href="../static/sprite.svg#copy-btn-icon"></use>
@@ -580,11 +776,11 @@ function checkDuplicates() {
                             </tr>
                             ${duplicateMovies.map(movie => `
                                 <tr class="is-duplicate">
-                                    <td title="${movie.title}">${movie.title}</td>
-                                    <td title="${movie.matchedTitle}">${movie.matchedTitle}</td>
-                                    <td title="${movie.extra}">${movie.extra}</td>
+                                    <td title="${escapeHtml(movie.title)}">${escapeHtml(movie.title)}</td>
+                                    <td title="${escapeHtml(movie.matchedTitle)}">${escapeHtml(movie.matchedTitle)}</td>
+                                    <td title="${escapeHtml(movie.extra)}">${escapeHtml(movie.extra)}</td>
                                     <td>
-                                        <button class="button is-small copy-btn" onclick="copyToClipboard('${movie.extra.replace(/'/g, "\\'")}', this)">
+                                        <button class="button is-small copy-btn" type="button" data-action="copy-extra" data-copy-value="${escapeHtml(movie.extra)}">
                                             <span class="icon">
                                                 <svg width="20" height="20" fill="#888888" stroke="none" aria-label="复制">
                                                     <use href="../static/sprite.svg#copy-btn-icon"></use>
@@ -1157,9 +1353,6 @@ function saveTagEdit(button, oldName) {
             // 更新编辑表单中的值
             input.value = newName;
             tr.dataset.name = newName;
-            // 更新按钮的 onclick 属性以使用新名称
-            const saveButton = tr.querySelector('.edit-form button');
-            saveButton.setAttribute('onclick', "saveTagEdit(this, this.closest('tr').dataset.name)");
             // 隐藏编辑表单
             cancelEdit(button);
         } else {
@@ -1196,9 +1389,6 @@ function saveRatingEdit(button, oldName) {
             // 更新编辑表单中的值
             input.value = newName;
             tr.dataset.name = newName;
-            // 更新按钮的 onclick 属性以使用新名称
-            const saveButton = tr.querySelector('.edit-form button');
-            saveButton.setAttribute('onclick', "saveRatingEdit(this, this.closest('tr').dataset.name)");
             // 隐藏编辑表单
             cancelEdit(button);
         } else {
@@ -1276,45 +1466,85 @@ function addNewRating() {
 }
 
 // 加载设置界面的标签列表
+function createSettingSaveButton(action) {
+    return createActionButton({
+        className: 'button is-success is-small save-btn-small',
+        action,
+        children: [
+            createEl('span', { className: 'icon' }, [
+                createSpriteSvg('save-btn-icon', { width: 10, height: 10, ariaLabel: '保存' })
+            ]),
+            createEl('span', { text: '保存' })
+        ]
+    });
+}
+
+function createSettingRow({ name, id = null, type }) {
+    const isTag = type === 'tag';
+    const tr = createEl('tr', { dataset: { name } });
+    if (id !== null && id !== undefined) {
+        tr.dataset.id = String(id);
+    }
+
+    const nameClass = isTag ? 'tag-name' : 'rating-name';
+    const saveAction = isTag ? 'save-tag' : 'save-rating';
+    const deleteAction = isTag ? 'delete-tag' : 'delete-rating-dimension';
+
+    const input = createEl('input', {
+        className: 'input',
+        attrs: { type: 'text' },
+        props: { value: name }
+    });
+
+    const editForm = createEl('div', { className: 'edit-form' }, [
+        input,
+        createSettingSaveButton(saveAction),
+        createActionButton({
+            className: 'button is-light is-small',
+            text: '取消',
+            action: 'cancel-setting-edit'
+        })
+    ]);
+
+    const contentCell = createEl('td', {}, [
+        createEl('div', { className: 'item-content' }, [
+            createEl('div', { className: nameClass, text: name }),
+            editForm
+        ])
+    ]);
+
+    const actionsCell = createEl('td', { className: 'settings-actions-column' }, [
+        createEl('div', { className: 'settings-actions' }, [
+            createActionButton({
+                className: 'button is-info is-small edit-btn settings-action-btn',
+                text: '编辑',
+                action: 'start-setting-edit'
+            }),
+            createActionButton({
+                className: 'button is-danger is-small settings-action-btn settings-delete-btn',
+                text: '删除',
+                action: deleteAction
+            })
+        ])
+    ]);
+
+    appendChildren(tr, [contentCell, actionsCell]);
+    return tr;
+}
+
+// 加载设置界面的标签列表
 function loadSettingsTags() {
     return callApi(event_map.get_tags)
         .then(result => {
             if (result.success) {
                 const tagsList = document.getElementById('tagsList');
-                tagsList.innerHTML = result.data.map(tag => `
-                    <tr data-name="${escapeHtml(tag)}">
-                        <td>
-                            <div class="item-content">
-                                <div class="tag-name">${escapeHtml(tag)}</div>
-                                <div class="edit-form">
-                                    <input type="text" class="input" value="${escapeHtml(tag)}">
-                                    <button class="button is-success is-small save-btn-small" onclick="saveTagEdit(this, this.closest('tr').dataset.name)">
-                                        <span class="icon">
-                                            <svg width="10" height="10" fill="currentColor" stroke="none" aria-label="保存">
-                                                <use href="../static/sprite.svg#save-btn-icon"></use>
-                                            </svg>
-                                        </span>
-                                        <span>保存</span>
-                                    </button>
-                                    <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="settings-actions-column">
-                            <div class="settings-actions">
-                                <button class="button is-info is-small edit-btn settings-action-btn" onclick="startEdit(this)">
-                                    <span>编辑</span>
-                                </button>
-                                <button class="button is-danger is-small settings-action-btn settings-delete-btn" onclick="deleteTag(this)">
-                                    <span>删除</span>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
+                const tags = result.data || [];
+                clearElement(tagsList);
+                tags.forEach(tag => {
+                    tagsList.appendChild(createSettingRow({ name: tag, type: 'tag' }));
+                });
 
-                // 更新标签计数
-                document.querySelector('.tag-counter').textContent = result.data.length;
+                document.querySelector('.tag-counter').textContent = tags.length;
             }
         });
 }
@@ -1325,44 +1555,20 @@ function loadSettingsRatingDimensions() {
         .then(result => {
             if (result.success) {
                 const ratingsList = document.getElementById('ratingsList');
-                ratingsList.innerHTML = result.dimensions.map(dimension => `
-                    <tr data-id="${dimension.id}" data-name="${escapeHtml(dimension.name)}">
-                        <td>
-                            <div class="item-content">
-                                <div class="rating-name">${escapeHtml(dimension.name)}</div>
-                                <div class="edit-form">
-                                    <input type="text" class="input" value="${escapeHtml(dimension.name)}">
-                                    <button class="button is-success is-small save-btn-small" onclick="saveRatingEdit(this, this.closest('tr').dataset.name)">
-                                        <span class="icon">
-                                            <svg width="10" height="10" fill="currentColor" stroke="none" aria-label="保存">
-                                                <use href="../static/sprite.svg#save-btn-icon"></use>
-                                            </svg>
-                                        </span>
-                                        <span>保存</span>
-                                    </button>
-                                    <button class="button is-light is-small" onclick="cancelEdit(this)">取消</button>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="settings-actions-column">
-                            <div class="settings-actions">
-                                <button class="button is-info is-small edit-btn settings-action-btn" onclick="startEdit(this)">
-                                    <span>编辑</span>
-                                </button>
-                                <button class="button is-danger is-small settings-action-btn settings-delete-btn" onclick="deleteRatingDimension(this)">
-                                    <span>删除</span>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
+                const dimensions = result.dimensions || [];
+                clearElement(ratingsList);
+                dimensions.forEach(dimension => {
+                    ratingsList.appendChild(createSettingRow({
+                        name: dimension.name,
+                        id: dimension.id,
+                        type: 'rating'
+                    }));
+                });
                 
-                // 更新评分维度计数
-                document.querySelector('.rating-counter').textContent = result.dimensions.length;
+                document.querySelector('.rating-counter').textContent = dimensions.length;
             }
         });
 }
-
 function deleteTag(button) {
     const tr = button.closest('tr');
     const name = tr?.dataset.name || '';
@@ -1591,54 +1797,30 @@ function searchMovies(page = 1) {
                 totalPages = pagination.total_pages || 0;
 
                 if (allMovies.length === 0) {
-                    messageDiv.innerHTML = '<div class="notification is-info">未找到电影</div>';
-                    resultsDiv.innerHTML = '';
-                    document.getElementById('pagination').innerHTML = '';
+                    setNotification(messageDiv, 'info', '未找到电影');
+                    clearElement(resultsDiv);
+                    clearElement(document.getElementById('pagination'));
                     return;
                 }
 
                 displayCurrentPage();
-                messageDiv.innerHTML = '';
+                clearElement(messageDiv);
             } else {
-                messageDiv.innerHTML = `<div class="notification is-warning">${result.message || '搜索失败'}</div>`;
+                setNotification(messageDiv, 'warning', result.message || '搜索失败');
             }
         })
         .catch(error => {
-            messageDiv.innerHTML = `<div class="notification is-danger">搜索出错: ${error.message}</div>`;
-            resultsDiv.innerHTML = '';
-            document.getElementById('pagination').innerHTML = '';
+            setNotification(messageDiv, 'danger', `搜索出错: ${error.message}`);
+            clearElement(resultsDiv);
+            clearElement(document.getElementById('pagination'));
         });
-}
-function displayPagination() {
-    const paginationHtml = `
-        <nav class="pagination is-centered" role="navigation" aria-label="pagination">
-            <a class="pagination-previous" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">上一页</a>
-            <a class="pagination-next" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">下一页</a>
-            <ul class="pagination-list">
-                ${generatePaginationItems()}
-            </ul>
-        </nav>
-    `;
-    
-    document.getElementById('pagination').innerHTML = paginationHtml;
+}function displayPagination() {
+    updatePagination();
 }
 
 function generatePaginationItems() {
-    let items = [];
-    
-    // 显示当前页码前后2页
-    for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
-        items.push(`
-            <li>
-                <a class="pagination-link ${i === currentPage ? 'is-current' : ''}" 
-                   onclick="changePage(${i})">${i}</a>
-            </li>
-        `);
-    }
-    
-    return items.join('');
+    return '';
 }
-
 function changePage(page) {
     if (page >= 1 && page <= totalPages) {
         currentPage = page;
@@ -1683,6 +1865,7 @@ function loadNonCriticalResources() {
 
 // 页面加载完成后执行
 document.addEventListener('DOMContentLoaded', () => {
+    initDynamicEventDelegates();
     loadTags();
     loadNonCriticalResources();
     loadRatingsDimensions();
@@ -1881,7 +2064,7 @@ function openModal(movie) {
     // 检查并显示已有图片
     const existingImagesContainer = modal.querySelector('.existing-images');
     existingImagesContainer.style.display = movie.image_filename ? 'flex' : 'none'; // 如果没有已存在图片，则隐藏容器
-    existingImagesContainer.innerHTML = ''; // 清空现有内容
+    clearElement(existingImagesContainer); // 清空现有内容
 
     // 数组存储当前显示的图片文件名
     const currentImages = new Set();
@@ -1890,19 +2073,22 @@ function openModal(movie) {
         const images = movie.image_filename.split(',');
         images.forEach((filename, index) => {
             if (filename.trim()) {
-                const imageUrl = buildImageUrl(filename);
+                const trimmedFilename = filename.trim();
+                const imageUrl = buildImageUrl(trimmedFilename);
                 const imageWrapper = document.createElement('div');
                 imageWrapper.className = 'existing-image-item';
                 imageWrapper.draggable = true; // 添加可拖拽属性
                 imageWrapper.dataset.index = index; // 添加索引用于排序
-                imageWrapper.innerHTML = `
-                    <img src="${imageUrl}" alt="预览图">
-                    <button class="delete-existing-image" data-filename="${filename.trim()}" type="button">
-                        <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
-                            <use href="../static/sprite.svg#close-icon"></use>
-                        </svg>
-                    </button>
-                `;
+                appendChildren(imageWrapper, [
+                    createEl('img', { attrs: { src: imageUrl, alt: '预览图' } }),
+                    createEl('button', {
+                        className: 'delete-existing-image',
+                        attrs: { type: 'button' },
+                        dataset: { filename: trimmedFilename }
+                    }, [
+                        createSpriteSvg('close-icon', { width: 12, height: 12, ariaLabel: '删除' })
+                    ])
+                ]);
 
                 // 阻止右键菜单弹出
                 imageWrapper.addEventListener('contextmenu', e => e.preventDefault());
@@ -1912,7 +2098,7 @@ function openModal(movie) {
                 deleteButton.addEventListener('click', (e) => {
                     e.preventDefault();
                     imageWrapper.remove();
-                    currentImages.delete(filename.trim());
+                    currentImages.delete(trimmedFilename);
                 });
 
                 /* PC端的拖拽使用了HTML5的原生拖放API，dragstart只是标记开始拖拽状态，
@@ -1945,7 +2131,7 @@ function openModal(movie) {
                 }, { passive: true });
 
                 existingImagesContainer.appendChild(imageWrapper);
-                currentImages.add(filename.trim());
+                currentImages.add(trimmedFilename);
             }
         });
 
@@ -2267,136 +2453,223 @@ async function updateMovie() {
 }
 
 // 搜索结果显示
+function parseMovieRatings(movie) {
+    return movie.ratings
+        ? movie.ratings.split(',').map(ratingPair => {
+            const [dimensionId, value] = ratingPair.split(':');
+            return {
+                dimensionId: String(dimensionId),
+                value: parseInt(value, 10)
+            };
+        }).filter(rating => rating.value > 0)
+        : [];
+}
+
+function createRatingItem(rating) {
+    const dimension = ratingsDimensions.find(d => d.id.toString() === rating.dimensionId);
+    if (!dimension) return null;
+
+    return createEl('div', { className: 'rating-item' }, [
+        createEl('span', { className: 'dimension-name', text: `${dimension.name}:` }),
+        createEl('span', { className: 'stars' }, [createStarsFragment(rating.value)])
+    ]);
+}
+
+function appendRatingItems(container, ratings) {
+    ratings.forEach(rating => {
+        const item = createRatingItem(rating);
+        if (item) container.appendChild(item);
+    });
+}
+
+function createRatingsCell(movie) {
+    const ratingsCell = createEl('td', {
+        className: 'ratings-cell',
+        attrs: { 'data-label': '评分' }
+    });
+    const movieRatings = parseMovieRatings(movie);
+
+    if (movieRatings.length > 0) {
+        const dropdownContent = createEl('div', { className: 'dropdown-content' });
+        appendRatingItems(dropdownContent, movieRatings);
+
+        const dropdown = createEl('div', { className: 'dropdown is-hoverable desktop-ratings-dropdown' }, [
+            createEl('div', { className: 'dropdown-trigger' }, [
+                createEl('button', {
+                    className: 'button is-small',
+                    attrs: { type: 'button' }
+                }, [createEl('span', { text: '查看评分' })])
+            ]),
+            createEl('div', { className: 'dropdown-menu', attrs: { role: 'menu' } }, [dropdownContent])
+        ]);
+
+        const mobileRatings = createEl('div', { className: 'mobile-ratings-list' });
+        appendRatingItems(mobileRatings, movieRatings);
+        appendChildren(ratingsCell, [dropdown, mobileRatings]);
+    } else {
+        appendChildren(ratingsCell, [
+            createEl('button', {
+                className: 'button is-small desktop-ratings-empty',
+                attrs: { type: 'button', disabled: true }
+            }, ['暂无评分']),
+            createEl('div', { className: 'mobile-ratings-list is-empty', text: '暂无评分' })
+        ]);
+    }
+
+    return ratingsCell;
+}
+
+function createMovieTitleCell(movie, movieIndex) {
+    const cell = createEl('td', {
+        className: 'movie-title-cell hoverable',
+        attrs: { 'data-label': '电影名称' }
+    });
+    const title = movie.title || '';
+    const imageFilename = movie.image_filename || '';
+
+    if (imageFilename) {
+        const firstImageFilename = imageFilename.split(',')[0].trim();
+        const firstImageUrl = firstImageFilename ? buildImageUrl(firstImageFilename) : '';
+        const preview = createEl('div', {
+            className: 'movie-preview-image',
+            attrs: { role: 'button', tabindex: '0', 'aria-label': `预览 ${title}` },
+            dataset: {
+                action: 'open-image-viewer',
+                images: imageFilename,
+                title
+            }
+        });
+
+        if (firstImageUrl) {
+            preview.appendChild(createEl('img', {
+                attrs: { src: firstImageUrl, alt: '预览图' }
+            }));
+        }
+
+        cell.appendChild(createEl('div', { className: 'movie-title-with-image' }, [
+            preview,
+            createEl('span', {
+                className: 'movie-title-text',
+                text: title,
+                attrs: { title }
+            })
+        ]));
+    } else {
+        cell.appendChild(createEl('span', {
+            className: 'movie-title-text',
+            text: title,
+            attrs: { title }
+        }));
+    }
+
+    return cell;
+}
+
+function createRecommendedCell(movie) {
+    const recommended = Boolean(movie.recommended);
+    return createEl('td', {
+        className: 'movie-recommended-cell',
+        attrs: { 'data-label': '推荐' }
+    }, [
+        createEl('span', {
+            className: `movie-recommended-chip${recommended ? ' is-recommended' : ''}`
+        }, [
+            createSpriteSvg(recommended ? 'recommend-light-icon' : 'recommend-icon', {
+                width: 20,
+                height: 20,
+                fill: recommended ? '#ff7b00' : '#515151',
+                ariaLabel: recommended ? '推荐' : '未推荐'
+            }),
+            createEl('span', {
+                className: 'movie-recommended-text',
+                text: recommended ? '推荐' : '未推荐'
+            })
+        ])
+    ]);
+}
+
+function createMovieTextCell({ className, label, value, textClass }) {
+    const text = value || '';
+    return createEl('td', {
+        className,
+        attrs: { 'data-label': label, title: text }
+    }, [
+        createEl('span', {
+            className: `${textClass}${text ? '' : ' is-empty'}`,
+            text
+        })
+    ]);
+}
+
+function createMovieActionCell(movieIndex) {
+    return createEl('td', {
+        className: 'movie-action-cell',
+        attrs: { 'data-label': '操作' }
+    }, [
+        createActionButton({
+            className: 'button is-small is-info edit-btn',
+            text: '编辑',
+            action: 'edit-movie',
+            dataset: { movieIndex }
+        })
+    ]);
+}
+
+function createMovieRow(movie, movieIndex) {
+    const tr = createEl('tr');
+    appendChildren(tr, [
+        createMovieTitleCell(movie, movieIndex),
+        createRecommendedCell(movie),
+        createMovieTextCell({
+            className: 'hoverable review-cell',
+            label: '评价',
+            value: movie.review,
+            textClass: 'movie-review-text'
+        }),
+        createMovieTextCell({
+            className: 'hoverable tags-cell',
+            label: '标签',
+            value: movie.tag_names,
+            textClass: 'movie-tags-text'
+        }),
+        createRatingsCell(movie),
+        createMovieActionCell(movieIndex)
+    ]);
+    return tr;
+}
+
+// 搜索结果显示
 function displayCurrentPage() {
     const resultsDiv = document.getElementById('search-results');
-    resultsDiv.innerHTML = '';
+    clearElement(resultsDiv);
     
     if (allMovies.length === 0) {
-        resultsDiv.innerHTML = '<div class="notification is-info">没有找到电影</div>';
-        document.getElementById('pagination').innerHTML = '';
+        resultsDiv.appendChild(createNotification('info', '没有找到电影'));
+        clearElement(document.getElementById('pagination'));
         return;
     }
 
-    const pageItems = allMovies;
+    const tableContainer = createEl('div', { className: 'table-container' });
+    const table = createEl('table', { className: 'table is-fullwidth is-striped is-hoverable movie-results-table' });
+    const headerRow = createEl('tr');
+    [
+        ['title', '电影名称', '23%'],
+        ['recommended', '推荐', '4.5%'],
+        ['review', '评价', '36%'],
+        ['tags', '标签', '15.5%'],
+        ['ratings', '评分', '10.5%'],
+        ['action', '操作', '10.5%']
+    ].forEach(([column, label, width]) => {
+        headerRow.appendChild(createEl('th', {
+            text: label,
+            attrs: { 'data-column': column, style: `width: ${width}` }
+        }));
+    });
 
-    // 创建表格容器
-    const tableContainer = document.createElement('div');
-    tableContainer.className = 'table-container';
-
-    // 创建表格
-    const table = document.createElement('table');
-    table.className = 'table is-fullwidth is-striped is-hoverable movie-results-table';
-
-    // 创建表头
-    const thead = document.createElement('thead');
-    const headerRow = document.createElement('tr');
-    
-    // 应用列宽
-    headerRow.innerHTML = `
-        <th data-column="title" style="width: 23%">电影名称</th>
-        <th data-column="recommended" style="width: 4.5%">推荐</th>
-        <th data-column="review" style="width: 36%">评价</th>
-        <th data-column="tags" style="width: 15.5%">标签</th>
-        <th data-column="ratings" style="width: 10.5%">评分</th>
-        <th data-column="action" style="width: 10.5%">操作</th>
-    `;
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-
-    // 创建表格主体
-    const tbody = document.createElement('tbody');
-    
-    // 遍历当前页的数据
-    pageItems.forEach(movie => {
-        const tr = document.createElement('tr');
-        
-        // 解析并过滤评分
-        const movieRatings = movie.ratings ? movie.ratings.split(',').map(r => {
-            const [dimensionId, value] = r.split(':');
-            return {
-                dimensionId: dimensionId.toString(), // 确保ID为字符串类型
-                value: parseInt(value)
-            };
-        }).filter(r => r.value > 0) : [];
-        
-        // 只有存在非零评分时才创建评分下拉内容
-        const ratingsHtml = movieRatings.length > 0 ? 
-            movieRatings.map(rating => {
-                // 确保使用字符串比较
-                const dimension = ratingsDimensions.find(d => d.id.toString() === rating.dimensionId);
-                if (dimension) {
-                    return `
-                        <div class="rating-item">
-                            <span class="dimension-name">${dimension.name}:</span>
-                            <span class="stars">${renderStars(rating.value)}</span>
-                        </div>
-                    `;
-                }
-                return '';
-            }).join('') : '';
-
-        // 根据是否有评分决定显示内容
-        const mobileRatingsHtml = movieRatings.length > 0
-            ? `<div class="mobile-ratings-list">${ratingsHtml}</div>`
-            : '<div class="mobile-ratings-list is-empty">暂无评分</div>';
-        const ratingsCell = movieRatings.length > 0 ? 
-            `<div class="dropdown is-hoverable desktop-ratings-dropdown">
-                <div class="dropdown-trigger">
-                    <button class="button is-small">
-                        <span>查看评分</span>
-                    </button>
-                </div>
-                <div class="dropdown-menu" role="menu">
-                    <div class="dropdown-content">
-                        ${ratingsHtml}
-                    </div>
-                </div>
-            </div>
-            ${mobileRatingsHtml}` :
-            `<button class="button is-small desktop-ratings-empty" disabled>暂无评分</button>
-            ${mobileRatingsHtml}`;
-        const firstImageFilename = movie.image_filename
-            ? movie.image_filename.split(',')[0].trim()
-            : '';
-        const firstImageUrl = firstImageFilename
-            ? buildImageUrl(firstImageFilename)
-            : '';
-
-            tr.innerHTML = `
-            <td class="movie-title-cell hoverable" data-label="电影名称">
-                ${movie.image_filename ? `
-                    <div class="movie-title-with-image">
-                        <div class="movie-preview-image" onclick="openImageViewer('${movie.image_filename}', '${movie.title}')">
-                            <img src="${firstImageUrl}" alt="预览图">
-                        </div>
-                        <span class="movie-title-text" title="${movie.title}">${movie.title}</span>
-                    </div>
-                ` : `
-                    <span class="movie-title-text" title="${movie.title}">${movie.title}</span>
-                `}
-            </td>
-            <td class="movie-recommended-cell" data-label="推荐">
-                <span class="movie-recommended-chip${movie.recommended ? ' is-recommended' : ''}">
-                    <svg width="20" height="20" fill="${movie.recommended ? '#ff7b00' : '#515151'}" stroke="none" aria-label="${movie.recommended ? '推荐' : '不推荐'}">
-                        <use href="../static/sprite.svg#${movie.recommended ? 'recommend-light-icon' : 'recommend-icon'}"></use>
-                    </svg>
-                    <span class="movie-recommended-text">${movie.recommended ? '推荐' : '未推荐'}</span>
-                </span>
-            </td>
-            <td class="hoverable review-cell" data-label="评价" title="${movie.review || ''}">
-                <span class="movie-review-text${movie.review ? '' : ' is-empty'}">${movie.review || ''}</span>
-            </td>
-            <td class="hoverable tags-cell" data-label="标签" title="${movie.tag_names || ''}">
-                <span class="movie-tags-text${movie.tag_names ? '' : ' is-empty'}">${movie.tag_names || ''}</span>
-            </td>
-            <td class="ratings-cell" data-label="评分">${ratingsCell}</td>
-            <td class="movie-action-cell" data-label="操作">
-                <button class="button is-small is-info edit-btn" onclick='openModal(${JSON.stringify(movie)})'>
-                    <span>编辑</span>
-                </button>
-            </td>
-        `;
-        tbody.appendChild(tr);
+    table.appendChild(createEl('thead', {}, [headerRow]));
+    const tbody = createEl('tbody');
+    allMovies.forEach((movie, index) => {
+        tbody.appendChild(createMovieRow(movie, index));
     });
 
     table.appendChild(tbody);
@@ -2406,7 +2679,6 @@ function displayCurrentPage() {
     updatePagination();
     setupDropdownPositioning();
 }
-
 function setupDropdownPositioning() {
     document.addEventListener('mouseover', function(e) {
         const dropdown = e.target.closest('.dropdown');
@@ -2485,61 +2757,83 @@ function getStarColor(rating) {
 }
 
 // 更新分页控件
+function createPaginationAnchor(label, page, options = {}) {
+    const {
+        className = 'pagination-link',
+        current = false,
+        disabled = false
+    } = options;
+    const attrs = {};
+    const dataset = { action: 'change-page', page };
+
+    if (current) {
+        attrs['aria-current'] = 'page';
+    }
+    if (disabled) {
+        attrs.disabled = true;
+        attrs['aria-disabled'] = 'true';
+    }
+
+    return createEl('a', {
+        className: `${className}${current ? ' is-current' : ''}`,
+        text: label,
+        attrs,
+        dataset
+    });
+}
+
+function createPaginationEllipsis() {
+    return createEl('li', {}, [
+        createEl('span', { className: 'pagination-ellipsis' }, ['…'])
+    ]);
+}
+
+// 更新分页控件
 function updatePagination() {
     const paginationDiv = document.getElementById('pagination');
     if (!paginationDiv) return;
+    clearElement(paginationDiv);
+    if (totalPages <= 0) return;
 
-    let paginationHtml = '<nav class="pagination is-centered" role="navigation" aria-label="pagination">';
-    
-    // 上一页按钮
-    paginationHtml += `
-        <a class="pagination-previous" ${currentPage <= 1 ? 'disabled' : ''} 
-           onclick="${currentPage > 1 ? 'changePage(' + (currentPage - 1) + ')' : ''}"}>
-           上一页
-        </a>
-    `;
+    const nav = createEl('nav', {
+        className: 'pagination is-centered',
+        attrs: { role: 'navigation', 'aria-label': 'pagination' }
+    });
 
-    // 下一页按钮
-    paginationHtml += `
-        <a class="pagination-next" ${currentPage >= totalPages ? 'disabled' : ''} 
-           onclick="${currentPage < totalPages ? 'changePage(' + (currentPage + 1) + ')' : ''}"}>
-           下一页
-        </a>
-    `;
+    nav.appendChild(createPaginationAnchor('上一页', currentPage - 1, {
+        className: 'pagination-previous',
+        disabled: currentPage <= 1
+    }));
+    nav.appendChild(createPaginationAnchor('下一页', currentPage + 1, {
+        className: 'pagination-next',
+        disabled: currentPage >= totalPages
+    }));
 
-    // 页码列表
-    paginationHtml += '<ul class="pagination-list">';
-    
-    // 显示页码的逻辑
-    const delta = 2; // 当前页前后显示的页码数
-    
-    // 始终显示第一页
+    const pageList = createEl('ul', { className: 'pagination-list' });
+    const delta = 2;
+
     if (currentPage > delta + 1) {
-        paginationHtml += `
-            <li><a class="pagination-link" onclick="changePage(1)">1</a></li>
-            ${currentPage > delta + 2 ? '<li><span class="pagination-ellipsis">&hellip;</span></li>' : ''}
-        `;
-    }
-
-    // 显示当前页附近的页码
-    for (let i = Math.max(1, currentPage - delta); i <= Math.min(totalPages, currentPage + delta); i++) {
-        if (i === currentPage) {
-            paginationHtml += `<li><a class="pagination-link is-current" aria-current="page">${i}</a></li>`;
-        } else {
-            paginationHtml += `<li><a class="pagination-link" onclick="changePage(${i})">${i}</a></li>`;
+        pageList.appendChild(createEl('li', {}, [createPaginationAnchor('1', 1)]));
+        if (currentPage > delta + 2) {
+            pageList.appendChild(createPaginationEllipsis());
         }
     }
 
-    // 始终显示最后一页
-    if (currentPage < totalPages - delta) {
-        paginationHtml += `
-            ${currentPage < totalPages - delta - 1 ? '<li><span class="pagination-ellipsis">&hellip;</span></li>' : ''}
-            <li><a class="pagination-link" onclick="changePage(${totalPages})">${totalPages}</a></li>
-        `;
+    for (let i = Math.max(1, currentPage - delta); i <= Math.min(totalPages, currentPage + delta); i++) {
+        pageList.appendChild(createEl('li', {}, [
+            createPaginationAnchor(String(i), i, { current: i === currentPage })
+        ]));
     }
-    
-    paginationHtml += '</ul></nav>';
-    paginationDiv.innerHTML = paginationHtml;
+
+    if (currentPage < totalPages - delta) {
+        if (currentPage < totalPages - delta - 1) {
+            pageList.appendChild(createPaginationEllipsis());
+        }
+        pageList.appendChild(createEl('li', {}, [createPaginationAnchor(String(totalPages), totalPages)]));
+    }
+
+    nav.appendChild(pageList);
+    paginationDiv.appendChild(nav);
 }
 
 // 图片上传相关代码
