@@ -333,6 +333,7 @@ def get_db_connection():
             conn.close()
 
 MOVIE_METADATA_MIGRATION = '2026_06_18_normalize_movie_metadata'
+MOVIE_IMAGES_MIGRATION = '2026_06_21_normalize_movie_images'
 
 def table_exists(cursor, table_name):
     cursor.execute("""
@@ -424,6 +425,17 @@ def parse_ratings_string(value):
         ratings_by_dimension[dimension_id] = rating
     return list(ratings_by_dimension.items())
 
+def parse_image_filenames(value):
+    filenames = []
+    seen = set()
+    for item in str(value or '').split(','):
+        filename = normalize_upload_filename(item)
+        if not filename or filename in seen:
+            continue
+        seen.add(filename)
+        filenames.append(filename)
+    return filenames
+
 def parse_positive_int(value, default, minimum=1, maximum=None):
     try:
         number = int(value)
@@ -438,6 +450,11 @@ def parse_positive_int(value, default, minimum=1, maximum=None):
 def row_value(row, key='id'):
     if isinstance(row, dict):
         return row.get(key)
+    return row[0]
+
+def first_row_value(row):
+    if isinstance(row, dict):
+        return next(iter(row.values()))
     return row[0]
 
 def resolve_tag_ids(cursor, tag_names):
@@ -467,6 +484,41 @@ def replace_movie_ratings(cursor, movie_title, ratings_value):
             WHERE id = %s
             ON DUPLICATE KEY UPDATE rating = VALUES(rating)
         """, (movie_title, rating, dimension_id))
+
+def replace_movie_images(cursor, movie_title, image_filenames_value):
+    cursor.execute("DELETE FROM movie_images WHERE movie_title = %s", (movie_title,))
+    for sort_order, filename in enumerate(parse_image_filenames(image_filenames_value)):
+        cursor.execute("""
+            INSERT INTO movie_images (movie_title, filename, sort_order)
+            VALUES (%s, %s, %s)
+            ON DUPLICATE KEY UPDATE sort_order = VALUES(sort_order)
+        """, (movie_title, filename, sort_order))
+
+def get_movie_image_filenames(cursor, movie_title):
+    cursor.execute("""
+        SELECT filename
+        FROM movie_images
+        WHERE movie_title = %s
+        ORDER BY sort_order, filename
+    """, (movie_title,))
+    rows = cursor.fetchall()
+    filenames = []
+    for row in rows:
+        filenames.append(row['filename'] if isinstance(row, dict) else row[0])
+    return filenames
+
+def delete_unreferenced_uploaded_images(cursor, filenames):
+    for filename in filenames:
+        safe_filename = normalize_upload_filename(filename)
+        if not safe_filename:
+            continue
+        try:
+            cursor.execute("SELECT COUNT(*) FROM movie_images WHERE filename = %s", (safe_filename,))
+            if first_row_value(cursor.fetchone()) > 0:
+                continue
+            delete_uploaded_image(safe_filename)
+        except Exception as e:
+            logger.warning("Failed to delete unreferenced image %r: %s", safe_filename, e)
 
 def sync_movie_metadata(cursor, movie_title, tag_names_value, ratings_value):
     tag_ids = resolve_tag_ids(cursor, parse_tag_names(tag_names_value))
@@ -502,8 +554,19 @@ def hydrate_movie_rows(cursor, movies):
     for row in cursor.fetchall():
         ratings_by_title.setdefault(row['movie_title'], []).append(row)
 
+    cursor.execute(f"""
+        SELECT movie_title, filename
+        FROM movie_images
+        WHERE movie_title IN ({placeholders})
+        ORDER BY movie_title, sort_order, filename
+    """, titles)
+    images_by_title = {}
+    for row in cursor.fetchall():
+        images_by_title.setdefault(row['movie_title'], []).append(row['filename'])
+
     for movie in movies:
         title = movie['title']
+        movie['image_filename'] = ','.join(images_by_title.get(title, []))
         movie['tag_names'] = ', '.join(tags_by_title.get(title, []))
 
         ratings = ratings_by_title.get(title, [])
@@ -624,6 +687,63 @@ def migrate_movie_metadata_schema(conn, cursor):
         cursor.execute("ALTER TABLE movies DROP COLUMN ratings")
     record_schema_migration(cursor, MOVIE_METADATA_MIGRATION)
 
+def migrate_movie_images_schema(conn, cursor):
+    has_legacy_image_filename = column_exists(cursor, 'movies', 'image_filename')
+
+    if not has_legacy_image_filename:
+        if not migration_recorded(cursor, MOVIE_IMAGES_MIGRATION):
+            record_schema_migration(cursor, MOVIE_IMAGES_MIGRATION)
+        return
+
+    logger.info("Migrating legacy movies image_filename column to movie_images")
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS movies_image_legacy_backup (
+            title VARCHAR(255) PRIMARY KEY,
+            image_filename TEXT,
+            backed_up_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    """)
+
+    cursor.execute("""
+        INSERT INTO movies_image_legacy_backup (title, image_filename)
+        SELECT title, image_filename
+        FROM movies
+        ON DUPLICATE KEY UPDATE
+            image_filename = VALUES(image_filename),
+            backed_up_at = CURRENT_TIMESTAMP
+    """)
+
+    cursor.execute("DELETE mi FROM movie_images mi JOIN movies m ON m.title = mi.movie_title")
+    cursor.execute("SELECT title, image_filename FROM movies")
+    legacy_movies = cursor.fetchall()
+
+    expected_image_rows = 0
+    for title, legacy_image_filename in legacy_movies:
+        filenames = parse_image_filenames(legacy_image_filename)
+        for sort_order, filename in enumerate(filenames):
+            cursor.execute("""
+                INSERT INTO movie_images (movie_title, filename, sort_order)
+                VALUES (%s, %s, %s)
+                ON DUPLICATE KEY UPDATE sort_order = VALUES(sort_order)
+            """, (title, filename, sort_order))
+        expected_image_rows += len(filenames)
+
+    cursor.execute("SELECT COUNT(*) FROM movie_images mi JOIN movies m ON m.title = mi.movie_title")
+    actual_image_rows = cursor.fetchone()[0]
+
+    if actual_image_rows != expected_image_rows:
+        conn.rollback()
+        raise RuntimeError(
+            "Movie images migration validation failed: "
+            f"images {actual_image_rows}/{expected_image_rows}"
+        )
+
+    conn.commit()
+
+    cursor.execute("ALTER TABLE movies DROP COLUMN image_filename")
+    record_schema_migration(cursor, MOVIE_IMAGES_MIGRATION)
+
 # 初始化数据库
 def init_db():
     try:
@@ -635,7 +755,6 @@ def init_db():
                     title VARCHAR(255) PRIMARY KEY,
                     recommended BOOLEAN,
                     review TEXT,
-                    image_filename TEXT,
                     added_date DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
@@ -687,6 +806,18 @@ def init_db():
                     CONSTRAINT chk_movie_rating_range CHECK (rating BETWEEN 1 AND 5)
                 )
             """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS movie_images (
+                    movie_title VARCHAR(255) NOT NULL,
+                    filename VARCHAR(255) NOT NULL,
+                    sort_order INT NOT NULL DEFAULT 0,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (movie_title, filename),
+                    CONSTRAINT fk_movie_images_movie
+                        FOREIGN KEY (movie_title) REFERENCES movies(title)
+                        ON DELETE CASCADE ON UPDATE CASCADE
+                )
+            """)
 
             ensure_index(cursor, 'movies', 'idx_movies_added_date', """
                 CREATE INDEX idx_movies_added_date ON movies (added_date)
@@ -701,6 +832,13 @@ def init_db():
             ensure_index(cursor, 'movie_ratings', 'idx_movie_ratings_movie_rating', """
                 CREATE INDEX idx_movie_ratings_movie_rating
                 ON movie_ratings (movie_title, rating)
+            """)
+            ensure_index(cursor, 'movie_images', 'idx_movie_images_movie_sort', """
+                CREATE INDEX idx_movie_images_movie_sort
+                ON movie_images (movie_title, sort_order)
+            """)
+            ensure_index(cursor, 'movie_images', 'idx_movie_images_filename', """
+                CREATE INDEX idx_movie_images_filename ON movie_images (filename)
             """)
             
             # 预设标签
@@ -741,6 +879,7 @@ def init_db():
                             raise
                         
             migrate_movie_metadata_schema(conn, cursor)
+            migrate_movie_images_schema(conn, cursor)
             conn.commit()
             return True
     except Exception as e:
@@ -979,9 +1118,10 @@ def add_movie_handler(data, method='POST'):
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO movies (title, recommended, review, image_filename)
-                VALUES (%s, %s, %s, %s)
-            """, (title, recommended, review, image_filenames))
+                INSERT INTO movies (title, recommended, review)
+                VALUES (%s, %s, %s)
+            """, (title, recommended, review))
+            replace_movie_images(cursor, title, image_filenames)
             sync_movie_metadata(cursor, title, data.get('tags', ''), ratings)
             conn.commit()
         return jsonify({"message": "电影添加成功"}), 200
@@ -997,42 +1137,29 @@ def update_movie_handler(data, method='PUT'):
         ratings = data.get('ratings', '')
         image_filenames = data.get('image_filenames', '')
         original_images = json.loads(data.get('original_images', '[]'))
+        if not isinstance(original_images, list):
+            original_images = []
+        current_images = set(parse_image_filenames(image_filenames))
+        original_images_set = {
+            filename
+            for filename in (normalize_upload_filename(filename) for filename in original_images)
+            if filename
+        }
+        images_to_delete = original_images_set - current_images
 
         with get_db_connection() as conn:
             cursor = conn.cursor()
 
-            # 处理图片文件删除
-            if original_images:
-                current_images = {
-                    normalize_upload_filename(filename)
-                    for filename in (image_filenames.split(',') if image_filenames else [])
-                }
-                current_images.discard(None)
-                original_images_set = {
-                    normalize_upload_filename(filename)
-                    for filename in original_images
-                }
-                original_images_set.discard(None)
-                
-                # 找出需要删除的图片
-                images_to_delete = original_images_set - current_images
-                
-                # 删除不再使用的图片文件
-                for filename in images_to_delete:
-                    try:
-                        delete_uploaded_image(filename)
-                    except Exception as e:
-                        logger.warning("Failed to delete image %r: %s", filename, e)
-            
             # 更新数据库记录
             cursor.execute("""
                 UPDATE movies 
-                SET recommended = %s, review = %s, image_filename = %s
+                SET recommended = %s, review = %s
                 WHERE title = %s
-            """, (recommended, review, image_filenames, title))
+            """, (recommended, review, title))
+            replace_movie_images(cursor, title, image_filenames)
             sync_movie_metadata(cursor, title, data.get('tags', ''), ratings)
-
             conn.commit()
+            delete_unreferenced_uploaded_images(cursor, images_to_delete)
 			
         return jsonify({"message": "电影更新成功"}), 200
 
@@ -1151,7 +1278,7 @@ def search_movies_sql_handler(data):
         query_params = list(params)
         query_params.extend([per_page, offset])
         cursor.execute(f"""
-            SELECT m.title, m.recommended, m.review, m.image_filename, m.added_date
+            SELECT m.title, m.recommended, m.review, m.added_date
             FROM movies m
             {where_sql}
             ORDER BY m.added_date DESC
@@ -1484,22 +1611,15 @@ def delete_movie_handler(data, method='DELETE'):
             if not cursor.fetchone():
                 return jsonify({"success": False, "message": "电影名称不存在"}), 404
             
-            # 获取电影信息，包括图片文件名
-            cursor.execute("SELECT image_filename FROM movies WHERE title = %s", (title,))
-            movie = cursor.fetchone()
-            
-            # 删除关联的图片文件
-            if movie['image_filename']:
-                image_files = movie['image_filename'].split(',')
-                for filename in image_files:
-                    if filename.strip():
-                        delete_uploaded_image(filename.strip())
+            image_files = get_movie_image_filenames(cursor, title)
 
             # 删除数据库记录
             cursor.execute("DELETE FROM movie_tags WHERE movie_title = %s", (title,))
             cursor.execute("DELETE FROM movie_ratings WHERE movie_title = %s", (title,))
+            cursor.execute("DELETE FROM movie_images WHERE movie_title = %s", (title,))
             cursor.execute("DELETE FROM movies WHERE title = %s", (title,))
             conn.commit()
+            delete_unreferenced_uploaded_images(cursor, image_files)
             
             return jsonify({"success": True, "message": "电影删除成功"})
 
