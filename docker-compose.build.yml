@@ -24,9 +24,18 @@ services:
       APP_ACCESS_TOKEN: ${APP_ACCESS_TOKEN:-}
       APP_DEBUG: ${APP_DEBUG:-0}
       MAX_IMAGE_UPLOAD_MB: ${MAX_IMAGE_UPLOAD_MB:-10}
+      DB_BACKUP_DIR: ${DB_BACKUP_DIR:-/backups}
+      DB_BACKUP_INCLUDE_ROUTINES: ${DB_BACKUP_INCLUDE_ROUTINES:-0}
     volumes:
       - ./images:/images
       - ./videos:/videos:ro
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/healthz', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
 
   db:
     image: mariadb:lts

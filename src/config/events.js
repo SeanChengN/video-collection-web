@@ -15,7 +15,11 @@ const event_map = {
     search_emby: 1014,
     list_video_files: 1015,
     delete_tag: 1016,
-    delete_rating_dimension: 1017
+    delete_rating_dimension: 1017,
+    list_db_backups: 1018,
+    create_db_backup: 1019,
+    restore_db_backup: 1020,
+    delete_db_backup: 1021
 };
 
 window.event_map = event_map;

@@ -3050,7 +3050,7 @@ tr.is-duplicate:hover {
 
 /* 设置模态框样式 */
 .settings-modal .modal-card {
-    width: 480px;
+    width: min(760px, calc(100vw - 2rem));
 }
 
 .settings-modal .table-container {
@@ -3102,6 +3102,264 @@ tr.is-duplicate:hover {
 
 .settings-content {
     min-height: 300px;
+}
+
+.maintenance-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.maintenance-notice {
+    margin-bottom: 0 !important;
+}
+
+.maintenance-upgrade-notice {
+    margin-bottom: 0 !important;
+}
+
+.maintenance-upgrade-notice code {
+    display: block;
+    margin-top: 0.55rem;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.maintenance-panel {
+    position: relative;
+    overflow: hidden;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(120deg, #2563eb, #06b6d4, #2563eb);
+    background-size: 220% 220%;
+    color: #fff;
+    padding: 1.05rem;
+    animation: maintenance-status-flow 8s ease infinite;
+}
+
+.maintenance-panel.is-ok {
+    background: linear-gradient(120deg, #15803d, #22c55e, #0f766e);
+    background-size: 220% 220%;
+}
+
+.maintenance-panel.is-error {
+    background: linear-gradient(120deg, #991b1b, #ef4444, #be123c);
+    background-size: 220% 220%;
+}
+
+.maintenance-panel.is-checking {
+    background: linear-gradient(120deg, #1d4ed8, #06b6d4, #0e7490);
+    background-size: 220% 220%;
+}
+
+@keyframes maintenance-status-flow {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.maintenance-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.maintenance-label {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    margin-bottom: 0.28rem;
+}
+
+.maintenance-db-status {
+    color: #fff;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.maintenance-db-status.is-ok {
+    color: #fff;
+}
+
+.maintenance-db-status.is-error {
+    color: #fff;
+}
+
+.maintenance-db-status.is-checking {
+    color: #fff;
+}
+
+.maintenance-actions-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.85rem;
+}
+
+.maintenance-panel-btn {
+    border-color: rgba(255, 255, 255, 0.44) !important;
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+.maintenance-panel-btn:hover {
+    background: rgba(255, 255, 255, 0.28) !important;
+    color: #fff !important;
+}
+
+.maintenance-panel-btn:disabled {
+    border-color: rgba(255, 255, 255, 0.24) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: rgba(255, 255, 255, 0.62) !important;
+}
+
+.maintenance-create-btn.maintenance-panel-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 148px;
+    border: none !important;
+    overflow: hidden;
+    background: transparent !important;
+    color: #fff !important;
+    transition: transform 0.3s, box-shadow 0.3s, opacity 0.3s, filter 0.3s;
+}
+
+.maintenance-create-btn::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    z-index: 1;
+    background: radial-gradient(
+        70% 70% at 50% 100%,
+        rgba(253, 230, 138, 0.85) 0%,
+        rgba(253, 230, 138, 0) 100%
+    ),
+    linear-gradient(0deg, #f59e0b, #f59e0b);
+    transition: filter 0.3s;
+}
+
+.maintenance-create-btn span {
+    position: relative;
+    z-index: 2;
+    transition: transform 0.3s ease-in-out;
+}
+
+.maintenance-create-btn svg {
+    display: block;
+    transform-origin: center center;
+    transition: transform 0.3s ease-in-out;
+}
+
+.maintenance-create-btn:hover {
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.42) !important;
+}
+
+.maintenance-create-btn:hover::before {
+    filter: brightness(92%) saturate(112%);
+}
+
+.maintenance-create-btn:hover .icon {
+    animation: fly-1 0.6s ease-in-out infinite alternate;
+}
+
+.maintenance-create-btn:hover svg {
+    transform: translateX(3.4em) rotate(90deg) scale(1.35);
+}
+
+.maintenance-create-btn:hover span:not(.icon) {
+    transform: translateX(18em);
+}
+
+.maintenance-create-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.26) !important;
+}
+
+.maintenance-create-btn:active::before {
+    filter: brightness(84%) saturate(110%);
+}
+
+.maintenance-create-btn:disabled,
+.maintenance-create-btn[disabled] {
+    opacity: 0.68;
+    transform: none;
+    box-shadow: none !important;
+    cursor: not-allowed;
+}
+
+.maintenance-create-btn:disabled::before,
+.maintenance-create-btn[disabled]::before {
+    filter: grayscale(18%) brightness(82%);
+}
+
+.maintenance-create-btn:disabled .icon,
+.maintenance-create-btn[disabled] .icon,
+.maintenance-create-btn:disabled svg,
+.maintenance-create-btn[disabled] svg,
+.maintenance-create-btn:disabled span,
+.maintenance-create-btn[disabled] span {
+    animation: none;
+    transform: none;
+}
+
+.maintenance-backups-table {
+    max-height: min(420px, 45vh) !important;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+.maintenance-backups-table table {
+    min-width: 720px;
+    table-layout: fixed;
+}
+
+.maintenance-backups-table th:nth-child(1),
+.maintenance-backups-table td:nth-child(1) {
+    width: 42%;
+}
+
+.maintenance-backups-table th:nth-child(2),
+.maintenance-backups-table td:nth-child(2) {
+    width: 92px;
+}
+
+.maintenance-backups-table th:nth-child(3),
+.maintenance-backups-table td:nth-child(3) {
+    width: 88px;
+}
+
+.maintenance-backups-table th:nth-child(4),
+.maintenance-backups-table td:nth-child(4) {
+    width: 150px;
+}
+
+.maintenance-backups-table td:nth-child(1) {
+    word-break: break-all;
+}
+
+.maintenance-backups-table td:nth-child(2) {
+    white-space: nowrap;
+}
+
+.maintenance-backups-table .settings-actions-column {
+    width: 172px;
+    min-width: 172px;
+}
+
+.maintenance-empty-row td {
+    color: #6b7280;
+    text-align: center;
 }
 
 .settings-list {
@@ -3250,6 +3508,45 @@ tr.is-duplicate:hover {
     filter: brightness(84%);
 }
 
+.settings-modal .maintenance-backup-restore-btn {
+    background: transparent;
+    transition: box-shadow 0.3s ease, transform 0.2s, filter 0.3s ease;
+}
+
+.settings-modal .maintenance-backup-restore-btn::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    z-index: 1;
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(96, 165, 250, 0.85) 0%,
+        rgba(96, 165, 250, 0) 100%
+    ),
+    linear-gradient(0deg, #2563eb, #2563eb);
+    transition: filter 0.3s;
+}
+
+.settings-modal .maintenance-backup-restore-btn:hover {
+    filter: brightness(98%);
+    transform: scale(1.03);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.36);
+}
+
+.settings-modal .maintenance-backup-restore-btn:hover::before {
+    filter: brightness(94%);
+}
+
+.settings-modal .maintenance-backup-restore-btn:active {
+    filter: brightness(92%);
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+
+.settings-modal .maintenance-backup-restore-btn:active::before {
+    filter: brightness(86%);
+}
+
 @media screen and (max-width: 768px) {
     .settings-modal .settings-actions-column {
         display: flex;
@@ -3260,6 +3557,85 @@ tr.is-duplicate:hover {
     .settings-modal .settings-actions {
         width: 100%;
         justify-content: flex-end;
+    }
+    .maintenance-backups-table .settings-actions-column {
+        display: table-cell;
+        width: 172px !important;
+        min-width: 172px !important;
+    }
+    .maintenance-backups-table .settings-actions {
+        width: auto;
+        justify-content: flex-start;
+    }
+    .maintenance-backups-table {
+        max-height: min(420px, 45vh) !important;
+        overflow-x: auto !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    .maintenance-backups-table .table {
+        display: table;
+        width: 100%;
+        min-width: 720px;
+        table-layout: fixed;
+        background: #fff;
+    }
+    .maintenance-backups-table .table thead {
+        display: table-header-group;
+    }
+    .maintenance-backups-table .table tbody {
+        display: table-row-group;
+    }
+    .maintenance-backups-table .table tr {
+        display: table-row;
+        padding: 0;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        background: inherit;
+    }
+    .maintenance-backups-table .table th,
+    .maintenance-backups-table .table td {
+        display: table-cell;
+        align-items: initial;
+        padding: 0.5em 0.75em;
+        border: 1px solid #dbdbdb;
+        font-size: 0.9rem;
+        font-weight: 400;
+        line-height: 1.5;
+        max-width: none;
+        vertical-align: middle;
+        white-space: normal;
+    }
+    .maintenance-backups-table .table th {
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .maintenance-backups-table .table td::before {
+        content: none !important;
+        display: none !important;
+    }
+    .maintenance-backups-table .table td:last-child {
+        justify-content: normal;
+        padding: 0.5em 0.25rem;
+    }
+    .maintenance-backups-table .table td:last-child .button,
+    .maintenance-backups-table .settings-action-btn {
+        width: 77px !important;
+        min-width: 77px !important;
+        max-width: 77px !important;
+        height: 2.25em !important;
+        padding: 0 0.75rem !important;
+        font-size: 0.9rem !important;
+    }
+    .maintenance-status,
+    .maintenance-actions-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+    .maintenance-actions-row .button,
+    .maintenance-status .button {
+        width: 100%;
     }
 }
 

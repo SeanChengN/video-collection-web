@@ -15,7 +15,10 @@ WORKDIR /app
 COPY requirements.txt .
 
 # 安装依赖，同时清理缓存减小镜像大小
-RUN pip install --no-cache-dir -r requirements.txt && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends mariadb-client && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install --no-cache-dir -r requirements.txt && \
     rm -rf /root/.cache/pip/* && \
     rm -rf /tmp/*
 

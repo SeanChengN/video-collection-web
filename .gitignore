@@ -4,6 +4,7 @@
 
 # Runtime data
 db_data/
+backups/
 images/
 videos/
 movies/

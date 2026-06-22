@@ -1160,6 +1160,9 @@
                 <li data-tab="ratings">
                     评分维度 <span class="tag is-info rating-counter">0</span>
                 </li>
+                <li data-tab="maintenance">
+                    系统维护
+                </li>
             </div>
             <div class="settings-content" id="tagsSettings">
                 <div class="add-item-form mb-3">
@@ -1209,6 +1212,50 @@
                         </thead>
                         <tbody id="ratingsList">
                             <!-- 评分维度列表将通过 JavaScript 动态填充 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="settings-content maintenance-settings" id="maintenanceSettings" style="display: none;">
+                <div class="maintenance-notice notification is-warning is-light" id="maintenanceAuthNotice" hidden>
+                    请先配置 APP_ACCESS_TOKEN 后再使用数据库备份和恢复功能。
+                </div>
+                <div class="maintenance-upgrade-notice notification is-warning is-light" id="maintenanceUpgradeNotice" hidden>
+                    <div id="maintenanceUpgradeMessage"></div>
+                    <code id="maintenanceUpgradeCommand"></code>
+                </div>
+                <div class="maintenance-panel">
+                    <div class="maintenance-status">
+                        <div>
+                            <div class="maintenance-label">数据库状态</div>
+                            <div class="maintenance-db-status" id="maintenanceDbStatus">未检查</div>
+                        </div>
+                        <button class="button is-light is-small maintenance-panel-btn" data-action="refresh-db-backups">重新检查</button>
+                    </div>
+                    <div class="maintenance-actions-row">
+                        <button class="button is-primary maintenance-create-btn maintenance-panel-btn" id="createDbBackupButton" data-action="create-db-backup">
+                            <span class="icon">
+                                <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="创建完整备份">
+                                    <use href="../static/sprite.svg#add-btn-icon"></use>
+                                </svg>
+                            </span>
+                            <span>创建完整备份</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container maintenance-backups-table">
+                    <table class="table is-fullwidth is-striped is-hoverable">
+                        <thead>
+                            <tr>
+                                <th>备份文件</th>
+                                <th>类型</th>
+                                <th>大小</th>
+                                <th>时间</th>
+                                <th class="settings-actions-column">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dbBackupsList">
+                            <!-- 数据库备份列表将通过 JavaScript 动态填充 -->
                         </tbody>
                     </table>
                 </div>
