@@ -1316,6 +1316,12 @@ function formatTime(seconds) {
 
 
 // 设置功能相关代码
+let settingsNeedsMainRefresh = false;
+
+function markSettingsChanged() {
+    settingsNeedsMainRefresh = true;
+}
+
 function openSettingsModal() {
     ModalManager.open('settingsModal');
     loadSettings();
@@ -1323,7 +1329,10 @@ function openSettingsModal() {
 
 function closeSettingsModal() {
     ModalManager.close('settingsModal');
-    refreshMainSettingsData();
+    if (settingsNeedsMainRefresh) {
+        settingsNeedsMainRefresh = false;
+        refreshMainSettingsData();
+    }
 }
 
 function refreshMainSettingsData() {
@@ -1333,7 +1342,7 @@ function refreshMainSettingsData() {
         loadFilters()
     ]).then(() => {
         if (allMovies.length > 0) {
-            searchMovies(currentPage);
+            searchCurrentPage();
         }
     });
 }
@@ -1406,6 +1415,7 @@ function saveTagEdit(button, oldName) {
     })
     .then(result => {
         if (result.success) {
+            markSettingsChanged();
             // 只更新表格中的显示
             nameDiv.textContent = newName;
             // 更新编辑表单中的值
@@ -1442,6 +1452,7 @@ function saveRatingEdit(button, oldName) {
     })
     .then(result => {
         if (result.success) {
+            markSettingsChanged();
             // 只更新表格中的显示
             nameDiv.textContent = newName;
             // 更新编辑表单中的值
@@ -1478,9 +1489,9 @@ function addNewTag() {
     callApi(event_map.add_tag, { name: tagName })
         .then(result => {
             if (result.success) {
+                markSettingsChanged();
                 input.value = '';
                 loadSettings(); // 重新加载列表
-                loadTags(); // 重新加载主页面的标签
             } else {
                 showAlert({
                     title: '添加失败',
@@ -1510,6 +1521,7 @@ function addNewRating() {
     callApi(event_map.add_rating_dimension, { name: ratingName })
         .then(result => {
             if (result.success) {
+                markSettingsChanged();
                 input.value = '';
                 loadSettings(); // 重新加载列表
             } else {
@@ -1662,6 +1674,7 @@ function confirmDeleteTag(name) {
     callApi(event_map.delete_tag, { name, confirm: true }, 'DELETE')
         .then(result => {
             if (result.success) {
+                markSettingsChanged();
                 loadSettings();
             } else {
                 showAlert({
@@ -1710,6 +1723,7 @@ function confirmDeleteRatingDimension(dimensionId) {
     callApi(event_map.delete_rating_dimension, { id: dimensionId, confirm: true }, 'DELETE')
         .then(result => {
             if (result.success) {
+                markSettingsChanged();
                 loadSettings();
             } else {
                 showAlert({
@@ -1743,13 +1757,17 @@ function toggleTag(tagElement) {
     tagElement.classList.toggle('is-selected');
 }
 
-const debounce = (func, wait) => {
+function debounce(func, wait) {
     let timeout;
-    return (...args) => {
+    function debounced(...args) {
         clearTimeout(timeout);
         timeout = setTimeout(() => func.apply(this, args), wait);
+    }
+    debounced.cancel = () => {
+        clearTimeout(timeout);
     };
-};
+    return debounced;
+}
 
 // 加载标签和评分维度
 function loadFilters() {
@@ -1795,7 +1813,7 @@ function loadFilters() {
                     tagSpan.className = 'tag';
                     tagSpan.textContent = tagName;
                     tagSpan.classList.toggle('is-selected', previousSelectedTags.includes(tagName));
-                    tagSpan.onclick = () => toggleFilterTag(tagSpan);
+                    tagSpan.addEventListener('click', () => toggleFilterTag(tagSpan));
                     tagsFilter.appendChild(tagSpan);
                 });
             }
@@ -1815,49 +1833,171 @@ function loadFilters() {
 // 切换标签选中状态
 function toggleFilterTag(tagElement) {
     tagElement.classList.toggle('is-selected');
-    searchMovies(); // 当标签选择变化时自动触发搜索
+    searchFromControls();
+}
+
+const SEARCH_URL_KEYS = ['q', 'rating', 'min', 'tags', 'page'];
+let searchRequestSequence = 0;
+
+function normalizeSearchPage(page, fallback = 1) {
+    const requestedPage = Number(page);
+    return Number.isFinite(requestedPage) && requestedPage > 0
+        ? Math.floor(requestedPage)
+        : fallback;
 }
 
 // 获取已选中的标签
 function getSelectedTags() {
     const tagsFilter = document.getElementById('tags-filter');
+    if (!tagsFilter) return [];
     return Array.from(tagsFilter.getElementsByClassName('is-selected'))
                 .map(tag => tag.textContent);
 }
 
-// 按要求搜索电影
-function searchMovies(page = 1) {
-    const requestedPage = Number(page);
-    currentPage = Number.isFinite(requestedPage) && requestedPage > 0 ? Math.floor(requestedPage) : 1;
+function getSearchControlsState(page = currentPage) {
+    return {
+        page: normalizeSearchPage(page, 1),
+        title: document.getElementById('search-input')?.value.trim() || '',
+        ratingDimension: document.getElementById('rating-dimension-filter')?.value || '',
+        minRating: document.getElementById('min-rating-filter')?.value || '',
+        selectedTags: getSelectedTags()
+    };
+}
 
-    const title = document.getElementById('search-input').value.trim();
-    const ratingDimension = document.getElementById('rating-dimension-filter').value;
-    const minRating = document.getElementById('min-rating-filter').value;
-    const selectedTags = getSelectedTags();
+function applySearchControlsState(state = {}) {
+    const searchInput = document.getElementById('search-input');
+    const ratingSelect = document.getElementById('rating-dimension-filter');
+    const minRatingSelect = document.getElementById('min-rating-filter');
+
+    if (searchInput) {
+        searchInput.value = state.title || '';
+    }
+    if (ratingSelect) {
+        const ratingValue = String(state.ratingDimension || '');
+        ratingSelect.value = [...ratingSelect.options].some(option => option.value === ratingValue)
+            ? ratingValue
+            : '';
+    }
+    if (minRatingSelect) {
+        const minValue = String(state.minRating || '');
+        minRatingSelect.value = [...minRatingSelect.options].some(option => option.value === minValue)
+            ? minValue
+            : '';
+    }
+
+    const selectedTagSet = new Set(state.selectedTags || []);
+    document.querySelectorAll('#tags-filter .tag').forEach(tag => {
+        tag.classList.toggle('is-selected', selectedTagSet.has(tag.textContent));
+    });
+
+    currentPage = normalizeSearchPage(state.page, 1);
+}
+
+function readSearchStateFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return {
+        page: normalizeSearchPage(params.get('page'), 1),
+        title: params.get('q') || '',
+        ratingDimension: params.get('rating') || '',
+        minRating: params.get('min') || '',
+        selectedTags: (params.get('tags') || '')
+            .split(',')
+            .map(tag => tag.trim())
+            .filter(Boolean)
+    };
+}
+
+function syncSearchStateToUrl(state = getSearchControlsState()) {
+    if (!window.history || !window.history.replaceState) return;
+
+    const url = new URL(window.location.href);
+    const selectedTags = Array.isArray(state.selectedTags) ? state.selectedTags : [];
+    const page = normalizeSearchPage(state.page, 1);
+    SEARCH_URL_KEYS.forEach(key => url.searchParams.delete(key));
+
+    if (state.title) {
+        url.searchParams.set('q', state.title);
+    }
+    if (state.ratingDimension) {
+        url.searchParams.set('rating', state.ratingDimension);
+    }
+    if (state.minRating) {
+        url.searchParams.set('min', state.minRating);
+    }
+    if (selectedTags.length > 0) {
+        url.searchParams.set('tags', selectedTags.join(','));
+    }
+    if (page > 1) {
+        url.searchParams.set('page', String(page));
+    }
+
+    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+    window.history.replaceState({}, '', nextUrl);
+}
+
+function searchFromControls() {
+    searchMovies(1);
+}
+
+function searchCurrentPage(options = {}) {
+    searchMovies(currentPage, options);
+}
+
+function refreshAfterMovieDelete() {
+    searchCurrentPage({ fallbackToPreviousPage: true });
+}
+
+// 按要求搜索电影
+function searchMovies(page = 1, options = {}) {
+    const requestedPage = normalizeSearchPage(page, 1);
+    currentPage = requestedPage;
+
+    const state = getSearchControlsState(currentPage);
     const messageDiv = document.getElementById('search-message');
     const resultsDiv = document.getElementById('search-results');
+    const paginationDiv = document.getElementById('pagination');
+    const requestId = ++searchRequestSequence;
 
     const searchParams = {
-        title,
-        rating_dimension: ratingDimension,
-        min_rating: minRating,
-        tags: selectedTags.join(','),
-        page: currentPage,
+        title: state.title,
+        rating_dimension: state.ratingDimension,
+        min_rating: state.minRating,
+        tags: state.selectedTags.join(','),
+        page: state.page,
         per_page: itemsPerPage
     };
 
+    if (options.showLoading !== false) {
+        clearElement(messageDiv);
+        renderSearchLoadingSkeleton();
+    }
+
     callApi(event_map.search_movies, searchParams, 'GET')
         .then(result => {
+            if (requestId !== searchRequestSequence) return;
+
             if (result.success) {
                 const pagination = result.pagination || {};
                 allMovies = Array.isArray(result.data) ? result.data : [];
-                currentPage = pagination.page || currentPage;
-                totalPages = pagination.total_pages || 0;
+                currentPage = normalizeSearchPage(pagination.page, currentPage);
+                totalPages = Number(pagination.total_pages) || 0;
+
+                if (
+                    allMovies.length === 0 &&
+                    options.fallbackToPreviousPage &&
+                    state.page > 1 &&
+                    totalPages > 0
+                ) {
+                    searchMovies(state.page - 1, { fallbackToPreviousPage: false });
+                    return;
+                }
+
+                syncSearchStateToUrl(getSearchControlsState(currentPage));
 
                 if (allMovies.length === 0) {
                     setNotification(messageDiv, 'info', '未找到电影');
                     clearElement(resultsDiv);
-                    clearElement(document.getElementById('pagination'));
+                    clearElement(paginationDiv);
                     return;
                 }
 
@@ -1865,14 +2005,19 @@ function searchMovies(page = 1) {
                 clearElement(messageDiv);
             } else {
                 setNotification(messageDiv, 'warning', result.message || '搜索失败');
+                clearElement(resultsDiv);
+                clearElement(paginationDiv);
             }
         })
         .catch(error => {
+            if (requestId !== searchRequestSequence) return;
             setNotification(messageDiv, 'danger', `搜索出错: ${error.message}`);
             clearElement(resultsDiv);
-            clearElement(document.getElementById('pagination'));
+            clearElement(paginationDiv);
         });
-}function displayPagination() {
+}
+
+function displayPagination() {
     updatePagination();
 }
 
@@ -1881,17 +2026,16 @@ function generatePaginationItems() {
 }
 function changePage(page) {
     if (page >= 1 && page <= totalPages) {
-        currentPage = page;
         searchMovies(page);
     }
 }
+
+const debouncedSearchFromInput = debounce(searchFromControls, 350);
 
 function closeModal() {
     ModalManager.close('editModal');
     updateThumbnailSelectionControls();
 }
-
-document.getElementById('search-input').addEventListener('input', debounce(searchMovies, 300));
 
 // 动态加载非关键资源
 function loadNonCriticalResources() {
@@ -2380,7 +2524,7 @@ function deleteMovie() {
                         closeModal();
                         // 恢复搜索状态并重新搜索
                         restoreSearchState();
-                        searchMovies(currentPage);
+                        refreshAfterMovieDelete();
                         showAlert({
                             title: '删除成功',
                             message: result.message || '电影已删除',
@@ -2411,34 +2555,12 @@ let searchState = {
 
 // 保存搜索状态的函数
 function saveSearchState() {
-    searchState = {
-        page: currentPage,
-        title: document.getElementById('search-input').value.trim(),
-        ratingDimension: document.getElementById('rating-dimension-filter').value,
-        minRating: document.getElementById('min-rating-filter').value,
-        selectedTags: Array.from(document.querySelectorAll('#tags-filter .tag.is-selected'))
-                          .map(tag => tag.textContent)
-    };
+    searchState = getSearchControlsState(currentPage);
 }
 
 // 恢复搜索状态的函数
 function restoreSearchState() {
-    // 恢复搜索关键词
-    document.getElementById('search-input').value = searchState.title;
-    
-    // 恢复评分过滤状态
-    document.getElementById('rating-dimension-filter').value = searchState.ratingDimension;
-    document.getElementById('min-rating-filter').value = searchState.minRating;
-    
-    // 恢复标签选择状态
-    const tagElements = document.querySelectorAll('#tags-filter .tag');
-    tagElements.forEach(tag => {
-        if (searchState.selectedTags.includes(tag.textContent)) {
-            tag.classList.add('is-selected');
-        }
-    });
-    
-    currentPage = searchState.page;
+    applySearchControlsState(searchState);
 }
 
 // 更新电影信息
@@ -2492,7 +2614,7 @@ async function updateMovie() {
             updateThumbnailSelectionControls();
             // 恢复搜索状态并重新搜索
             restoreSearchState();
-            searchMovies(currentPage);
+            searchCurrentPage();
         } else {
             showAlert({
                 title: '更新失败',
@@ -2697,6 +2819,92 @@ function createMovieRow(movie, movieIndex) {
     return tr;
 }
 
+const MOVIE_RESULT_COLUMNS = [
+    ['title', '电影名称', '23%'],
+    ['recommended', '推荐', '4.5%'],
+    ['review', '评价', '36%'],
+    ['tags', '标签', '15.5%'],
+    ['ratings', '评分', '10.5%'],
+    ['action', '操作', '10.5%']
+];
+
+function createMovieResultsHeaderRow() {
+    const headerRow = createEl('tr');
+    MOVIE_RESULT_COLUMNS.forEach(([column, label, width]) => {
+        headerRow.appendChild(createEl('th', {
+            text: label,
+            attrs: { 'data-column': column, style: `width: ${width}` }
+        }));
+    });
+    return headerRow;
+}
+
+function createSkeletonBlock(className) {
+    return createEl('span', { className: `skeleton-block ${className}` });
+}
+
+function createSearchSkeletonRow() {
+    return createEl('tr', { className: 'search-skeleton-row' }, [
+        createEl('td', {
+            className: 'movie-title-cell skeleton-cell',
+            attrs: { 'data-label': '电影名称' }
+        }, [
+            createEl('div', { className: 'movie-title-with-image' }, [
+                createSkeletonBlock('skeleton-thumb'),
+                createEl('div', { className: 'skeleton-title-lines' }, [
+                    createSkeletonBlock('skeleton-line skeleton-line-wide'),
+                    createSkeletonBlock('skeleton-line skeleton-line-medium')
+                ])
+            ])
+        ]),
+        createEl('td', {
+            className: 'movie-recommended-cell skeleton-cell',
+            attrs: { 'data-label': '推荐' }
+        }, [createSkeletonBlock('skeleton-pill')]),
+        createEl('td', {
+            className: 'review-cell skeleton-cell',
+            attrs: { 'data-label': '评价' }
+        }, [
+            createSkeletonBlock('skeleton-line skeleton-line-wide'),
+            createSkeletonBlock('skeleton-line skeleton-line-medium')
+        ]),
+        createEl('td', {
+            className: 'tags-cell skeleton-cell',
+            attrs: { 'data-label': '标签' }
+        }, [createSkeletonBlock('skeleton-line skeleton-line-short')]),
+        createEl('td', {
+            className: 'ratings-cell skeleton-cell',
+            attrs: { 'data-label': '评分' }
+        }, [createSkeletonBlock('skeleton-line skeleton-line-medium')]),
+        createEl('td', {
+            className: 'movie-action-cell skeleton-cell',
+            attrs: { 'data-label': '操作' }
+        }, [createSkeletonBlock('skeleton-button')])
+    ]);
+}
+
+function renderSearchLoadingSkeleton(rowCount = Math.min(itemsPerPage, 6)) {
+    const resultsDiv = document.getElementById('search-results');
+    const paginationDiv = document.getElementById('pagination');
+    if (!resultsDiv) return;
+
+    clearElement(resultsDiv);
+    clearElement(paginationDiv);
+
+    const tableContainer = createEl('div', { className: 'table-container search-skeleton' });
+    const table = createEl('table', { className: 'table is-fullwidth is-striped movie-results-table' });
+    table.appendChild(createEl('thead', {}, [createMovieResultsHeaderRow()]));
+
+    const tbody = createEl('tbody');
+    for (let index = 0; index < rowCount; index++) {
+        tbody.appendChild(createSearchSkeletonRow());
+    }
+
+    table.appendChild(tbody);
+    tableContainer.appendChild(table);
+    resultsDiv.appendChild(tableContainer);
+}
+
 // 搜索结果显示
 function displayCurrentPage() {
     const resultsDiv = document.getElementById('search-results');
@@ -2710,22 +2918,7 @@ function displayCurrentPage() {
 
     const tableContainer = createEl('div', { className: 'table-container' });
     const table = createEl('table', { className: 'table is-fullwidth is-striped is-hoverable movie-results-table' });
-    const headerRow = createEl('tr');
-    [
-        ['title', '电影名称', '23%'],
-        ['recommended', '推荐', '4.5%'],
-        ['review', '评价', '36%'],
-        ['tags', '标签', '15.5%'],
-        ['ratings', '评分', '10.5%'],
-        ['action', '操作', '10.5%']
-    ].forEach(([column, label, width]) => {
-        headerRow.appendChild(createEl('th', {
-            text: label,
-            attrs: { 'data-column': column, style: `width: ${width}` }
-        }));
-    });
-
-    table.appendChild(createEl('thead', {}, [headerRow]));
+    table.appendChild(createEl('thead', {}, [createMovieResultsHeaderRow()]));
     const tbody = createEl('tbody');
     allMovies.forEach((movie, index) => {
         tbody.appendChild(createMovieRow(movie, index));
@@ -4426,17 +4619,31 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
 
 // 在页面加载时初始化
 document.addEventListener('DOMContentLoaded', function() {
-    loadFilters();
+    const searchInput = document.getElementById('search-input');
+    const ratingDimensionFilter = document.getElementById('rating-dimension-filter');
+    const minRatingFilter = document.getElementById('min-rating-filter');
+    const searchButton = document.getElementById('search-button');
     
     // 添加事件监听
-    document.getElementById('rating-dimension-filter').addEventListener('change', searchMovies);
-    document.getElementById('min-rating-filter').addEventListener('change', searchMovies);	
-    document.getElementById('search-button').addEventListener('click', searchMovies);
+    ratingDimensionFilter.addEventListener('change', searchFromControls);
+    minRatingFilter.addEventListener('change', searchFromControls);
+    searchButton.addEventListener('click', () => {
+        debouncedSearchFromInput.cancel();
+        searchFromControls();
+    });
+    searchInput.addEventListener('input', debouncedSearchFromInput);
+
+    loadFilters().then(() => {
+        applySearchControlsState(readSearchStateFromUrl());
+        searchCurrentPage();
+    });
 
     // 快捷键监听
-    document.getElementById('search-input').addEventListener('keypress', function(e) {
+    searchInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
-            searchMovies();
+            e.preventDefault();
+            debouncedSearchFromInput.cancel();
+            searchFromControls();
         }
     });
     document.getElementById('wtl-input').addEventListener('keypress', function(e) {
