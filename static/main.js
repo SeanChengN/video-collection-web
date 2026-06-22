@@ -390,17 +390,7 @@ const ModalManager = {
     
     getToolbarButton(modalId) {
         // 获取对应的工具栏按钮
-        const buttonMap = {
-            'duplicateModal': '[onclick*="openDuplicateModal"]',
-            'jackettModal': '[onclick*="openJackettModal"]',
-            'wtlModal': '[onclick*="openWtlModal"]',
-            'thunderModal': '[onclick*="openThunderModal"]',
-            'embyModal': '[onclick*="openEmbyModal"]',
-            'thumbnailModal': '[onclick*="openThumbnailModal"]',
-            'settingsModal': '[onclick*="openSettingsModal"]'
-        };
-        const selector = buttonMap[modalId];
-        return selector ? document.querySelector(selector) : null;
+        return document.querySelector(`[data-toolbar-modal="${modalId}"]`);
     }
 };
 
@@ -447,7 +437,75 @@ function buildImageUrl(filename) {
 let allMovies = []; // 存储所有搜索结果
 
 // 定义全局配置变量
+let staticDelegatesInitialized = false;
 let dynamicDelegatesInitialized = false;
+
+function openStaticModalById(modalId) {
+    const modalOpeners = {
+        duplicateModal: openDuplicateModal,
+        jackettModal: openJackettModal,
+        wtlModal: openWtlModal,
+        thunderModal: openThunderModal,
+        embyModal: openEmbyModal,
+        thumbnailModal: openThumbnailModal,
+        settingsModal: openSettingsModal
+    };
+    const opener = modalOpeners[modalId];
+    if (opener) {
+        opener();
+    }
+}
+
+function initStaticEventDelegates() {
+    if (staticDelegatesInitialized) return;
+    staticDelegatesInitialized = true;
+
+    const actionHandlers = {
+        'close-edit-modal': closeModal,
+        'update-movie': updateMovie,
+        'delete-movie': deleteMovie,
+        'close-wtl-modal': closeWtlModal,
+        'search-wtl': searchWtl,
+        'close-jackett-modal': closeJackettModal,
+        'close-thunder-modal': closeThunderModal,
+        'close-emby-modal': closeEmbyModal,
+        'search-emby': searchEmby,
+        'close-emby-player-modal': closeEmbyPlayerModal,
+        'close-thumbnail-modal': closeThumbnailModal,
+        'close-duplicate-modal': closeDuplicateModal,
+        'check-duplicates': checkDuplicates,
+        'close-settings-modal': closeSettingsModal,
+        'add-new-tag': addNewTag,
+        'add-new-rating': addNewRating,
+        'close-image-viewer': closeImageViewer,
+        'show-prev-image': showPrevImage,
+        'show-next-image': showNextImage
+    };
+
+    document.addEventListener('click', event => {
+        const actionElement = event.target.closest('[data-action]');
+        if (!actionElement) return;
+
+        const action = actionElement.dataset.action;
+        if (action === 'open-modal') {
+            event.preventDefault();
+            openStaticModalById(actionElement.dataset.modalId);
+            return;
+        }
+
+        if (action === 'minimize-modal') {
+            event.preventDefault();
+            minimizeModal(actionElement.dataset.modalId);
+            return;
+        }
+
+        const handler = actionHandlers[action];
+        if (!handler) return;
+
+        event.preventDefault();
+        handler();
+    });
+}
 
 function initDynamicEventDelegates() {
     if (dynamicDelegatesInitialized) return;
@@ -1865,6 +1923,7 @@ function loadNonCriticalResources() {
 
 // 页面加载完成后执行
 document.addEventListener('DOMContentLoaded', () => {
+    initStaticEventDelegates();
     initDynamicEventDelegates();
     loadTags();
     loadNonCriticalResources();

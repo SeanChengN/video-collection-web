@@ -548,42 +548,42 @@
             <div class="column is-two-thirds-desktop">
                 <div class="function-tools">
                     <div class="buttons">
-                        <a href="#" class="button tool-btn duplicate-btn" onclick="openDuplicateModal(); return false;">
+                        <a href="#" class="button tool-btn duplicate-btn" data-action="open-modal" data-modal-id="duplicateModal" data-toolbar-modal="duplicateModal">
                             <span class="icon">
                                 <svg width="64" height="64" fill="#ffaa1f" stroke="none" aria-label="查重核对">
                                     <use href="../static/sprite.svg#duplicate-icon"></use>
                                 </svg>
                             </span>
                         </a>
-                        <a href="#" class="button tool-btn jackett-btn" onclick="openJackettModal(); return false;">
+                        <a href="#" class="button tool-btn jackett-btn" data-action="open-modal" data-modal-id="jackettModal" data-toolbar-modal="jackettModal">
                             <span class="icon">
                                 <svg width="64" height="64" fill="#595757" stroke="none" aria-label="Jackett">
                                     <use href="../static/sprite.svg#jackett-icon"></use>
                                 </svg>
                             </span>
                         </a>
-                        <a href="#" class="button tool-btn wtl-btn" onclick="openWtlModal(); return false;">
+                        <a href="#" class="button tool-btn wtl-btn" data-action="open-modal" data-modal-id="wtlModal" data-toolbar-modal="wtlModal">
                             <span class="icon">
                                 <svg width="64" height="64" fill="#6768ff" stroke="none" aria-label="What's the link">
                                     <use href="../static/sprite.svg#wtl-icon"></use>
                                 </svg>
                             </span>
                         </a>
-                        <a href="#" class="button tool-btn thunder-btn" onclick="openThunderModal(); return false;">
+                        <a href="#" class="button tool-btn thunder-btn" data-action="open-modal" data-modal-id="thunderModal" data-toolbar-modal="thunderModal">
                             <span class="icon">
                                 <svg width="64" height="64" fill="#34a8e0" stroke="none" aria-label="迅雷">
                                     <use href="../static/sprite.svg#thunder-icon"></use>
                                 </svg>
                             </span>
                         </a>
-                        <a href="#" class="button tool-btn emby-btn" onclick="openEmbyModal(); return false;">
+                        <a href="#" class="button tool-btn emby-btn" data-action="open-modal" data-modal-id="embyModal" data-toolbar-modal="embyModal">
                             <span class="icon">
                                 <svg width="64" height="64" fill="#52ac4b" stroke="none" aria-label="Emby">
                                     <use href="../static/sprite.svg#emby-icon"></use>
                                 </svg>
                             </span>
                         </a>
-                        <a href="#" class="button tool-btn thumbnail-btn" onclick="openThumbnailModal(); return false;">
+                        <a href="#" class="button tool-btn thumbnail-btn" data-action="open-modal" data-modal-id="thumbnailModal" data-toolbar-modal="thumbnailModal">
                             <span class="icon">
                                 <svg width="64" height="64" fill="#e05275" stroke="none" aria-label="视频缩略图提取">
                                     <use href="../static/sprite.svg#thumbnail-icon"></use>
@@ -653,7 +653,7 @@
                 <div class="box">
                     <div class="subtitle-with-controls">
                         <h2 class="subtitle">添加电影</h2>
-                        <button class="button is-light is-small settings-btn" onclick="openSettingsModal()" aria-label="打开设置">
+                        <button class="button is-light is-small settings-btn" data-action="open-modal" data-modal-id="settingsModal" data-toolbar-modal="settingsModal" aria-label="打开设置">
                             <span class="icon">
                                 <svg width="14" height="14" fill="#515151" stroke="none" aria-label="设置">
                                     <use href="../static/sprite.svg#settings-btn-icon"></use>
@@ -741,7 +741,7 @@
     <div class="modal-card">
         <header class="modal-card-head">
             <p class="modal-card-title">编辑电影</p>
-            <button class="modal-control-button close" onclick="closeModal()">
+            <button class="modal-control-button close" data-action="close-edit-modal">
                 <svg aria-label="关闭">
                     <use href="../static/sprite.svg#close-icon"></use>
                 </svg>
@@ -801,7 +801,7 @@
         </section>
         <footer class="modal-card-foot">
             <div class="btn-group-left">
-                <button class="button is-success save-btn" onclick="updateMovie()">
+                <button class="button is-success save-btn" data-action="update-movie">
                     <span class="icon">
                         <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="保存">
                             <use href="../static/sprite.svg#save-btn-icon"></use>
@@ -809,9 +809,9 @@
                     </span>
                     <span>保存</span>
                 </button>
-                <button class="button" onclick="closeModal()">取消</button>
+                <button class="button" data-action="close-edit-modal">取消</button>
             </div>
-            <button class="button is-danger delete-btn" onclick="deleteMovie()">
+            <button class="button is-danger delete-btn" data-action="delete-movie">
                 <span class="icon">
                     <svg class="bin-top" width="14" height="14" fill="currentColor" stroke="none" aria-label="删除">
                         <use href="../static/sprite.svg#delete-btn-top-icon"></use>
@@ -832,12 +832,12 @@
         <header class="modal-card-head">
             <p class="modal-card-title">What's the link?</p>
             <div class="modal-card-controls">
-                <button class="modal-control-button minimize" onclick="minimizeModal('wtlModal')" aria-label="minimize">
+                <button class="modal-control-button minimize" data-action="minimize-modal" data-modal-id="wtlModal" aria-label="minimize">
                     <svg aria-label="最小化">
                         <use href="../static/sprite.svg#minimize-icon"></use>
                     </svg>
                 </button>
-                <button class="modal-control-button close" onclick="closeWtlModal()" aria-label="close">
+                <button class="modal-control-button close" data-action="close-wtl-modal" aria-label="close">
                     <svg aria-label="关闭">
                         <use href="../static/sprite.svg#close-icon"></use>
                     </svg>
@@ -852,7 +852,7 @@
                         <input class="input" type="text" id="wtl-input" placeholder="输入链接">
                     </div>
                     <div class="control">
-                        <button class="button is-info search-btn" onclick="searchWtl()">
+                        <button class="button is-info search-btn" data-action="search-wtl">
                             <span class="icon">
                                 <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="搜索">
                                     <use href="../static/sprite.svg#search-btn-icon"></use>
@@ -875,12 +875,12 @@
         <header class="modal-card-head">
             <p class="modal-card-title">Jackett</p>
             <div class="modal-card-controls">
-                <button class="modal-control-button minimize" onclick="minimizeModal('jackettModal')" aria-label="minimize">
+                <button class="modal-control-button minimize" data-action="minimize-modal" data-modal-id="jackettModal" aria-label="minimize">
                     <svg aria-label="最小化">
                         <use href="../static/sprite.svg#minimize-icon"></use>
                     </svg>
                 </button>
-                <button class="modal-control-button close" onclick="closeJackettModal()" aria-label="close">
+                <button class="modal-control-button close" data-action="close-jackett-modal" aria-label="close">
                     <svg aria-label="关闭">
                         <use href="../static/sprite.svg#close-icon"></use>
                     </svg>
@@ -900,12 +900,12 @@
         <header class="modal-card-head">
             <p class="modal-card-title">迅雷下载</p>
             <div class="modal-card-controls">
-                <button class="modal-control-button minimize" onclick="minimizeModal('thunderModal')" aria-label="minimize">
+                <button class="modal-control-button minimize" data-action="minimize-modal" data-modal-id="thunderModal" aria-label="minimize">
                     <svg aria-label="最小化">
                         <use href="../static/sprite.svg#minimize-icon"></use>
                     </svg>
                 </button>
-                <button class="modal-control-button close" onclick="closeThunderModal()" aria-label="close">
+                <button class="modal-control-button close" data-action="close-thunder-modal" aria-label="close">
                     <svg aria-label="关闭">
                         <use href="../static/sprite.svg#close-icon"></use>
                     </svg>
@@ -925,12 +925,12 @@
         <header class="modal-card-head">
             <p class="modal-card-title">Emby</p>
             <div class="modal-card-controls">
-                <button class="modal-control-button minimize" onclick="minimizeModal('embyModal')" aria-label="minimize">
+                <button class="modal-control-button minimize" data-action="minimize-modal" data-modal-id="embyModal" aria-label="minimize">
                     <svg aria-label="最小化">
                         <use href="../static/sprite.svg#minimize-icon"></use>
                     </svg>
                 </button>
-                <button class="modal-control-button close" onclick="closeEmbyModal()" aria-label="close">
+                <button class="modal-control-button close" data-action="close-emby-modal" aria-label="close">
                     <svg aria-label="关闭">
                         <use href="../static/sprite.svg#close-icon"></use>
                     </svg>
@@ -945,7 +945,7 @@
                         <input class="input" type="text" id="emby-search-input" placeholder="搜索电影">
                     </div>
                     <div class="control">
-                        <button class="button is-info search-btn" onclick="searchEmby()">
+                        <button class="button is-info search-btn" data-action="search-emby">
                             <span class="icon">
                                 <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="搜索">
                                     <use href="../static/sprite.svg#search-btn-icon"></use>
@@ -969,7 +969,7 @@
         <header class="modal-card-head">
             <p class="modal-card-title">Emby Player</p>
             <div class="modal-card-controls">
-                <button class="modal-control-button close" onclick="closeEmbyPlayerModal()" aria-label="close">
+                <button class="modal-control-button close" data-action="close-emby-player-modal" aria-label="close">
                     <svg aria-label="close">
                         <use href="../static/sprite.svg#close-icon"></use>
                     </svg>
@@ -989,12 +989,12 @@
         <header class="modal-card-head">
             <p class="modal-card-title">视频缩略图提取</p>
             <div class="modal-card-controls">
-                <button class="modal-control-button minimize" onclick="minimizeModal('thumbnailModal')" aria-label="minimize">
+                <button class="modal-control-button minimize" data-action="minimize-modal" data-modal-id="thumbnailModal" aria-label="minimize">
                     <svg aria-label="最小化">
                         <use href="../static/sprite.svg#minimize-icon"></use>
                     </svg>
                 </button>
-                <button class="modal-control-button close" onclick="closeThumbnailModal()" aria-label="close">
+                <button class="modal-control-button close" data-action="close-thumbnail-modal" aria-label="close">
                     <svg aria-label="关闭">
                         <use href="../static/sprite.svg#close-icon"></use>
                     </svg>
@@ -1091,12 +1091,12 @@
         <header class="modal-card-head">
             <p class="modal-card-title">查重核对</p>
             <div class="modal-card-controls">
-                <button class="modal-control-button minimize" onclick="minimizeModal('duplicateModal')" aria-label="minimize">
+                <button class="modal-control-button minimize" data-action="minimize-modal" data-modal-id="duplicateModal" aria-label="minimize">
                     <svg aria-label="最小化">
                         <use href="../static/sprite.svg#minimize-icon"></use>
                     </svg>
                 </button>
-                <button class="modal-control-button close" onclick="closeDuplicateModal()" aria-label="close">
+                <button class="modal-control-button close" data-action="close-duplicate-modal" aria-label="close">
                     <svg aria-label="关闭">
                         <use href="../static/sprite.svg#close-icon"></use>
                     </svg>
@@ -1112,7 +1112,7 @@
                     <div id="check-result" class="has-text-grey-light has-text-centered">
                         等待核对...
                     </div>
-                    <button class="button is-info dupStart-btn" onclick="checkDuplicates()">
+                    <button class="button is-info dupStart-btn" data-action="check-duplicates">
                         <div class="points_wrapper">
                             <i class="point"></i>
                             <i class="point"></i>
@@ -1146,7 +1146,7 @@
     <div class="modal-card">
         <header class="modal-card-head">
             <p class="modal-card-title">设置</p>
-            <button class="modal-control-button close" onclick="closeSettingsModal()" aria-label="close">
+            <button class="modal-control-button close" data-action="close-settings-modal" aria-label="close">
                 <svg aria-label="关闭">
                     <use href="../static/sprite.svg#close-icon"></use>
                 </svg>
@@ -1164,7 +1164,7 @@
             <div class="settings-content" id="tagsSettings">
                 <div class="add-item-form mb-3">
                     <input type="text" class="input" id="newTagInput" placeholder="输入新标签名称">
-                    <button class="button is-primary add-btn" onclick="addNewTag()">
+                    <button class="button is-primary add-btn" data-action="add-new-tag">
                         <span class="icon">
                             <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="添加">
                                 <use href="../static/sprite.svg#add-btn-icon"></use>
@@ -1190,7 +1190,7 @@
             <div class="settings-content" id="ratingsSettings" style="display: none;">
                 <div class="add-item-form mb-3">
                     <input type="text" class="input" id="newRatingInput" placeholder="输入新评分维度名称">
-                    <button class="button is-primary add-btn" onclick="addNewRating()">
+                    <button class="button is-primary add-btn" data-action="add-new-rating">
                         <span class="icon">
                             <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="添加">
                                 <use href="../static/sprite.svg#add-btn-icon"></use>
@@ -1222,7 +1222,7 @@
     <div class="modal-card">
         <header class="modal-card-head">
             <p class="modal-card-title"></p>
-            <button class="modal-control-button close" onclick="closeImageViewer()" aria-label="close">
+            <button class="modal-control-button close" data-action="close-image-viewer" aria-label="close">
                 <svg aria-label="关闭">
                     <use href="../static/sprite.svg#close-icon"></use>
                 </svg>
@@ -1234,12 +1234,12 @@
                     <img src=" " alt="大图预览" class="viewer-image">
                 </div>
                 <div class="nav-buttons">
-                    <button class="nav-button prev" onclick="showPrevImage()" style="display: none;">
+                    <button class="nav-button prev" data-action="show-prev-image" style="display: none;">
                         <svg width="24" height="24" fill="currentColor" stroke="none">
                             <use href="../static/sprite.svg#arrow-left-icon"></use>
                         </svg>
                     </button>
-                    <button class="nav-button next" onclick="showNextImage()" style="display: none;">
+                    <button class="nav-button next" data-action="show-next-image" style="display: none;">
                         <svg width="24" height="24" fill="currentColor" stroke="none">
                             <use href="../static/sprite.svg#arrow-right-icon"></use>
                         </svg>
