@@ -1353,7 +1353,7 @@ function refreshMainSettingsData() {
         loadRatingsDimensions(),
         loadFilters()
     ]).then(() => {
-        if (allMovies.length > 0) {
+        if (hasActiveSearchState()) {
             searchCurrentPage();
         }
     });
@@ -2170,7 +2170,7 @@ function toggleFilterTag(tagElement) {
     searchFromControls();
 }
 
-const SEARCH_URL_KEYS = ['q', 'rating', 'min', 'tags', 'page'];
+const SEARCH_URL_KEYS = ['q', 'rating', 'min', 'tags', 'page', 'searched'];
 let searchRequestSequence = 0;
 
 function normalizeSearchPage(page, fallback = 1) {
@@ -2241,6 +2241,26 @@ function readSearchStateFromUrl() {
     };
 }
 
+function hasSearchStateInUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('searched') === '1' || SEARCH_URL_KEYS
+        .filter(key => key !== 'searched')
+        .some(key => params.has(key));
+}
+
+function hasActiveSearchState() {
+    return hasSearchStateInUrl() || allMovies.length > 0 || totalPages > 0;
+}
+
+function clearSearchView() {
+    searchRequestSequence += 1;
+    allMovies = [];
+    totalPages = 0;
+    clearElement(document.getElementById('search-message'));
+    clearElement(document.getElementById('search-results'));
+    clearElement(document.getElementById('pagination'));
+}
+
 function syncSearchStateToUrl(state = getSearchControlsState()) {
     if (!window.history || !window.history.replaceState) return;
 
@@ -2264,6 +2284,7 @@ function syncSearchStateToUrl(state = getSearchControlsState()) {
     if (page > 1) {
         url.searchParams.set('page', String(page));
     }
+    url.searchParams.set('searched', '1');
 
     const nextUrl = `${url.pathname}${url.search}${url.hash}`;
     window.history.replaceState({}, '', nextUrl);
@@ -2278,7 +2299,9 @@ function searchCurrentPage(options = {}) {
 }
 
 function refreshAfterMovieDelete() {
-    searchCurrentPage({ fallbackToPreviousPage: true });
+    if (hasActiveSearchState()) {
+        searchCurrentPage({ fallbackToPreviousPage: true });
+    }
 }
 
 // 按要求搜索电影
@@ -2326,7 +2349,9 @@ function searchMovies(page = 1, options = {}) {
                     return;
                 }
 
-                syncSearchStateToUrl(getSearchControlsState(currentPage));
+                if (options.syncUrl !== false) {
+                    syncSearchStateToUrl(getSearchControlsState(currentPage));
+                }
 
                 if (allMovies.length === 0) {
                     setNotification(messageDiv, 'info', '未找到电影');
@@ -2948,7 +2973,9 @@ async function updateMovie() {
             updateThumbnailSelectionControls();
             // 恢复搜索状态并重新搜索
             restoreSearchState();
-            searchCurrentPage();
+            if (hasActiveSearchState()) {
+                searchCurrentPage();
+            }
         } else {
             showAlert({
                 title: '更新失败',
@@ -4969,7 +4996,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     loadFilters().then(() => {
         applySearchControlsState(readSearchStateFromUrl());
-        searchCurrentPage();
+        if (hasSearchStateInUrl()) {
+            searchCurrentPage();
+        } else {
+            clearSearchView();
+        }
     });
 
     // 快捷键监听
