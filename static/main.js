@@ -1708,6 +1708,39 @@ function renderDatabaseUpgradeDiagnostic(result = {}) {
     command.hidden = !upgradeRequired || !result.database_upgrade_command;
 }
 
+function renderScheduledBackupStatus(result = {}) {
+    const container = document.getElementById('maintenanceScheduleStatus');
+    if (!container) return;
+
+    const schedule = result.scheduled_backup || {};
+    clearElement(container);
+    container.hidden = false;
+    container.classList.toggle('is-enabled', Boolean(schedule.enabled));
+    container.classList.toggle('is-disabled', !schedule.enabled);
+
+    const title = schedule.enabled ? '定时备份：已启用' : '定时备份：未启用';
+    const details = [];
+    if (schedule.configured && !schedule.valid_schedule) {
+        details.push('时间配置无效，请使用 HH:MM');
+    } else {
+        details.push(`计划时间：${schedule.schedule_time || '03:30'}`);
+    }
+    details.push(`保留数量：${schedule.retention_count ?? 7}`);
+    if (schedule.next_run_at) {
+        details.push(`下次执行：${schedule.next_run_at}`);
+    }
+    if (schedule.last_run_at || schedule.last_message) {
+        const resultText = schedule.last_result ? `（${schedule.last_result}）` : '';
+        details.push(`最近结果：${schedule.last_run_at || '暂无'} ${resultText} ${schedule.last_message || ''}`.trim());
+    }
+    if (!schedule.configured) {
+        details.push('设置 DB_BACKUP_SCHEDULE_ENABLED=1 后启用');
+    }
+
+    container.appendChild(createEl('div', { className: 'maintenance-schedule-title', text: title }));
+    container.appendChild(createEl('div', { className: 'maintenance-schedule-details', text: details.join(' · ') }));
+}
+
 function createBackupTableMessage(message) {
     return createEl('tr', { className: 'maintenance-empty-row' }, [
         createEl('td', {
@@ -1728,6 +1761,7 @@ function renderDatabaseBackups(result) {
     if (createButton) createButton.disabled = !enabled;
     setMaintenanceStatus(result.database_status || 'error');
     renderDatabaseUpgradeDiagnostic(result);
+    renderScheduledBackupStatus(result);
 
     clearElement(list);
     if (!enabled) {
@@ -1787,6 +1821,7 @@ function loadDatabaseBackups() {
             } else {
                 setMaintenanceStatus('error');
                 renderDatabaseUpgradeDiagnostic(result);
+                renderScheduledBackupStatus(result);
                 clearElement(list);
                 list.appendChild(createBackupTableMessage(result.message || '备份列表读取失败'));
             }
@@ -1794,6 +1829,7 @@ function loadDatabaseBackups() {
         .catch(error => {
             setMaintenanceStatus('error');
             renderDatabaseUpgradeDiagnostic({});
+            renderScheduledBackupStatus({});
             clearElement(list);
             list.appendChild(createBackupTableMessage(`备份列表读取失败: ${error.message}`));
         });

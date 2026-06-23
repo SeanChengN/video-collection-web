@@ -14,6 +14,7 @@ import time #时间处理
 import uuid #UUID生成
 import json #JSON处理
 from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, session, url_for #Flask框架
+from datetime import datetime, timedelta
 from contextlib import contextmanager #上下文管理器
 from flask_compress import Compress #压缩代码
 from PIL import Image, ImageOps, UnidentifiedImageError #图像处理
@@ -232,8 +233,21 @@ DB_CONFIG = {
 }
 DB_BACKUP_DIR = os.environ.get('DB_BACKUP_DIR', '/backups')
 DB_BACKUP_INCLUDE_ROUTINES = env_bool('DB_BACKUP_INCLUDE_ROUTINES', False)
+DB_BACKUP_SCHEDULE_ENABLED = env_bool('DB_BACKUP_SCHEDULE_ENABLED', False)
+DB_BACKUP_SCHEDULE_TIME = os.environ.get('DB_BACKUP_SCHEDULE_TIME', '03:30').strip() or '03:30'
+DB_BACKUP_RETENTION_COUNT = max(0, env_int('DB_BACKUP_RETENTION_COUNT', 7))
+SCHEDULED_BACKUP_PREFIX = 'scheduled_'
 BACKUP_FILENAME_PATTERN = re.compile(r'^[A-Za-z0-9_.-]+(?:\.full\.tar\.gz|\.sql(?:\.gz)?)$')
 DB_MAINTENANCE_LOCK = threading.Lock()
+SCHEDULED_BACKUP_STATE_LOCK = threading.Lock()
+SCHEDULED_BACKUP_THREAD_LOCK = threading.Lock()
+SCHEDULED_BACKUP_THREAD_STARTED = False
+SCHEDULED_BACKUP_STATE = {
+    'next_run_at': '',
+    'last_run_at': '',
+    'last_result': '',
+    'last_message': ''
+}
 
 EMBY_CLIENT_NAME = 'video-collection'
 EMBY_DEVICE_NAME = 'video-collection-server'
@@ -478,17 +492,26 @@ def classify_backup_filename(filename):
     safe_filename = safe_backup_filename(filename)
     if not safe_filename:
         return None
+    if safe_filename.startswith(SCHEDULED_BACKUP_PREFIX) and safe_filename.endswith('.full.tar.gz'):
+        return {
+            'type': 'scheduled_full',
+            'type_label': '定时完整备份',
+            'includes_images': True,
+            'scheduled': True
+        }
     if safe_filename.endswith('.full.tar.gz'):
         return {
             'type': 'full',
             'type_label': '完整备份',
-            'includes_images': True
+            'includes_images': True,
+            'scheduled': False
         }
     if safe_filename.endswith('.sql') or safe_filename.endswith('.sql.gz'):
         return {
             'type': 'database',
             'type_label': '仅数据库',
-            'includes_images': False
+            'includes_images': False,
+            'scheduled': False
         }
     return None
 
@@ -815,7 +838,8 @@ def format_backup_file(filename, path):
     backup_info = classify_backup_filename(filename) or {
         'type': 'unknown',
         'type_label': '未知',
-        'includes_images': False
+        'includes_images': False,
+        'scheduled': False
     }
     return {
         'filename': filename,
@@ -848,6 +872,188 @@ def delete_database_backup_file(filename):
 
     os.remove(backup_path)
     return safe_filename
+
+def parse_backup_schedule_time(value):
+    match = re.fullmatch(r'([01]\d|2[0-3]):([0-5]\d)', (value or '').strip())
+    if not match:
+        return None
+    return int(match.group(1)), int(match.group(2))
+
+def scheduled_backup_time_parts():
+    return parse_backup_schedule_time(DB_BACKUP_SCHEDULE_TIME)
+
+def scheduled_backup_is_enabled():
+    return DB_BACKUP_SCHEDULE_ENABLED and scheduled_backup_time_parts() is not None
+
+def format_local_datetime(value):
+    if not value:
+        return ''
+    return value.strftime('%Y-%m-%d %H:%M:%S')
+
+def calculate_next_scheduled_backup_time(now=None):
+    parts = scheduled_backup_time_parts()
+    if not parts:
+        return None
+
+    now = now or datetime.now()
+    hour, minute = parts
+    next_run = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    if next_run <= now:
+        next_run += timedelta(days=1)
+    return next_run
+
+def update_scheduled_backup_state(**updates):
+    with SCHEDULED_BACKUP_STATE_LOCK:
+        SCHEDULED_BACKUP_STATE.update(updates)
+
+def get_scheduled_backup_status():
+    valid_schedule = scheduled_backup_time_parts() is not None
+    with SCHEDULED_BACKUP_STATE_LOCK:
+        state = dict(SCHEDULED_BACKUP_STATE)
+
+    next_run_at = state.get('next_run_at', '')
+    if DB_BACKUP_SCHEDULE_ENABLED and valid_schedule and not next_run_at:
+        next_run_at = format_local_datetime(calculate_next_scheduled_backup_time())
+
+    state['next_run_at'] = next_run_at
+    state.update({
+        'configured': DB_BACKUP_SCHEDULE_ENABLED,
+        'enabled': DB_BACKUP_SCHEDULE_ENABLED and valid_schedule,
+        'valid_schedule': valid_schedule,
+        'schedule_time': DB_BACKUP_SCHEDULE_TIME,
+        'retention_count': DB_BACKUP_RETENTION_COUNT
+    })
+    return state
+
+def list_scheduled_backup_files():
+    os.makedirs(DB_BACKUP_DIR, exist_ok=True)
+    scheduled_backups = []
+    for entry in os.scandir(DB_BACKUP_DIR):
+        if not entry.is_file():
+            continue
+        filename = safe_backup_filename(entry.name)
+        if not filename:
+            continue
+        if not filename.startswith(SCHEDULED_BACKUP_PREFIX) or not filename.endswith('.full.tar.gz'):
+            continue
+        stat = entry.stat()
+        scheduled_backups.append({
+            'filename': filename,
+            'path': entry.path,
+            'mtime': stat.st_mtime
+        })
+    scheduled_backups.sort(key=lambda item: item['mtime'], reverse=True)
+    return scheduled_backups
+
+def cleanup_scheduled_backups():
+    if DB_BACKUP_RETENTION_COUNT <= 0:
+        return []
+
+    scheduled_backups = list_scheduled_backup_files()
+    expired_backups = scheduled_backups[DB_BACKUP_RETENTION_COUNT:]
+    deleted = []
+    for backup in expired_backups:
+        try:
+            deleted.append(delete_database_backup_file(backup['filename']))
+        except FileNotFoundError:
+            continue
+    return deleted
+
+def run_scheduled_backup_once():
+    run_at = format_local_datetime(datetime.now())
+    if not DB_MAINTENANCE_LOCK.acquire(blocking=False):
+        message = '已有数据库维护任务正在执行，已跳过本次定时备份'
+        logger.warning("Scheduled backup skipped: maintenance lock is busy")
+        update_scheduled_backup_state(
+            last_run_at=run_at,
+            last_result='skipped',
+            last_message=message
+        )
+        return
+
+    try:
+        backup = run_database_backup(prefix=SCHEDULED_BACKUP_PREFIX)
+        deleted = cleanup_scheduled_backups()
+        message = f"已创建定时备份：{backup['filename']}"
+        if deleted:
+            message = f"{message}；已清理 {len(deleted)} 个过期定时备份"
+        logger.info("Scheduled backup created: %s; removed %s expired backup(s)", backup['filename'], len(deleted))
+        update_scheduled_backup_state(
+            last_run_at=run_at,
+            last_result='success',
+            last_message=message
+        )
+    except Exception as e:
+        logger.exception("Scheduled backup failed")
+        update_scheduled_backup_state(
+            last_run_at=run_at,
+            last_result='failed',
+            last_message=str(e) or '定时备份失败'
+        )
+    finally:
+        DB_MAINTENANCE_LOCK.release()
+
+def scheduled_backup_worker():
+    while scheduled_backup_is_enabled():
+        next_run = calculate_next_scheduled_backup_time()
+        if not next_run:
+            update_scheduled_backup_state(
+                next_run_at='',
+                last_result='disabled',
+                last_message='定时备份时间配置无效'
+            )
+            return
+
+        update_scheduled_backup_state(next_run_at=format_local_datetime(next_run))
+        while True:
+            remaining_seconds = (next_run - datetime.now()).total_seconds()
+            if remaining_seconds <= 0:
+                break
+            time.sleep(min(remaining_seconds, 60))
+
+        run_scheduled_backup_once()
+
+    update_scheduled_backup_state(next_run_at='')
+
+def start_scheduled_backup_thread(debug_enabled=False):
+    global SCHEDULED_BACKUP_THREAD_STARTED
+
+    if not DB_BACKUP_SCHEDULE_ENABLED:
+        update_scheduled_backup_state(
+            next_run_at='',
+            last_result='disabled',
+            last_message='定时备份未启用'
+        )
+        return
+
+    if scheduled_backup_time_parts() is None:
+        logger.warning("DB_BACKUP_SCHEDULE_TIME is invalid: %s", DB_BACKUP_SCHEDULE_TIME)
+        update_scheduled_backup_state(
+            next_run_at='',
+            last_result='disabled',
+            last_message='定时备份时间配置无效，请使用 HH:MM'
+        )
+        return
+
+    if debug_enabled and os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+        return
+
+    with SCHEDULED_BACKUP_THREAD_LOCK:
+        if SCHEDULED_BACKUP_THREAD_STARTED:
+            return
+        SCHEDULED_BACKUP_THREAD_STARTED = True
+
+    thread = threading.Thread(
+        target=scheduled_backup_worker,
+        name='scheduled-backup',
+        daemon=True
+    )
+    thread.start()
+    logger.info(
+        "Scheduled backup enabled at %s, retention count=%s",
+        DB_BACKUP_SCHEDULE_TIME,
+        DB_BACKUP_RETENTION_COUNT
+    )
 
 MOVIE_METADATA_MIGRATION = '2026_06_18_normalize_movie_metadata'
 MOVIE_IMAGES_MIGRATION = '2026_06_21_normalize_movie_images'
@@ -2163,6 +2369,7 @@ def list_db_backups_handler(data, method='GET'):
                 "success": True,
                 "maintenance_enabled": False,
                 "database_status": database_status,
+                "scheduled_backup": get_scheduled_backup_status(),
                 "backups": [],
                 **upgrade_diagnostics
             })
@@ -2171,6 +2378,7 @@ def list_db_backups_handler(data, method='GET'):
             "success": True,
             "maintenance_enabled": True,
             "database_status": database_status,
+            "scheduled_backup": get_scheduled_backup_status(),
             "backups": list_database_backups(),
             **upgrade_diagnostics
         })
@@ -2399,9 +2607,11 @@ def upload_image_handler(data, method='POST'):
         return jsonify({'success': False, 'message': '图片处理失败'}), 500
 
 if __name__ == "__main__":
+    debug_enabled = env_bool('APP_DEBUG', False) or env_bool('FLASK_DEBUG', False)
     if init_db():
+        start_scheduled_backup_thread(debug_enabled)
         app.run(
-            debug=env_bool('APP_DEBUG', False) or env_bool('FLASK_DEBUG', False),
+            debug=debug_enabled,
             host=os.environ.get('FLASK_RUN_HOST', '0.0.0.0'),
             port=env_int('FLASK_RUN_PORT', 5000)
         ) #  指定 host='0.0.0.0' 使 Flask 监听所有网络接口

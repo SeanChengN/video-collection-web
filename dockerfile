@@ -16,7 +16,7 @@ COPY requirements.txt .
 
 # 安装依赖，同时清理缓存减小镜像大小
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends mariadb-client && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends mariadb-client tzdata && \
     rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir -r requirements.txt && \
     rm -rf /root/.cache/pip/* && \

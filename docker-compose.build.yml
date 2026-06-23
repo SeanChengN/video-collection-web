@@ -15,6 +15,7 @@ services:
       DB_USER: ${DB_USER:-username}
       DB_PASSWORD: ${DB_PASSWORD:-password}
       DB_DATABASE: ${DB_DATABASE:-movies}
+      TZ: ${TZ:-Asia/Shanghai}
       EMBY_SERVER_URL: ${EMBY_SERVER_URL:-http://your-emby-server-address}
       EMBY_USERNAME: ${EMBY_USERNAME:-your-emby-username}
       EMBY_PASSWORD: ${EMBY_PASSWORD:-your-emby-password}
@@ -26,6 +27,9 @@ services:
       MAX_IMAGE_UPLOAD_MB: ${MAX_IMAGE_UPLOAD_MB:-10}
       DB_BACKUP_DIR: ${DB_BACKUP_DIR:-/backups}
       DB_BACKUP_INCLUDE_ROUTINES: ${DB_BACKUP_INCLUDE_ROUTINES:-0}
+      DB_BACKUP_SCHEDULE_ENABLED: ${DB_BACKUP_SCHEDULE_ENABLED:-0}
+      DB_BACKUP_SCHEDULE_TIME: ${DB_BACKUP_SCHEDULE_TIME:-00:00}
+      DB_BACKUP_RETENTION_COUNT: ${DB_BACKUP_RETENTION_COUNT:-7}
     volumes:
       - ./images:/images
       - ./videos:/videos:ro
@@ -47,6 +51,7 @@ services:
       MYSQL_USER: ${DB_USER:-username}
       MYSQL_PASSWORD: ${DB_PASSWORD:-password}
       MYSQL_AUTO_UPGRADE: 1
+      TZ: ${TZ:-Asia/Shanghai}
     volumes:
       - ./db_data:/var/lib/mysql
     healthcheck:
