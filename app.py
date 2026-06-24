@@ -495,7 +495,7 @@ def classify_backup_filename(filename):
     if safe_filename.startswith(SCHEDULED_BACKUP_PREFIX) and safe_filename.endswith('.full.tar.gz'):
         return {
             'type': 'scheduled_full',
-            'type_label': '定时完整备份',
+            'type_label': '定时备份',
             'includes_images': True,
             'scheduled': True
         }
