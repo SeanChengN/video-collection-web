@@ -2473,6 +2473,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 全局变量
 let ratingsDimensions = [];
+const DEFAULT_RATING_VALUE = 3;
 
 // 加载评分维度
 function loadRatingsDimensions() {
@@ -2554,9 +2555,8 @@ function collectRatings(isEdit = false) {
     
     ratingsDimensions.forEach(dimension => {
         const checkedInput = document.querySelector(`input[name="${prefix}rating-${dimension.id}"]:checked`);
-        if (checkedInput) {
-            ratings.push(`${dimension.id}:${checkedInput.value}`);
-        }
+        const value = checkedInput ? checkedInput.value : DEFAULT_RATING_VALUE;
+        ratings.push(`${dimension.id}:${value}`);
     });
     
     return ratings.join(',');

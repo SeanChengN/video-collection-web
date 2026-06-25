@@ -1274,8 +1274,13 @@ def hydrate_movie_rows(cursor, movies):
         ORDER BY rd.id
     """, titles)
     ratings_by_title = {}
+    ratings_display_by_title = {}
     for row in cursor.fetchall():
-        ratings_by_title.setdefault(row['movie_title'], []).append(row)
+        title = row['movie_title']
+        dimension_id = int(row['dimension_id'])
+        rating = int(row['rating'])
+        ratings_by_title.setdefault(title, []).append((dimension_id, rating))
+        ratings_display_by_title.setdefault(title, {})[row['dimension_name']] = rating
 
     cursor.execute(f"""
         SELECT movie_title, filename
@@ -1293,14 +1298,8 @@ def hydrate_movie_rows(cursor, movies):
         movie['tag_names'] = ', '.join(tags_by_title.get(title, []))
 
         ratings = ratings_by_title.get(title, [])
-        movie['ratings'] = ','.join(
-            f"{rating['dimension_id']}:{rating['rating']}"
-            for rating in ratings
-        )
-        movie['ratings_display'] = {
-            rating['dimension_name']: int(rating['rating'])
-            for rating in ratings
-        }
+        movie['ratings'] = ','.join(f"{dimension_id}:{rating}" for dimension_id, rating in ratings)
+        movie['ratings_display'] = ratings_display_by_title.get(title, {})
 
         added_date = movie.get('added_date')
         if hasattr(added_date, 'strftime'):
@@ -1966,29 +1965,24 @@ def search_movies_sql_handler(data):
 
         if min_rating is not None and rating_dimension_id is not None:
             where_clauses.append("""
-                EXISTS (
-                    SELECT 1
+                COALESCE((
+                    SELECT mr_filter.rating
                     FROM movie_ratings mr_filter
                     WHERE mr_filter.movie_title = m.title
                       AND mr_filter.dimension_id = %s
-                      AND mr_filter.rating >= %s
-                )
+                    LIMIT 1
+                ), 3) >= %s
             """)
             params.extend([rating_dimension_id, min_rating])
         elif min_rating is not None:
             where_clauses.append("""
-                EXISTS (
-                    SELECT 1
-                    FROM movie_ratings mr_any
-                    WHERE mr_any.movie_title = m.title
-                )
-            """)
-            where_clauses.append("""
                 NOT EXISTS (
                     SELECT 1
-                    FROM movie_ratings mr_low
-                    WHERE mr_low.movie_title = m.title
-                      AND mr_low.rating < %s
+                    FROM ratings_dimensions rd_filter
+                    LEFT JOIN movie_ratings mr_low
+                      ON mr_low.dimension_id = rd_filter.id
+                     AND mr_low.movie_title = m.title
+                    WHERE COALESCE(mr_low.rating, 3) < %s
                 )
             """)
             params.append(min_rating)
