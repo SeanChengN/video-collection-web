@@ -2206,7 +2206,7 @@ function toggleFilterTag(tagElement) {
     searchFromControls();
 }
 
-const SEARCH_URL_KEYS = ['q', 'rating', 'min', 'tags', 'page', 'searched'];
+const SEARCH_URL_KEYS = ['q', 'rating', 'min', 'tags', 'rec', 'page', 'searched'];
 let searchRequestSequence = 0;
 
 function normalizeSearchPage(page, fallback = 1) {
@@ -2224,12 +2224,47 @@ function getSelectedTags() {
                 .map(tag => tag.textContent);
 }
 
+function normalizeRecommendedFilter(value) {
+    const normalized = String(value ?? '').trim();
+    return normalized === '1' || normalized === '0' ? normalized : '';
+}
+
+function getRecommendedFilterValue() {
+    const selected = document.querySelector('#recommended-filter .tag.is-selected');
+    return normalizeRecommendedFilter(selected?.dataset.recommendedValue);
+}
+
+function setRecommendedFilterValue(value) {
+    const normalized = normalizeRecommendedFilter(value);
+    let foundSelected = false;
+
+    document.querySelectorAll('#recommended-filter .tag').forEach(tag => {
+        const isSelected = normalizeRecommendedFilter(tag.dataset.recommendedValue) === normalized;
+        tag.classList.toggle('is-selected', isSelected);
+        foundSelected = foundSelected || isSelected;
+    });
+
+    if (!foundSelected) {
+        const defaultTag = document.querySelector('#recommended-filter .tag[data-recommended-value=""]');
+        if (defaultTag) defaultTag.classList.add('is-selected');
+    }
+}
+
+function toggleRecommendedFilter(tagElement) {
+    if (!tagElement) return;
+    document.querySelectorAll('#recommended-filter .tag').forEach(tag => {
+        tag.classList.toggle('is-selected', tag === tagElement);
+    });
+    searchFromControls();
+}
+
 function getSearchControlsState(page = currentPage) {
     return {
         page: normalizeSearchPage(page, 1),
         title: document.getElementById('search-input')?.value.trim() || '',
         ratingDimension: document.getElementById('rating-dimension-filter')?.value || '',
         minRating: document.getElementById('min-rating-filter')?.value || '',
+        recommended: getRecommendedFilterValue(),
         selectedTags: getSelectedTags()
     };
 }
@@ -2254,6 +2289,7 @@ function applySearchControlsState(state = {}) {
             ? minValue
             : '';
     }
+    setRecommendedFilterValue(state.recommended);
 
     const selectedTagSet = new Set(state.selectedTags || []);
     document.querySelectorAll('#tags-filter .tag').forEach(tag => {
@@ -2270,6 +2306,7 @@ function readSearchStateFromUrl() {
         title: params.get('q') || '',
         ratingDimension: params.get('rating') || '',
         minRating: params.get('min') || '',
+        recommended: normalizeRecommendedFilter(params.get('rec')),
         selectedTags: (params.get('tags') || '')
             .split(',')
             .map(tag => tag.trim())
@@ -2317,6 +2354,9 @@ function syncSearchStateToUrl(state = getSearchControlsState()) {
     if (selectedTags.length > 0) {
         url.searchParams.set('tags', selectedTags.join(','));
     }
+    if (state.recommended === '1' || state.recommended === '0') {
+        url.searchParams.set('rec', state.recommended);
+    }
     if (page > 1) {
         url.searchParams.set('page', String(page));
     }
@@ -2355,6 +2395,7 @@ function searchMovies(page = 1, options = {}) {
         title: state.title,
         rating_dimension: state.ratingDimension,
         min_rating: state.minRating,
+        recommended: state.recommended,
         tags: state.selectedTags.join(','),
         page: state.page,
         per_page: itemsPerPage
@@ -5024,6 +5065,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 添加事件监听
     ratingDimensionFilter.addEventListener('change', searchFromControls);
     minRatingFilter.addEventListener('change', searchFromControls);
+    document.querySelectorAll('#recommended-filter .tag').forEach(tag => {
+        tag.addEventListener('click', () => toggleRecommendedFilter(tag));
+    });
     searchButton.addEventListener('click', () => {
         debouncedSearchFromInput.cancel();
         searchFromControls();

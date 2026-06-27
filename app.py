@@ -1907,9 +1907,14 @@ def search_movies_sql_handler(data):
     search_term = str(data.get('title') or '').strip()
     rating_dimension = str(data.get('rating_dimension') or '').strip()
     min_rating_raw = str(data.get('min_rating') or '').strip()
+    recommended_raw = data.get('recommended')
+    recommended_filter = '' if recommended_raw is None else str(recommended_raw).strip()
     selected_tag_names = parse_tag_names(data.get('tags', ''))
     page = parse_positive_int(data.get('page'), 1, 1)
     per_page = parse_positive_int(data.get('per_page'), 10, 1, 100)
+
+    if recommended_filter and recommended_filter not in ('0', '1'):
+        return json_error('Invalid recommended filter', 400)
 
     with get_db_connection() as conn:
         cursor = conn.cursor(dictionary=True)
@@ -1919,6 +1924,10 @@ def search_movies_sql_handler(data):
         if search_term:
             where_clauses.append("(m.title LIKE %s OR m.review LIKE %s)")
             params.extend([f'%{search_term}%', f'%{search_term}%'])
+
+        if recommended_filter:
+            where_clauses.append("m.recommended = %s")
+            params.append(1 if recommended_filter == '1' else 0)
 
         if selected_tag_names:
             tag_ids = resolve_tag_ids(cursor, selected_tag_names)
