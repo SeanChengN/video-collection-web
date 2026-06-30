@@ -12,18 +12,22 @@ services:
         condition: service_healthy
     environment:
       DB_HOST: db
-      DB_USER: ${DB_USER:-username}
-      DB_PASSWORD: ${DB_PASSWORD:-password}
+      DB_USER: ${DB_USER:?Set DB_USER in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       DB_DATABASE: ${DB_DATABASE:-movies}
       TZ: ${TZ:-Asia/Shanghai}
-      EMBY_SERVER_URL: ${EMBY_SERVER_URL:-http://your-emby-server-address}
-      EMBY_USERNAME: ${EMBY_USERNAME:-your-emby-username}
-      EMBY_PASSWORD: ${EMBY_PASSWORD:-your-emby-password}
-      JACKETT_URL: ${JACKETT_URL:-http://your-jackett-server-address}
-      THUNDER_URL: ${THUNDER_URL:-http://your-thunder-server-address}
+      EMBY_SERVER_URL: ${EMBY_SERVER_URL:-}
+      EMBY_USERNAME: ${EMBY_USERNAME:-}
+      EMBY_PASSWORD: ${EMBY_PASSWORD:-}
+      JACKETT_URL: ${JACKETT_URL:-}
+      THUNDER_URL: ${THUNDER_URL:-}
       VIDEO_LIBRARY_ROOT: /videos
       APP_ACCESS_TOKEN: ${APP_ACCESS_TOKEN:-}
+      SECRET_KEY: ${SECRET_KEY:-}
       APP_DEBUG: ${APP_DEBUG:-0}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-0}
+      AUTH_RATE_LIMIT_ATTEMPTS: ${AUTH_RATE_LIMIT_ATTEMPTS:-10}
+      AUTH_RATE_LIMIT_WINDOW_SECONDS: ${AUTH_RATE_LIMIT_WINDOW_SECONDS:-300}
       MAX_IMAGE_UPLOAD_MB: ${MAX_IMAGE_UPLOAD_MB:-10}
       DB_BACKUP_DIR: ${DB_BACKUP_DIR:-/backups}
       DB_BACKUP_INCLUDE_ROUTINES: ${DB_BACKUP_INCLUDE_ROUTINES:-0}
@@ -46,10 +50,10 @@ services:
     container_name: video-collection-db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
       MYSQL_DATABASE: ${DB_DATABASE:-movies}
-      MYSQL_USER: ${DB_USER:-username}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+      MYSQL_USER: ${DB_USER:?Set DB_USER in .env}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       MYSQL_AUTO_UPGRADE: 1
       TZ: ${TZ:-Asia/Shanghai}
     volumes:

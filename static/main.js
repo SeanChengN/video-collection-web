@@ -399,28 +399,6 @@ function minimizeModal(modalId) {
     ModalManager.minimize(modalId);
 }
 
-// 延迟加载非关键CSS
-function loadDeferredStyles() {
-    const stylesheets = [
-        '../static/styles.min.css',
-        'https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css'
-    ];
-    
-    stylesheets.forEach(href => {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = href;
-        document.head.appendChild(link);
-    });
-}
-
-// 在页面加载完成后执行
-if (window.addEventListener) {
-    window.addEventListener('load', loadDeferredStyles);
-} else {
-    window.attachEvent('onload', loadDeferredStyles);
-}
-
 const itemsPerPage = 10; // 每页显示10条
 let currentPage = 1;
 let totalPages = 0;
@@ -3021,6 +2999,7 @@ async function updateMovie() {
             formData.append('image', file);
             const response = await fetch('/api', { 
                 method: 'POST', 
+                headers: window.getCsrfHeaders ? window.getCsrfHeaders() : {},
                 body: formData 
             }).then(res => res.json());
             return response;
@@ -5005,6 +4984,7 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
             
             const result = await fetch('/api', {
                 method: 'POST',
+                headers: window.getCsrfHeaders ? window.getCsrfHeaders() : {},
                 body: imageFormData
             }).then(res => res.json());
 

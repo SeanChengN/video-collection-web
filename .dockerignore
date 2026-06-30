@@ -32,6 +32,12 @@ package*.json
 static/main.js
 static/non-critical.css
 
+# Dev-only project files
+AGENTS.md
+requirements-dev.txt
+tests/
+scripts/
+
 # Runtime data and local media
 db_data/
 backups/

@@ -3,3 +3,5 @@ mysql-connector-python
 Flask-Compress
 Pillow
 requests
+gunicorn
+brotli

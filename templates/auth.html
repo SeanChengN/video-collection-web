@@ -110,6 +110,7 @@
         <p class="auth-copy">请输入访问令牌继续。</p>
         <form method="post" action="{{ url_for('auth') }}">
             <input type="hidden" name="next" value="{{ next_path }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label class="auth-label" for="token">Access Token</label>
             <input
                 class="auth-input"
@@ -121,7 +122,11 @@
                 required
             >
             {% if error %}
+            {% if rate_limited %}
+            <p class="auth-error">尝试次数过多，请稍后再试。</p>
+            {% else %}
             <p class="auth-error">令牌无效，请重试。</p>
+            {% endif %}
             {% endif %}
             <button class="auth-button" type="submit">进入</button>
         </form>

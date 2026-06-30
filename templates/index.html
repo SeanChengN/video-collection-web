@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="电影收藏管理系统">
     <meta name="keywords" content="电影,收藏,管理">
-    <!-- 资源预加载 -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" as="style">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="preload" href="../static/vendor/bulma.min.css" as="style">
     <title>电影收藏</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="../static/vendor/bulma.min.css">
     <link rel="icon" type="image/png" sizes="32x32" href="../static/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../static/favicon-16x16.png">
     <style>

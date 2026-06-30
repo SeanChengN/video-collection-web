@@ -1,15 +1,25 @@
-// 通用API调用函数
+function getCsrfToken() {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  return meta ? meta.getAttribute('content') || '' : '';
+}
+
+function getCsrfHeaders() {
+  const token = getCsrfToken();
+  return token ? { 'X-CSRF-Token': token } : {};
+}
+
 async function callApi(eventId, data = {}, method = 'POST') {
   try {
     const response = await fetch('/api', {
-      method: 'POST', // 这里统一用POST请求
+      method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        ...getCsrfHeaders()
       },
       body: JSON.stringify({
         e: eventId,
         d: data,
-        m: method // 原始method作为参数传递
+        m: method
       })
     });
     return response.json();
@@ -21,4 +31,6 @@ async function callApi(eventId, data = {}, method = 'POST') {
   }
 }
 
+window.getCsrfToken = getCsrfToken;
+window.getCsrfHeaders = getCsrfHeaders;
 window.callApi = callApi;

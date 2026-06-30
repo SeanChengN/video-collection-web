@@ -1,6 +1,7 @@
 import os #文件操作
 import io #处理图像数据流
 import hmac
+import secrets
 import logging
 import re
 import gzip
@@ -87,15 +88,91 @@ def configured_access_token():
 def access_token_required():
     return bool(configured_access_token())
 
+def configured_secret_key():
+    return os.environ.get('SECRET_KEY', '').strip()
+
+def fallback_secret_key():
+    if access_token_required():
+        logger.warning("SECRET_KEY is not configured; sessions will be invalidated on restart")
+    return os.urandom(32)
+
 AUTH_SESSION_KEY = 'app_authenticated'
-app.secret_key = configured_access_token() or os.urandom(32)
+CSRF_SESSION_KEY = 'csrf_token'
+SAFE_HTTP_METHODS = {'GET', 'HEAD', 'OPTIONS'}
+AUTH_RATE_LIMIT_FAILURES = {}
+AUTH_RATE_LIMIT_LOCK = threading.Lock()
+AUTH_RATE_LIMIT_ATTEMPTS = max(1, env_int('AUTH_RATE_LIMIT_ATTEMPTS', 10))
+AUTH_RATE_LIMIT_WINDOW_SECONDS = max(30, env_int('AUTH_RATE_LIMIT_WINDOW_SECONDS', 300))
+
+app.secret_key = configured_secret_key() or fallback_secret_key()
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE='Lax'
+    SESSION_COOKIE_SAMESITE=os.environ.get('SESSION_COOKIE_SAMESITE', 'Lax'),
+    SESSION_COOKIE_SECURE=env_bool('SESSION_COOKIE_SECURE', False),
+    PERMANENT_SESSION_LIFETIME=timedelta(seconds=max(300, env_int('SESSION_LIFETIME_SECONDS', 86400)))
 )
 
 def is_authenticated_session():
     return session.get(AUTH_SESSION_KEY) is True
+
+def get_csrf_token():
+    token = session.get(CSRF_SESSION_KEY)
+    if not token:
+        token = secrets.token_urlsafe(32)
+        session[CSRF_SESSION_KEY] = token
+    return token
+
+def request_csrf_token():
+    return request.headers.get('X-CSRF-Token', '') or request.form.get('csrf_token', '')
+
+def csrf_token_is_valid():
+    expected = session.get(CSRF_SESSION_KEY, '')
+    provided = request_csrf_token()
+    return bool(expected and provided and hmac.compare_digest(provided, expected))
+
+def csrf_required_for_request():
+    return (
+        access_token_required()
+        and request.method not in SAFE_HTTP_METHODS
+        and request.endpoint not in {'healthz'}
+    )
+
+def auth_rate_limit_key():
+    return request.remote_addr or 'unknown'
+
+def auth_rate_limit_exceeded(key, now=None):
+    now = now or time.monotonic()
+    cutoff = now - AUTH_RATE_LIMIT_WINDOW_SECONDS
+    with AUTH_RATE_LIMIT_LOCK:
+        failures = [stamp for stamp in AUTH_RATE_LIMIT_FAILURES.get(key, []) if stamp >= cutoff]
+        AUTH_RATE_LIMIT_FAILURES[key] = failures
+        return len(failures) >= AUTH_RATE_LIMIT_ATTEMPTS
+
+def record_auth_failure(key, now=None):
+    now = now or time.monotonic()
+    cutoff = now - AUTH_RATE_LIMIT_WINDOW_SECONDS
+    with AUTH_RATE_LIMIT_LOCK:
+        failures = [stamp for stamp in AUTH_RATE_LIMIT_FAILURES.get(key, []) if stamp >= cutoff]
+        failures.append(now)
+        AUTH_RATE_LIMIT_FAILURES[key] = failures
+
+def clear_auth_failures(key):
+    with AUTH_RATE_LIMIT_LOCK:
+        AUTH_RATE_LIMIT_FAILURES.pop(key, None)
+
+@app.context_processor
+def inject_template_security_context():
+    return {
+        'csrf_token': get_csrf_token
+    }
+
+@app.after_request
+def add_security_headers(response):
+    response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+    response.headers.setdefault('X-Frame-Options', 'SAMEORIGIN')
+    response.headers.setdefault('Referrer-Policy', 'same-origin')
+    response.headers.setdefault('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+    return response
 
 def safe_next_path(value):
     value = (value or '/').strip()
@@ -126,6 +203,14 @@ def require_app_session_auth():
         return None
     return unauthorized_response()
 
+@app.before_request
+def enforce_csrf_protection():
+    if not csrf_required_for_request():
+        return None
+    if csrf_token_is_valid():
+        return None
+    return json_error('Invalid CSRF token', 400)
+
 @app.route('/auth', methods=['GET', 'POST'])
 def auth():
     next_path = safe_next_path(request.values.get('next', '/'))
@@ -135,16 +220,34 @@ def auth():
         return redirect(next_path)
 
     error = False
+    rate_limited = False
     if request.method == 'POST':
+        client_key = auth_rate_limit_key()
+        if auth_rate_limit_exceeded(client_key):
+            rate_limited = True
+            return render_template(
+                'auth.html',
+                error=True,
+                rate_limited=rate_limited,
+                next_path=next_path
+            ), 429
+
         provided_token = request.form.get('token', '').strip()
         if provided_token and hmac.compare_digest(provided_token, configured_access_token()):
             session[AUTH_SESSION_KEY] = True
             session.permanent = False
+            clear_auth_failures(client_key)
             return redirect(next_path)
         session.pop(AUTH_SESSION_KEY, None)
+        record_auth_failure(client_key)
         error = True
 
-    return render_template('auth.html', error=error, next_path=next_path), 401 if error else 200
+    return render_template(
+        'auth.html',
+        error=error,
+        rate_limited=rate_limited,
+        next_path=next_path
+    ), 401 if error else 200
 
 @app.errorhandler(RequestEntityTooLarge)
 def handle_request_too_large(error):
@@ -1786,49 +1889,68 @@ def service_redirect(service_name):
         return Response(status=404)
     return redirect(target_url)
 
+API_EVENTS = {}
+
+def api_event(name, handler, methods=('POST',), require_csrf=True):
+    return {
+        'name': name,
+        'handler': handler,
+        'methods': {method.upper() for method in methods},
+        'require_csrf': require_csrf
+    }
+
+def normalize_api_event_id(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+def normalize_api_method(value):
+    method = str(value or 'POST').strip().upper()
+    return method or 'POST'
+
+def api_event_metadata():
+    return {
+        str(event_id): {
+            'name': event['name'],
+            'methods': sorted(event['methods'])
+        }
+        for event_id, event in sorted(API_EVENTS.items())
+    }
+
 # 统一api入口
 @app.route('/api', methods=['POST'])
 def api_handler():
     try:
         # 检查是否为图片上传请求
         if request.files:
-            return upload_image_handler(None)
+            return upload_image_handler(None, 'POST')
         
         # JSON请求
         payload = request.get_json(silent=True) or {}
-        event_id = payload.get('e')
+        if not isinstance(payload, dict):
+            return json_error('Invalid API payload', 400)
+
+        event_id = normalize_api_event_id(payload.get('e'))
         data = payload.get('d', {})
-        method = payload.get('m', 'POST') # 获取原始method
-        
-        handlers = {
-            1001: get_services_config_handler,
-            1002: get_tags_handler,
-            1003: get_ratings_dimensions_handler,
-            1004: add_tag_handler,
-            1005: update_tag_handler,
-            1006: add_rating_dimension_handler,
-            1007: update_rating_dimension_handler,
-            1008: add_movie_handler,
-            1009: check_duplicates_handler,
-            1010: upload_image_handler,
-            1011: search_movies_handler,
-            1012: update_movie_handler,
-            1013: delete_movie_handler,
-            1014: search_emby_handler,
-            1015: list_video_files_handler,
-            1016: delete_tag_handler,
-            1017: delete_rating_dimension_handler,
-            1018: list_db_backups_handler,
-            1019: create_db_backup_handler,
-            1020: restore_db_backup_handler,
-            1021: delete_db_backup_handler
-        }
-        
-        handler = handlers.get(event_id)
-        if not handler:
+        if data is None:
+            data = {}
+        if not isinstance(data, dict):
+            return json_error('Invalid event payload', 400)
+
+        method = normalize_api_method(payload.get('m', 'POST')) # 获取原始method
+        event = API_EVENTS.get(event_id)
+        if not event:
             return jsonify({"success": False, "message": "无效的事件ID"}), 400
+        if method not in event['methods']:
+            response = jsonify({
+                "success": False,
+                "message": f"Method {method} is not allowed for event {event_id}"
+            })
+            response.headers['Allow'] = ', '.join(sorted(event['methods']))
+            return response, 405
             
-        return handler(data, method) # 传递method给处理器
+        return event['handler'](data, method) # 传递method给处理器
         
     except Exception as e:
         return json_exception('API handler', e)
@@ -2050,6 +2172,8 @@ def get_services_config_handler(data, method='GET'):
             'success': True,
             'data': {
                 'auth_required': access_token_required(),
+                'csrf_token': get_csrf_token(),
+                'api_events': api_event_metadata(),
                 'services': {
                     'emby': bool(os.environ.get('EMBY_SERVER_URL', '').strip()),
                     'jackett': bool(get_service_url('jackett')),
@@ -2609,12 +2733,54 @@ def upload_image_handler(data, method='POST'):
         log_exception('Image upload', e)
         return jsonify({'success': False, 'message': '图片处理失败'}), 500
 
+API_EVENTS.update({
+    1001: api_event('get_services_config', get_services_config_handler, methods=('GET', 'POST')),
+    1002: api_event('get_tags', get_tags_handler, methods=('GET', 'POST')),
+    1003: api_event('get_ratings_dimensions', get_ratings_dimensions_handler, methods=('GET', 'POST')),
+    1004: api_event('add_tag', add_tag_handler, methods=('POST',)),
+    1005: api_event('update_tag', update_tag_handler, methods=('POST', 'PUT')),
+    1006: api_event('add_rating_dimension', add_rating_dimension_handler, methods=('POST',)),
+    1007: api_event('update_rating_dimension', update_rating_dimension_handler, methods=('POST', 'PUT')),
+    1008: api_event('add_movie', add_movie_handler, methods=('POST',)),
+    1009: api_event('check_duplicates', check_duplicates_handler, methods=('POST',)),
+    1010: api_event('upload_image', upload_image_handler, methods=('POST',)),
+    1011: api_event('search_movies', search_movies_handler, methods=('GET', 'POST')),
+    1012: api_event('update_movie', update_movie_handler, methods=('PUT', 'POST')),
+    1013: api_event('delete_movie', delete_movie_handler, methods=('DELETE', 'POST')),
+    1014: api_event('search_emby', search_emby_handler, methods=('POST',)),
+    1015: api_event('list_video_files', list_video_files_handler, methods=('POST',)),
+    1016: api_event('delete_tag', delete_tag_handler, methods=('DELETE', 'POST')),
+    1017: api_event('delete_rating_dimension', delete_rating_dimension_handler, methods=('DELETE', 'POST')),
+    1018: api_event('list_db_backups', list_db_backups_handler, methods=('GET', 'POST')),
+    1019: api_event('create_db_backup', create_db_backup_handler, methods=('POST',)),
+    1020: api_event('restore_db_backup', restore_db_backup_handler, methods=('POST',)),
+    1021: api_event('delete_db_backup', delete_db_backup_handler, methods=('DELETE', 'POST'))
+})
+
+APP_INITIALIZATION_LOCK = threading.Lock()
+APP_INITIALIZED = False
+
+def debug_enabled():
+    return env_bool('APP_DEBUG', False) or env_bool('FLASK_DEBUG', False)
+
+def initialize_application(startup_debug_enabled=None):
+    global APP_INITIALIZED
+    with APP_INITIALIZATION_LOCK:
+        if APP_INITIALIZED:
+            return True
+        startup_debug_enabled = debug_enabled() if startup_debug_enabled is None else startup_debug_enabled
+        if not init_db():
+            logger.error("Database initialization failed; application startup aborted")
+            return False
+        start_scheduled_backup_thread(startup_debug_enabled)
+        APP_INITIALIZED = True
+        return True
+
 if __name__ == "__main__":
-    debug_enabled = env_bool('APP_DEBUG', False) or env_bool('FLASK_DEBUG', False)
-    if init_db():
-        start_scheduled_backup_thread(debug_enabled)
+    startup_debug_enabled = debug_enabled()
+    if initialize_application(startup_debug_enabled):
         app.run(
-            debug=debug_enabled,
+            debug=startup_debug_enabled,
             host=os.environ.get('FLASK_RUN_HOST', '0.0.0.0'),
             port=env_int('FLASK_RUN_PORT', 5000)
         ) #  指定 host='0.0.0.0' 使 Flask 监听所有网络接口
