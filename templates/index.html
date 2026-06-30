@@ -127,6 +127,20 @@
             pointer-events: none;
             display: none;
         }
+        .modal-card-foot {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .modal-card-foot .btn-group-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: nowrap;
+        }
+        .modal-card-foot .delete-btn {
+            margin-left: auto;
+        }
         /* 表格容器样式 - 必要样式 */
         .table-container {
             overflow: visible !important;
@@ -1012,7 +1026,7 @@
             <div class="thumbnail-layout">
                 <div class="thumbnail-left-pane">
                     <div class="thumbnail-player-pane">
-                        <video id="thumbnail-video" controls playsinline preload="auto"></video>
+                        <video id="thumbnail-video" controls playsinline preload="metadata"></video>
                         <div id="thumbnail-status" class="thumbnail-status">请选择视频文件</div>
                     </div>
                     <aside class="thumbnail-browser">

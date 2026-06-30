@@ -30,6 +30,75 @@ def test_video_path_normalization_rejects_traversal():
     assert app_module.normalize_video_relative_path('movies/../../sample.mp4') is None
 
 
+def test_video_route_serves_full_file_with_range_support(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, 'VIDEO_LIBRARY_ROOT', str(tmp_path))
+    video_dir = tmp_path / 'movies'
+    video_dir.mkdir()
+    video_path = video_dir / 'sample.mp4'
+    video_path.write_bytes(b'0123456789')
+    client = make_client()
+
+    response = client.get('/videos/movies/sample.mp4')
+
+    assert response.status_code == 200
+    assert response.headers['Accept-Ranges'] == 'bytes'
+    assert response.headers['Content-Length'] == '10'
+    assert response.data == b'0123456789'
+
+
+def test_video_route_serves_partial_byte_range(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, 'VIDEO_LIBRARY_ROOT', str(tmp_path))
+    video_dir = tmp_path / 'movies'
+    video_dir.mkdir()
+    video_path = video_dir / 'sample.mp4'
+    video_path.write_bytes(b'0123456789')
+    client = make_client()
+
+    response = client.get('/videos/movies/sample.mp4', headers={'Range': 'bytes=2-5'})
+
+    assert response.status_code == 206
+    assert response.headers['Accept-Ranges'] == 'bytes'
+    assert response.headers['Content-Range'] == 'bytes 2-5/10'
+    assert response.headers['Content-Length'] == '4'
+    assert response.data == b'2345'
+
+    open_ended_response = client.get('/videos/movies/sample.mp4', headers={'Range': 'bytes=7-'})
+    assert open_ended_response.status_code == 206
+    assert open_ended_response.headers['Content-Range'] == 'bytes 7-9/10'
+    assert open_ended_response.data == b'789'
+
+    suffix_response = client.get('/videos/movies/sample.mp4', headers={'Range': 'bytes=-3'})
+    assert suffix_response.status_code == 206
+    assert suffix_response.headers['Content-Range'] == 'bytes 7-9/10'
+    assert suffix_response.data == b'789'
+
+
+def test_video_route_rejects_invalid_range(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, 'VIDEO_LIBRARY_ROOT', str(tmp_path))
+    video_dir = tmp_path / 'movies'
+    video_dir.mkdir()
+    video_path = video_dir / 'sample.mp4'
+    video_path.write_bytes(b'0123456789')
+    client = make_client()
+
+    response = client.get('/videos/movies/sample.mp4', headers={'Range': 'bytes=20-30'})
+
+    assert response.status_code == 416
+    assert response.headers['Accept-Ranges'] == 'bytes'
+    assert response.headers['Content-Range'] == 'bytes */10'
+
+
+def test_video_route_rejects_traversal(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, 'VIDEO_LIBRARY_ROOT', str(tmp_path / 'videos'))
+    outside_file = tmp_path / 'escape.mp4'
+    outside_file.write_bytes(b'escape')
+    client = make_client()
+
+    response = client.get('/videos/../escape.mp4')
+
+    assert response.status_code == 404
+
+
 def test_backup_filename_validation():
     assert app_module.safe_backup_filename('movies_20260630_120000.full.tar.gz')
     assert app_module.safe_backup_filename('movies.sql.gz')

@@ -10,6 +10,7 @@ import tempfile
 import shutil
 import subprocess
 import threading
+import mimetypes
 import mysql.connector #数据库连接
 import time #时间处理
 import uuid #UUID生成
@@ -48,6 +49,7 @@ def env_int(name, default):
 UPLOAD_FOLDER = '/images'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 VIDEO_LIBRARY_ROOT = os.environ.get('VIDEO_LIBRARY_ROOT', '/videos')
+VIDEO_STREAM_CHUNK_BYTES = max(64 * 1024, env_int('VIDEO_STREAM_CHUNK_BYTES', 1024 * 1024))
 MAX_IMAGE_UPLOAD_MB = max(1, env_int('MAX_IMAGE_UPLOAD_MB', 10))
 MAX_IMAGE_UPLOAD_BYTES = MAX_IMAGE_UPLOAD_MB * 1024 * 1024
 app.config['MAX_CONTENT_LENGTH'] = MAX_IMAGE_UPLOAD_BYTES
@@ -1759,6 +1761,47 @@ def get_video_library_abs_path(relative_path=''):
 def allowed_video_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
 
+def parse_byte_range(range_header, file_size):
+    if not range_header:
+        return None
+
+    match = re.fullmatch(r'bytes=(\d*)-(\d*)', range_header.strip())
+    if not match:
+        return None
+
+    start_text, end_text = match.groups()
+    if not start_text and not end_text:
+        return None
+
+    try:
+        if start_text:
+            start = int(start_text)
+            end = int(end_text) if end_text else file_size - 1
+        else:
+            suffix_length = int(end_text)
+            if suffix_length <= 0:
+                return None
+            start = max(file_size - suffix_length, 0)
+            end = file_size - 1
+    except ValueError:
+        return None
+
+    if file_size <= 0 or start >= file_size or end < start:
+        return None
+
+    return start, min(end, file_size - 1)
+
+def stream_file_slice(abs_path, start, end):
+    with open(abs_path, 'rb') as file_handle:
+        file_handle.seek(start)
+        remaining = end - start + 1
+        while remaining > 0:
+            chunk = file_handle.read(min(VIDEO_STREAM_CHUNK_BYTES, remaining))
+            if not chunk:
+                break
+            remaining -= len(chunk)
+            yield chunk
+
 def format_video_file_item(directory_relative_path, filename):
     relative_path = '/'.join(part for part in [directory_relative_path, filename] if part)
     abs_path = get_video_library_abs_path(relative_path)
@@ -1781,11 +1824,49 @@ def serve_video(filename):
     if not abs_path or not os.path.isfile(abs_path):
         return Response(status=404)
 
-    return send_from_directory(
-        os.path.dirname(abs_path),
-        os.path.basename(abs_path),
-        conditional=True,
-        as_attachment=False
+    file_size = os.path.getsize(abs_path)
+    content_type = mimetypes.guess_type(abs_path)[0] or 'application/octet-stream'
+    range_header = request.headers.get('Range')
+    byte_range = parse_byte_range(range_header, file_size)
+    common_headers = {
+        'Accept-Ranges': 'bytes',
+        'Content-Type': content_type
+    }
+
+    if range_header and byte_range is None:
+        return Response(
+            status=416,
+            headers={
+                **common_headers,
+                'Content-Range': f'bytes */{file_size}',
+                'Content-Length': '0'
+            }
+        )
+
+    if byte_range:
+        start, end = byte_range
+        status_code = 206
+        response_headers = {
+            **common_headers,
+            'Content-Range': f'bytes {start}-{end}/{file_size}',
+            'Content-Length': str(end - start + 1)
+        }
+    else:
+        start, end = 0, max(file_size - 1, 0)
+        status_code = 200
+        response_headers = {
+            **common_headers,
+            'Content-Length': str(file_size)
+        }
+
+    if request.method == 'HEAD' or file_size == 0:
+        return Response(status=status_code, headers=response_headers)
+
+    return Response(
+        stream_with_context(stream_file_slice(abs_path, start, end)),
+        status=status_code,
+        headers=response_headers,
+        direct_passthrough=True
     )
 
 @app.route('/emby/image/<item_id>')

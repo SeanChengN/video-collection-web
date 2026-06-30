@@ -3868,6 +3868,7 @@ function selectThumbnailVideo(file) {
     thumbnailState.pendingStepTarget = null;
     thumbnailState.pendingStepShouldResume = false;
     video.pause();
+    video.preload = 'metadata';
     video.src = file.url;
     video.load();
     setThumbnailStatus(`已选择：${file.name}`);
