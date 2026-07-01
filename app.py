@@ -1,14 +1,7 @@
 import os #文件操作
-import io #处理图像数据流
 import hmac
 import secrets
 import logging
-import re
-import gzip
-import tarfile
-import tempfile
-import shutil
-import subprocess
 import threading
 import mimetypes
 import mysql.connector #数据库连接
@@ -16,14 +9,50 @@ import time #时间处理
 import uuid #UUID生成
 import json #JSON处理
 from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, session, url_for #Flask框架
-from datetime import datetime, timedelta
+from datetime import timedelta
 from contextlib import contextmanager #上下文管理器
 from flask_compress import Compress #压缩代码
-from PIL import Image, ImageOps, UnidentifiedImageError #图像处理
+from PIL import Image, UnidentifiedImageError #图像处理
 import requests
 from urllib.parse import quote, urlsplit
 from flask import Response, stream_with_context
 from werkzeug.exceptions import RequestEntityTooLarge
+
+from video_collection.config import env_bool, env_int
+from video_collection.paths import is_path_inside
+from video_collection import uploads as upload_helpers
+from video_collection import videos as video_helpers
+from video_collection.uploads import (
+    ALLOWED_EXTENSIONS,
+    ALLOWED_STORED_IMAGE_EXTENSIONS,
+    allowed_file,
+    allowed_stored_image_file,
+    normalize_upload_filename,
+    process_image,
+)
+from video_collection.videos import ALLOWED_VIDEO_EXTENSIONS
+from video_collection.api_registry import (
+    API_EVENTS,
+    api_event,
+    api_event_metadata,
+    normalize_api_event_id,
+    normalize_api_method,
+)
+from video_collection.backups import (
+    BACKUP_FILENAME_PATTERN,
+    SCHEDULED_BACKUP_PREFIX,
+    BackupService,
+    DatabaseUpgradeRequiredError,
+    add_bytes_to_tar,
+    database_upgrade_command_hint,
+    database_upgrade_message,
+    format_local_datetime,
+    is_database_upgrade_error,
+    parse_backup_schedule_time,
+    read_process_error,
+    safe_backup_filename,
+    safe_tar_member_name,
+)
 
 app = Flask(__name__)
 Compress(app)
@@ -32,18 +61,6 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(name)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-def env_bool(name, default=False):
-    value = os.environ.get(name)
-    if value is None:
-        return default
-    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
-
-def env_int(name, default):
-    try:
-        return int(os.environ.get(name, default))
-    except (TypeError, ValueError):
-        return default
 
 # 图片上传常量
 UPLOAD_FOLDER = '/images'
@@ -54,12 +71,6 @@ MAX_IMAGE_UPLOAD_MB = max(1, env_int('MAX_IMAGE_UPLOAD_MB', 10))
 MAX_IMAGE_UPLOAD_BYTES = MAX_IMAGE_UPLOAD_MB * 1024 * 1024
 app.config['MAX_CONTENT_LENGTH'] = MAX_IMAGE_UPLOAD_BYTES
 
-# 允许的图片格式
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-ALLOWED_STORED_IMAGE_EXTENSIONS = {'webp', 'png', 'jpg', 'jpeg'}
-ALLOWED_VIDEO_EXTENSIONS = {
-    'mp4', 'webm', 'ogg', 'ogv', 'mov', 'm4v', 'mkv', 'avi', 'wmv', 'flv', 'ts'
-}
 Image.MAX_IMAGE_PIXELS = env_int('MAX_IMAGE_PIXELS', 20000000)
 
 # 配置压缩选项
@@ -255,58 +266,20 @@ def auth():
 def handle_request_too_large(error):
     return json_error(f'Uploaded file is too large. Max size is {MAX_IMAGE_UPLOAD_MB} MB.', 413)
 
-def normalize_upload_filename(filename):
-    filename = (filename or '').strip()
-    if not filename:
-        return None
-    if filename.startswith('/') or '\\' in filename:
-        return None
-    parts = filename.split('/')
-    if len(parts) not in {1, 2}:
-        return None
-    if any(not part or part in {'.', '..'} for part in parts):
-        return None
-
-    if len(parts) == 1:
-        basename = parts[0]
-        if basename != os.path.basename(basename):
-            return None
-        if not allowed_stored_image_file(basename):
-            return None
-        return basename
-
-    year, basename = parts
-    if len(year) != 4 or not year.isdigit():
-        return None
-    if basename != os.path.basename(basename):
-        return None
-    if not allowed_stored_image_file(basename):
-        return None
-    return f'{year}/{basename}'
-
 def get_upload_file_path(filename):
-    safe_filename = normalize_upload_filename(filename)
-    if not safe_filename:
-        return None
-
-    root_path = os.path.realpath(app.config['UPLOAD_FOLDER'])
-    candidate_path = os.path.realpath(os.path.join(root_path, *safe_filename.split('/')))
-    try:
-        if os.path.commonpath([root_path, candidate_path]) != root_path:
-            return None
-    except ValueError:
-        return None
-    return candidate_path
+    return upload_helpers.get_upload_file_path(
+        filename,
+        app.config['UPLOAD_FOLDER'],
+        ALLOWED_STORED_IMAGE_EXTENSIONS
+    )
 
 def delete_uploaded_image(filename):
-    file_path = get_upload_file_path(filename)
-    if not file_path:
-        logger.warning("Rejected unsafe image delete path: %r", filename)
-        return False
-    if os.path.exists(file_path):
-        os.remove(file_path)
-        return True
-    return False
+    return upload_helpers.delete_uploaded_image(
+        filename,
+        app.config['UPLOAD_FOLDER'],
+        logger,
+        ALLOWED_STORED_IMAGE_EXTENSIONS
+    )
 
 def get_service_url(service_name):
     env_name = {
@@ -341,18 +314,6 @@ DB_BACKUP_INCLUDE_ROUTINES = env_bool('DB_BACKUP_INCLUDE_ROUTINES', False)
 DB_BACKUP_SCHEDULE_ENABLED = env_bool('DB_BACKUP_SCHEDULE_ENABLED', False)
 DB_BACKUP_SCHEDULE_TIME = os.environ.get('DB_BACKUP_SCHEDULE_TIME', '03:30').strip() or '03:30'
 DB_BACKUP_RETENTION_COUNT = max(0, env_int('DB_BACKUP_RETENTION_COUNT', 7))
-SCHEDULED_BACKUP_PREFIX = 'scheduled_'
-BACKUP_FILENAME_PATTERN = re.compile(r'^[A-Za-z0-9_.-]+(?:\.full\.tar\.gz|\.sql(?:\.gz)?)$')
-DB_MAINTENANCE_LOCK = threading.Lock()
-SCHEDULED_BACKUP_STATE_LOCK = threading.Lock()
-SCHEDULED_BACKUP_THREAD_LOCK = threading.Lock()
-SCHEDULED_BACKUP_THREAD_STARTED = False
-SCHEDULED_BACKUP_STATE = {
-    'next_run_at': '',
-    'last_run_at': '',
-    'last_result': '',
-    'last_message': ''
-}
 
 EMBY_CLIENT_NAME = 'video-collection'
 EMBY_DEVICE_NAME = 'video-collection-server'
@@ -485,680 +446,153 @@ def healthz():
             'database': 'error'
         }), 503
 
+backup_service = BackupService(
+    db_config_getter=lambda: DB_CONFIG,
+    backup_dir_getter=lambda: DB_BACKUP_DIR,
+    upload_folder_getter=lambda: app.config['UPLOAD_FOLDER'],
+    db_connection_factory=get_db_connection,
+    logger=logger,
+    image_filename_normalizer=normalize_upload_filename,
+    include_routines_getter=lambda: DB_BACKUP_INCLUDE_ROUTINES,
+    schedule_enabled_getter=lambda: DB_BACKUP_SCHEDULE_ENABLED,
+    schedule_time_getter=lambda: DB_BACKUP_SCHEDULE_TIME,
+    retention_count_getter=lambda: DB_BACKUP_RETENTION_COUNT
+)
+DB_MAINTENANCE_LOCK = backup_service.maintenance_lock
+SCHEDULED_BACKUP_STATE_LOCK = backup_service.state_lock
+SCHEDULED_BACKUP_THREAD_LOCK = backup_service.thread_lock
+SCHEDULED_BACKUP_THREAD_STARTED = backup_service.thread_started
+SCHEDULED_BACKUP_STATE = backup_service.state
+
+
 def backup_feature_enabled():
     return access_token_required() and is_authenticated_session()
 
-def sanitized_database_name():
-    value = re.sub(r'[^A-Za-z0-9_.-]+', '_', DB_CONFIG['database']).strip('._-')
-    return value or 'database'
 
-def safe_backup_filename(filename):
-    filename = (filename or '').strip()
-    if not filename:
-        return None
-    if '/' in filename or '\\' in filename or filename in {'.', '..'}:
-        return None
-    if not BACKUP_FILENAME_PATTERN.fullmatch(filename):
-        return None
-    return filename
+def sanitized_database_name():
+    return backup_service.sanitized_database_name()
+
 
 def get_backup_file_path(filename, must_exist=False):
-    safe_filename = safe_backup_filename(filename)
-    if not safe_filename:
-        return None
+    return backup_service.get_backup_file_path(filename, must_exist)
 
-    root_path = os.path.realpath(DB_BACKUP_DIR)
-    candidate_path = os.path.realpath(os.path.join(root_path, safe_filename))
-    try:
-        if os.path.commonpath([root_path, candidate_path]) != root_path:
-            return None
-    except ValueError:
-        return None
-    if must_exist and not os.path.isfile(candidate_path):
-        return None
-    return candidate_path
 
 def backup_command_env():
-    env = os.environ.copy()
-    env['MYSQL_PWD'] = DB_CONFIG['password']
-    return env
+    return backup_service.backup_command_env()
 
-def read_process_error(error_path):
-    try:
-        with open(error_path, 'rb') as f:
-            return f.read(4096).decode('utf-8', errors='replace').strip()
-    except OSError:
-        return ''
-
-class DatabaseUpgradeRequiredError(RuntimeError):
-    pass
-
-def is_database_upgrade_error(error_text):
-    normalized = (error_text or '').lower()
-    return (
-        'mysql.proc' in normalized
-        or 'mariadb-upgrade' in normalized
-        or ('column count' in normalized and 'is wrong' in normalized)
-    )
-
-def database_upgrade_message():
-    return (
-        'MariaDB 系统表需要升级。当前数据库可能从旧版本升级而来，'
-        '请在服务器执行 mariadb-upgrade 后重启 db/web；本项目默认备份已关闭 routines。'
-    )
-
-def database_upgrade_command_hint():
-    return 'docker compose exec db sh -c \'mariadb-upgrade -uroot -p"$MYSQL_ROOT_PASSWORD"\''
 
 def get_database_upgrade_diagnostics():
-    try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SHOW FUNCTION STATUS WHERE Db = %s", (DB_CONFIG['database'],))
-            cursor.fetchall()
-            cursor.execute("SHOW PROCEDURE STATUS WHERE Db = %s", (DB_CONFIG['database'],))
-            cursor.fetchall()
-        return {
-            'database_upgrade_required': False,
-            'database_upgrade_message': '',
-            'database_upgrade_command': ''
-        }
-    except Exception as e:
-        error_text = str(e)
-        if is_database_upgrade_error(error_text):
-            logger.warning("MariaDB system table upgrade is required: %s", error_text)
-            return {
-                'database_upgrade_required': True,
-                'database_upgrade_message': database_upgrade_message(),
-                'database_upgrade_command': database_upgrade_command_hint()
-            }
-        logger.warning("MariaDB upgrade diagnostic failed: %s", e)
-        return {
-            'database_upgrade_required': False,
-            'database_upgrade_message': '',
-            'database_upgrade_command': ''
-        }
+    return backup_service.get_database_upgrade_diagnostics()
+
 
 def build_database_dump_command():
-    cmd = [
-        'mariadb-dump',
-        '--single-transaction',
-        '--triggers',
-        '--default-character-set=utf8mb4',
-        '-h', DB_CONFIG['host'],
-        '-u', DB_CONFIG['user'],
-        DB_CONFIG['database']
-    ]
-    if DB_BACKUP_INCLUDE_ROUTINES:
-        cmd.insert(2, '--routines')
-    return cmd
+    return backup_service.build_database_dump_command()
+
 
 def classify_backup_filename(filename):
-    safe_filename = safe_backup_filename(filename)
-    if not safe_filename:
-        return None
-    if safe_filename.startswith(SCHEDULED_BACKUP_PREFIX) and safe_filename.endswith('.full.tar.gz'):
-        return {
-            'type': 'scheduled_full',
-            'type_label': '定时备份',
-            'includes_images': True,
-            'scheduled': True
-        }
-    if safe_filename.endswith('.full.tar.gz'):
-        return {
-            'type': 'full',
-            'type_label': '完整备份',
-            'includes_images': True,
-            'scheduled': False
-        }
-    if safe_filename.endswith('.sql') or safe_filename.endswith('.sql.gz'):
-        return {
-            'type': 'database',
-            'type_label': '仅数据库',
-            'includes_images': False,
-            'scheduled': False
-        }
-    return None
+    return backup_service.classify_backup_filename(filename)
 
-def add_bytes_to_tar(tar, arcname, data, mtime=None):
-    payload = data if isinstance(data, bytes) else data.encode('utf-8')
-    info = tarfile.TarInfo(arcname)
-    info.size = len(payload)
-    info.mtime = int(mtime or time.time())
-    tar.addfile(info, io.BytesIO(payload))
-
-def is_path_inside(root_path, candidate_path):
-    root_path = os.path.realpath(root_path)
-    candidate_path = os.path.realpath(candidate_path)
-    try:
-        return os.path.commonpath([root_path, candidate_path]) == root_path
-    except ValueError:
-        return False
 
 def iter_safe_image_files():
-    root_path = os.path.realpath(app.config['UPLOAD_FOLDER'])
-    if not os.path.isdir(root_path):
-        return []
+    return backup_service.iter_safe_image_files()
 
-    image_files = []
-    for dirpath, dirnames, filenames in os.walk(root_path, followlinks=False):
-        dirnames[:] = [
-            dirname for dirname in dirnames
-            if not os.path.islink(os.path.join(dirpath, dirname))
-        ]
-        for filename in filenames:
-            abs_path = os.path.join(dirpath, filename)
-            if os.path.islink(abs_path) or not os.path.isfile(abs_path):
-                continue
-            if not is_path_inside(root_path, abs_path):
-                continue
-
-            relative_path = os.path.relpath(abs_path, root_path).replace('\\', '/')
-            safe_relative_path = normalize_upload_filename(relative_path)
-            if safe_relative_path != relative_path:
-                logger.warning("Skipped unsafe image during backup: %s", relative_path)
-                continue
-            image_files.append((abs_path, safe_relative_path))
-
-    image_files.sort(key=lambda item: item[1].lower())
-    return image_files
 
 def run_database_dump_to_file(target_path):
-    temp_path = f'{target_path}.tmp'
-    error_path = f'{target_path}.err'
-    cmd = build_database_dump_command()
+    return backup_service.run_database_dump_to_file(target_path)
 
-    try:
-        with open(error_path, 'wb') as error_file:
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=error_file,
-                env=backup_command_env()
-            )
-            with gzip.open(temp_path, 'wb') as output:
-                while True:
-                    chunk = process.stdout.read(1024 * 1024)
-                    if not chunk:
-                        break
-                    output.write(chunk)
-            return_code = process.wait()
-
-        if return_code != 0:
-            error_text = read_process_error(error_path)
-            logger.error("Database backup failed with exit code %s: %s", return_code, error_text)
-            if is_database_upgrade_error(error_text):
-                raise DatabaseUpgradeRequiredError(database_upgrade_message())
-            raise RuntimeError('Database backup command failed')
-
-        os.replace(temp_path, target_path)
-    finally:
-        for cleanup_path in (temp_path, error_path):
-            try:
-                if os.path.exists(cleanup_path):
-                    os.remove(cleanup_path)
-            except OSError:
-                logger.warning("Unable to remove temporary backup file: %s", cleanup_path)
 
 def run_database_backup(prefix=''):
-    os.makedirs(DB_BACKUP_DIR, exist_ok=True)
-    timestamp = time.strftime('%Y%m%d_%H%M%S')
-    filename = f"{prefix}{sanitized_database_name()}_{timestamp}.full.tar.gz"
-    target_path = get_backup_file_path(filename)
-    if not target_path:
-        raise ValueError('Invalid backup filename')
+    return backup_service.run_database_backup(prefix)
 
-    temp_archive_path = f'{target_path}.tmp'
-    with tempfile.TemporaryDirectory(prefix='backup_build_', dir=DB_BACKUP_DIR) as temp_dir:
-        dump_path = os.path.join(temp_dir, 'database.sql.gz')
-        run_database_dump_to_file(dump_path)
-
-        image_files = iter_safe_image_files()
-        manifest = {
-            'version': 1,
-            'type': 'full',
-            'database': DB_CONFIG['database'],
-            'created_at': time.strftime('%Y-%m-%d %H:%M:%S'),
-            'include_routines': DB_BACKUP_INCLUDE_ROUTINES,
-            'database_dump': 'database.sql.gz',
-            'images_root': 'images',
-            'images_count': len(image_files)
-        }
-
-        try:
-            with tarfile.open(temp_archive_path, 'w:gz') as tar:
-                tar.add(dump_path, arcname='database.sql.gz', recursive=False)
-                for abs_path, relative_path in image_files:
-                    tar.add(abs_path, arcname=f'images/{relative_path}', recursive=False)
-                add_bytes_to_tar(
-                    tar,
-                    'manifest.json',
-                    json.dumps(manifest, ensure_ascii=False, indent=2)
-                )
-            os.replace(temp_archive_path, target_path)
-        finally:
-            try:
-                if os.path.exists(temp_archive_path):
-                    os.remove(temp_archive_path)
-            except OSError:
-                logger.warning("Unable to remove temporary full backup file: %s", temp_archive_path)
-
-    return format_backup_file(filename, target_path)
 
 def run_database_restore_from_path(backup_path):
-    if not backup_path or not os.path.isfile(backup_path):
-        raise FileNotFoundError('Backup file not found')
+    return backup_service.run_database_restore_from_path(backup_path)
 
-    error_path = f'{backup_path}.restore.err'
-    cmd = [
-        'mariadb',
-        '--default-character-set=utf8mb4',
-        '-h', DB_CONFIG['host'],
-        '-u', DB_CONFIG['user'],
-        DB_CONFIG['database']
-    ]
-    opener = gzip.open if backup_path.endswith('.gz') else open
-
-    try:
-        with opener(backup_path, 'rb') as input_file, open(error_path, 'wb') as error_file:
-            process = subprocess.Popen(
-                cmd,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.DEVNULL,
-                stderr=error_file,
-                env=backup_command_env()
-            )
-            try:
-                while True:
-                    chunk = input_file.read(1024 * 1024)
-                    if not chunk:
-                        break
-                    process.stdin.write(chunk)
-                process.stdin.close()
-            except OSError:
-                process.kill()
-                raise
-
-            return_code = process.wait()
-
-        if return_code != 0:
-            error_text = read_process_error(error_path)
-            logger.error("Database restore failed with exit code %s: %s", return_code, error_text)
-            raise RuntimeError('Database restore command failed')
-    finally:
-        try:
-            if os.path.exists(error_path):
-                os.remove(error_path)
-        except OSError:
-            logger.warning("Unable to remove temporary restore error file: %s", error_path)
-
-def safe_tar_member_name(name):
-    name = (name or '').replace('\\', '/').strip()
-    if not name or name.startswith('/') or name.startswith('../'):
-        return None
-    parts = [part for part in name.split('/') if part]
-    if not parts or any(part in {'.', '..'} for part in parts):
-        return None
-    return '/'.join(parts)
 
 def validate_full_backup_member(member):
-    if member.issym() or member.islnk() or member.isdev():
-        return False
-    if not (member.isfile() or member.isdir()):
-        return False
+    return backup_service.validate_full_backup_member(member)
 
-    safe_name = safe_tar_member_name(member.name)
-    if not safe_name:
-        return False
-    if safe_name in {'manifest.json', 'database.sql.gz', 'images'}:
-        return True
-    if safe_name.startswith('images/'):
-        relative_path = safe_name[len('images/'):]
-        if not relative_path:
-            return member.isdir()
-        if member.isdir():
-            return len(relative_path.split('/')) == 1 and relative_path.isdigit() and len(relative_path) == 4
-        return normalize_upload_filename(relative_path) == relative_path
-    return False
 
 def extract_full_backup_to_temp(backup_path):
-    temp_dir = tempfile.mkdtemp(prefix='backup_restore_')
-    try:
-        with tarfile.open(backup_path, 'r:gz') as tar:
-            members = tar.getmembers()
-            for member in members:
-                if not validate_full_backup_member(member):
-                    raise ValueError(f'Unsafe or unsupported backup entry: {member.name}')
-                target_path = os.path.realpath(os.path.join(temp_dir, safe_tar_member_name(member.name)))
-                if not is_path_inside(temp_dir, target_path):
-                    raise ValueError(f'Unsafe backup entry path: {member.name}')
-            tar.extractall(temp_dir, members=members)
+    return backup_service.extract_full_backup_to_temp(backup_path)
 
-        manifest_path = os.path.join(temp_dir, 'manifest.json')
-        dump_path = os.path.join(temp_dir, 'database.sql.gz')
-        images_path = os.path.join(temp_dir, 'images')
-        if not os.path.isfile(manifest_path) or not os.path.isfile(dump_path):
-            raise ValueError('Full backup is missing manifest or database dump')
-
-        with open(manifest_path, 'r', encoding='utf-8') as manifest_file:
-            manifest = json.load(manifest_file)
-        if manifest.get('type') != 'full' or manifest.get('database_dump') != 'database.sql.gz':
-            raise ValueError('Full backup manifest is invalid')
-
-        validate_extracted_images(images_path)
-        return temp_dir, dump_path, images_path, manifest
-    except Exception:
-        shutil.rmtree(temp_dir, ignore_errors=True)
-        raise
 
 def validate_extracted_images(images_path):
-    if not os.path.exists(images_path):
-        return
-    root_path = os.path.realpath(images_path)
-    for dirpath, dirnames, filenames in os.walk(root_path, followlinks=False):
-        dirnames[:] = [
-            dirname for dirname in dirnames
-            if not os.path.islink(os.path.join(dirpath, dirname))
-        ]
-        for dirname in dirnames:
-            relative_dir = os.path.relpath(os.path.join(dirpath, dirname), root_path).replace('\\', '/')
-            if len(relative_dir.split('/')) > 1 or not (len(relative_dir) == 4 and relative_dir.isdigit()):
-                raise ValueError(f'Unsafe image directory in backup: {relative_dir}')
-        for filename in filenames:
-            abs_path = os.path.join(dirpath, filename)
-            if os.path.islink(abs_path) or not os.path.isfile(abs_path):
-                raise ValueError(f'Unsafe image file in backup: {filename}')
-            if not is_path_inside(root_path, abs_path):
-                raise ValueError(f'Unsafe image path in backup: {filename}')
-            relative_path = os.path.relpath(abs_path, root_path).replace('\\', '/')
-            if normalize_upload_filename(relative_path) != relative_path:
-                raise ValueError(f'Unsupported image path in backup: {relative_path}')
+    return backup_service.validate_extracted_images(images_path)
+
 
 def clear_directory_contents(directory_path):
-    os.makedirs(directory_path, exist_ok=True)
-    root_path = os.path.realpath(directory_path)
-    for entry in os.scandir(root_path):
-        entry_path = os.path.realpath(entry.path)
-        if not is_path_inside(root_path, entry_path):
-            raise ValueError(f'Unsafe path while clearing directory: {entry.name}')
-        if entry.is_dir(follow_symlinks=False):
-            shutil.rmtree(entry_path)
-        else:
-            os.remove(entry_path)
+    return backup_service.clear_directory_contents(directory_path)
+
 
 def copy_directory_contents(source_dir, target_dir):
-    os.makedirs(target_dir, exist_ok=True)
-    if not os.path.isdir(source_dir):
-        return
-    for dirpath, dirnames, filenames in os.walk(source_dir, followlinks=False):
-        relative_dir = os.path.relpath(dirpath, source_dir)
-        target_current_dir = target_dir if relative_dir == '.' else os.path.join(target_dir, relative_dir)
-        os.makedirs(target_current_dir, exist_ok=True)
-        for dirname in dirnames:
-            os.makedirs(os.path.join(target_current_dir, dirname), exist_ok=True)
-        for filename in filenames:
-            shutil.copy2(os.path.join(dirpath, filename), os.path.join(target_current_dir, filename))
+    return backup_service.copy_directory_contents(source_dir, target_dir)
+
 
 def restore_images_snapshot(images_path):
-    upload_root = os.path.realpath(app.config['UPLOAD_FOLDER'])
-    if not is_path_inside(os.path.dirname(upload_root), upload_root):
-        raise ValueError('Upload directory is unsafe')
-    validate_extracted_images(images_path)
-    clear_directory_contents(upload_root)
-    copy_directory_contents(images_path, upload_root)
+    return backup_service.restore_images_snapshot(images_path)
+
 
 def run_full_backup_restore(filename):
-    backup_path = get_backup_file_path(filename, must_exist=True)
-    if not backup_path:
-        raise FileNotFoundError('Backup file not found')
+    return backup_service.run_full_backup_restore(filename)
 
-    temp_dir, dump_path, images_path, manifest = extract_full_backup_to_temp(backup_path)
-    try:
-        run_database_restore_from_path(dump_path)
-        restore_images_snapshot(images_path)
-        return {
-            'backup_type': 'full',
-            'type_label': '完整备份',
-            'includes_images': True,
-            'manifest': manifest
-        }
-    finally:
-        shutil.rmtree(temp_dir, ignore_errors=True)
 
 def run_backup_restore(filename):
-    backup_info = classify_backup_filename(filename)
-    if not backup_info:
-        raise ValueError('Invalid backup filename')
-    if backup_info['type'] == 'full':
-        return run_full_backup_restore(filename)
+    return backup_service.run_backup_restore(filename)
 
-    backup_path = get_backup_file_path(filename, must_exist=True)
-    if not backup_path:
-        raise FileNotFoundError('Backup file not found')
-    run_database_restore_from_path(backup_path)
-    return backup_info
 
 def format_backup_file(filename, path):
-    stat = os.stat(path)
-    backup_info = classify_backup_filename(filename) or {
-        'type': 'unknown',
-        'type_label': '未知',
-        'includes_images': False,
-        'scheduled': False
-    }
-    return {
-        'filename': filename,
-        **backup_info,
-        'size_bytes': stat.st_size,
-        'modified_at': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(stat.st_mtime))
-    }
+    return backup_service.format_backup_file(filename, path)
+
 
 def list_database_backups():
-    os.makedirs(DB_BACKUP_DIR, exist_ok=True)
-    backups = []
-    for entry in os.scandir(DB_BACKUP_DIR):
-        if not entry.is_file():
-            continue
-        filename = safe_backup_filename(entry.name)
-        if not filename:
-            continue
-        backups.append(format_backup_file(filename, entry.path))
-    backups.sort(key=lambda item: item['modified_at'], reverse=True)
-    return backups
+    return backup_service.list_database_backups()
+
 
 def delete_database_backup_file(filename):
-    safe_filename = safe_backup_filename(filename)
-    if not safe_filename:
-        raise ValueError('Invalid backup filename')
+    return backup_service.delete_database_backup_file(filename)
 
-    backup_path = get_backup_file_path(safe_filename, must_exist=True)
-    if not backup_path:
-        raise FileNotFoundError('Backup file not found')
-
-    os.remove(backup_path)
-    return safe_filename
-
-def parse_backup_schedule_time(value):
-    match = re.fullmatch(r'([01]\d|2[0-3]):([0-5]\d)', (value or '').strip())
-    if not match:
-        return None
-    return int(match.group(1)), int(match.group(2))
 
 def scheduled_backup_time_parts():
-    return parse_backup_schedule_time(DB_BACKUP_SCHEDULE_TIME)
+    return backup_service.scheduled_backup_time_parts()
+
 
 def scheduled_backup_is_enabled():
-    return DB_BACKUP_SCHEDULE_ENABLED and scheduled_backup_time_parts() is not None
+    return backup_service.scheduled_backup_is_enabled()
 
-def format_local_datetime(value):
-    if not value:
-        return ''
-    return value.strftime('%Y-%m-%d %H:%M:%S')
 
 def calculate_next_scheduled_backup_time(now=None):
-    parts = scheduled_backup_time_parts()
-    if not parts:
-        return None
+    return backup_service.calculate_next_scheduled_backup_time(now)
 
-    now = now or datetime.now()
-    hour, minute = parts
-    next_run = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-    if next_run <= now:
-        next_run += timedelta(days=1)
-    return next_run
 
 def update_scheduled_backup_state(**updates):
-    with SCHEDULED_BACKUP_STATE_LOCK:
-        SCHEDULED_BACKUP_STATE.update(updates)
+    return backup_service.update_scheduled_backup_state(**updates)
+
 
 def get_scheduled_backup_status():
-    valid_schedule = scheduled_backup_time_parts() is not None
-    with SCHEDULED_BACKUP_STATE_LOCK:
-        state = dict(SCHEDULED_BACKUP_STATE)
+    return backup_service.get_scheduled_backup_status()
 
-    next_run_at = state.get('next_run_at', '')
-    if DB_BACKUP_SCHEDULE_ENABLED and valid_schedule and not next_run_at:
-        next_run_at = format_local_datetime(calculate_next_scheduled_backup_time())
-
-    state['next_run_at'] = next_run_at
-    state.update({
-        'configured': DB_BACKUP_SCHEDULE_ENABLED,
-        'enabled': DB_BACKUP_SCHEDULE_ENABLED and valid_schedule,
-        'valid_schedule': valid_schedule,
-        'schedule_time': DB_BACKUP_SCHEDULE_TIME,
-        'retention_count': DB_BACKUP_RETENTION_COUNT
-    })
-    return state
 
 def list_scheduled_backup_files():
-    os.makedirs(DB_BACKUP_DIR, exist_ok=True)
-    scheduled_backups = []
-    for entry in os.scandir(DB_BACKUP_DIR):
-        if not entry.is_file():
-            continue
-        filename = safe_backup_filename(entry.name)
-        if not filename:
-            continue
-        if not filename.startswith(SCHEDULED_BACKUP_PREFIX) or not filename.endswith('.full.tar.gz'):
-            continue
-        stat = entry.stat()
-        scheduled_backups.append({
-            'filename': filename,
-            'path': entry.path,
-            'mtime': stat.st_mtime
-        })
-    scheduled_backups.sort(key=lambda item: item['mtime'], reverse=True)
-    return scheduled_backups
+    return backup_service.list_scheduled_backup_files()
+
 
 def cleanup_scheduled_backups():
-    if DB_BACKUP_RETENTION_COUNT <= 0:
-        return []
+    return backup_service.cleanup_scheduled_backups()
 
-    scheduled_backups = list_scheduled_backup_files()
-    expired_backups = scheduled_backups[DB_BACKUP_RETENTION_COUNT:]
-    deleted = []
-    for backup in expired_backups:
-        try:
-            deleted.append(delete_database_backup_file(backup['filename']))
-        except FileNotFoundError:
-            continue
-    return deleted
 
 def run_scheduled_backup_once():
-    run_at = format_local_datetime(datetime.now())
-    if not DB_MAINTENANCE_LOCK.acquire(blocking=False):
-        message = '已有数据库维护任务正在执行，已跳过本次定时备份'
-        logger.warning("Scheduled backup skipped: maintenance lock is busy")
-        update_scheduled_backup_state(
-            last_run_at=run_at,
-            last_result='skipped',
-            last_message=message
-        )
-        return
+    return backup_service.run_scheduled_backup_once()
 
-    try:
-        backup = run_database_backup(prefix=SCHEDULED_BACKUP_PREFIX)
-        deleted = cleanup_scheduled_backups()
-        message = f"已创建定时备份：{backup['filename']}"
-        if deleted:
-            message = f"{message}；已清理 {len(deleted)} 个过期定时备份"
-        logger.info("Scheduled backup created: %s; removed %s expired backup(s)", backup['filename'], len(deleted))
-        update_scheduled_backup_state(
-            last_run_at=run_at,
-            last_result='success',
-            last_message=message
-        )
-    except Exception as e:
-        logger.exception("Scheduled backup failed")
-        update_scheduled_backup_state(
-            last_run_at=run_at,
-            last_result='failed',
-            last_message=str(e) or '定时备份失败'
-        )
-    finally:
-        DB_MAINTENANCE_LOCK.release()
 
 def scheduled_backup_worker():
-    while scheduled_backup_is_enabled():
-        next_run = calculate_next_scheduled_backup_time()
-        if not next_run:
-            update_scheduled_backup_state(
-                next_run_at='',
-                last_result='disabled',
-                last_message='定时备份时间配置无效'
-            )
-            return
+    return backup_service.scheduled_backup_worker()
 
-        update_scheduled_backup_state(next_run_at=format_local_datetime(next_run))
-        while True:
-            remaining_seconds = (next_run - datetime.now()).total_seconds()
-            if remaining_seconds <= 0:
-                break
-            time.sleep(min(remaining_seconds, 60))
-
-        run_scheduled_backup_once()
-
-    update_scheduled_backup_state(next_run_at='')
 
 def start_scheduled_backup_thread(debug_enabled=False):
     global SCHEDULED_BACKUP_THREAD_STARTED
-
-    if not DB_BACKUP_SCHEDULE_ENABLED:
-        update_scheduled_backup_state(
-            next_run_at='',
-            last_result='disabled',
-            last_message='定时备份未启用'
-        )
-        return
-
-    if scheduled_backup_time_parts() is None:
-        logger.warning("DB_BACKUP_SCHEDULE_TIME is invalid: %s", DB_BACKUP_SCHEDULE_TIME)
-        update_scheduled_backup_state(
-            next_run_at='',
-            last_result='disabled',
-            last_message='定时备份时间配置无效，请使用 HH:MM'
-        )
-        return
-
-    if debug_enabled and os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
-        return
-
-    with SCHEDULED_BACKUP_THREAD_LOCK:
-        if SCHEDULED_BACKUP_THREAD_STARTED:
-            return
-        SCHEDULED_BACKUP_THREAD_STARTED = True
-
-    thread = threading.Thread(
-        target=scheduled_backup_worker,
-        name='scheduled-backup',
-        daemon=True
-    )
-    thread.start()
-    logger.info(
-        "Scheduled backup enabled at %s, retention count=%s",
-        DB_BACKUP_SCHEDULE_TIME,
-        DB_BACKUP_RETENTION_COUNT
-    )
+    backup_service.start_scheduled_backup_thread(debug_enabled)
+    SCHEDULED_BACKUP_THREAD_STARTED = backup_service.thread_started
 
 MOVIE_METADATA_MIGRATION = '2026_06_18_normalize_movie_metadata'
 MOVIE_IMAGES_MIGRATION = '2026_06_21_normalize_movie_images'
@@ -1731,88 +1165,22 @@ def serve_image(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], safe_filename, conditional=True)
 
 def normalize_video_relative_path(path_value=''):
-    rel_path = (path_value or '').strip().replace('\\', '/').strip('/')
-    if not rel_path or rel_path == '.':
-        return ''
-
-    parts = []
-    for part in rel_path.split('/'):
-        if not part or part == '.':
-            continue
-        if part == '..':
-            return None
-        parts.append(part)
-    return '/'.join(parts)
+    return video_helpers.normalize_video_relative_path(path_value)
 
 def get_video_library_abs_path(relative_path=''):
-    safe_relative = normalize_video_relative_path(relative_path)
-    if safe_relative is None:
-        return None
-
-    root_path = os.path.realpath(VIDEO_LIBRARY_ROOT)
-    candidate_path = os.path.realpath(os.path.join(root_path, *safe_relative.split('/'))) if safe_relative else root_path
-    try:
-        if os.path.commonpath([root_path, candidate_path]) != root_path:
-            return None
-    except ValueError:
-        return None
-    return candidate_path
+    return video_helpers.get_video_library_abs_path(relative_path, VIDEO_LIBRARY_ROOT)
 
 def allowed_video_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
+    return video_helpers.allowed_video_file(filename, ALLOWED_VIDEO_EXTENSIONS)
 
 def parse_byte_range(range_header, file_size):
-    if not range_header:
-        return None
-
-    match = re.fullmatch(r'bytes=(\d*)-(\d*)', range_header.strip())
-    if not match:
-        return None
-
-    start_text, end_text = match.groups()
-    if not start_text and not end_text:
-        return None
-
-    try:
-        if start_text:
-            start = int(start_text)
-            end = int(end_text) if end_text else file_size - 1
-        else:
-            suffix_length = int(end_text)
-            if suffix_length <= 0:
-                return None
-            start = max(file_size - suffix_length, 0)
-            end = file_size - 1
-    except ValueError:
-        return None
-
-    if file_size <= 0 or start >= file_size or end < start:
-        return None
-
-    return start, min(end, file_size - 1)
+    return video_helpers.parse_byte_range(range_header, file_size)
 
 def stream_file_slice(abs_path, start, end):
-    with open(abs_path, 'rb') as file_handle:
-        file_handle.seek(start)
-        remaining = end - start + 1
-        while remaining > 0:
-            chunk = file_handle.read(min(VIDEO_STREAM_CHUNK_BYTES, remaining))
-            if not chunk:
-                break
-            remaining -= len(chunk)
-            yield chunk
+    return video_helpers.stream_file_slice(abs_path, start, end, VIDEO_STREAM_CHUNK_BYTES)
 
 def format_video_file_item(directory_relative_path, filename):
-    relative_path = '/'.join(part for part in [directory_relative_path, filename] if part)
-    abs_path = get_video_library_abs_path(relative_path)
-    stat_result = os.stat(abs_path)
-    return {
-        'name': filename,
-        'path': relative_path,
-        'size': stat_result.st_size,
-        'modified': int(stat_result.st_mtime),
-        'url': f"/videos/{quote(relative_path, safe='/')}"
-    }
+    return video_helpers.format_video_file_item(directory_relative_path, filename, VIDEO_LIBRARY_ROOT)
 
 @app.route('/videos/<path:filename>')
 def serve_video(filename):
@@ -1969,35 +1337,6 @@ def service_redirect(service_name):
     if not target_url:
         return Response(status=404)
     return redirect(target_url)
-
-API_EVENTS = {}
-
-def api_event(name, handler, methods=('POST',), require_csrf=True):
-    return {
-        'name': name,
-        'handler': handler,
-        'methods': {method.upper() for method in methods},
-        'require_csrf': require_csrf
-    }
-
-def normalize_api_event_id(value):
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None
-
-def normalize_api_method(value):
-    method = str(value or 'POST').strip().upper()
-    return method or 'POST'
-
-def api_event_metadata():
-    return {
-        str(event_id): {
-            'name': event['name'],
-            'methods': sorted(event['methods'])
-        }
-        for event_id, event in sorted(API_EVENTS.items())
-    }
 
 # 统一api入口
 @app.route('/api', methods=['POST'])
@@ -2746,37 +2085,6 @@ def list_video_files_handler(data, method='POST'):
         })
     except Exception as e:
         return json_exception('List video files', e, 'Unable to list video files')
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def allowed_stored_image_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_STORED_IMAGE_EXTENSIONS
-
-def process_image(image_file):
-    image_file.stream.seek(0)
-    with Image.open(image_file.stream) as candidate:
-        candidate.verify()
-
-    image_file.stream.seek(0)
-    with Image.open(image_file.stream) as img:
-        img = ImageOps.exif_transpose(img)
-        width, height = img.size
-        if not width or not height:
-            raise ValueError('Invalid image dimensions')
-
-        target_height = 720
-        if height > target_height:
-            ratio = target_height / height
-            new_width = max(1, int(width * ratio))
-            img = img.resize((new_width, target_height), Image.Resampling.LANCZOS)
-
-        if img.mode not in ('RGB', 'RGBA'):
-            img = img.convert('RGB')
-
-        output = io.BytesIO()
-        img.save(output, format='WebP', quality=85, optimize=True)
-        return output.getvalue()
 
 def upload_image_handler(data, method='POST'):
     if 'image' not in request.files:
