@@ -104,6 +104,12 @@ function createSpriteSvg(iconId, options = {}) {
     return svg;
 }
 
+function createIconSpan(iconId, options = {}) {
+    return createEl('span', { className: 'icon' }, [
+        createSpriteSvg(iconId, options)
+    ]);
+}
+
 function createActionButton({ className, text, action, dataset = {}, children = [] }) {
     const button = createEl('button', {
         className,
@@ -417,4 +423,3 @@ let allMovies = []; // 存储所有搜索结果
 // 定义全局配置变量
 let staticDelegatesInitialized = false;
 let dynamicDelegatesInitialized = false;
-

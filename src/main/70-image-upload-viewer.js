@@ -218,7 +218,7 @@ function initUploadArea(areaId, inputId) {
     // 重置函数
     window[`reset${areaId}`] = () => {
         uploadedFiles = [];
-        previewContainer.innerHTML = '';
+        clearElement(previewContainer);
         uploadPlaceholder.style.display = 'block';
         imageInput.value = '';
     };
@@ -236,14 +236,20 @@ function addImagePreview(imageData, uploadArea, index) {
     previewItem.dataset.index = index;
     previewItem.draggable = true; // 允许拖拽
 
-    previewItem.innerHTML = `
-        <img src="${imageData}" alt="预览图">
-        <button class="delete-image" type="button">
-            <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
-                <use href="../static/sprite.svg#close-icon"></use>
-            </svg>
-        </button>
-    `;
+    appendChildren(previewItem, [
+        createEl('img', { attrs: { src: imageData, alt: '预览图' } }),
+        createEl('button', {
+            className: 'delete-image',
+            attrs: { type: 'button' }
+        }, [
+            createSpriteSvg('close-icon', {
+                width: 12,
+                height: 12,
+                fill: 'currentColor',
+                ariaLabel: '删除'
+            })
+        ])
+    ]);
     
     // 拖拽事件
     previewItem.addEventListener('dragstart', (e) => {
@@ -463,7 +469,7 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
 
         // 清除表单
         if (result.message) {
-            messageDiv.innerHTML = `<div class="notification is-success">${result.message}</div>`;
+            setNotification(messageDiv, 'success', result.message);
             this.reset();
             document.querySelectorAll('#add-tags .tag').forEach(tag => 
                 tag.classList.remove('is-selected'));
@@ -472,13 +478,13 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
             //searchMovies(); 不自动搜索电影
             // 成功消息定时清除
             setTimeout(() => {
-                messageDiv.innerHTML = '';
+                clearElement(messageDiv);
             }, 3000);
         } else {
-            messageDiv.innerHTML = `<div class="notification is-danger">${result.error || '添加失败'}</div>`;
+            setNotification(messageDiv, 'danger', result.error || '添加失败');
         }
     } catch (error) {
-        messageDiv.innerHTML = `<div class="notification is-danger">添加失败: ${error.message}</div>`;
+        setNotification(messageDiv, 'danger', `添加失败: ${error.message}`);
     }
 });
 

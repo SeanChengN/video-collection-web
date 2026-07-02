@@ -104,6 +104,12 @@ function createSpriteSvg(iconId, options = {}) {
     return svg;
 }
 
+function createIconSpan(iconId, options = {}) {
+    return createEl('span', { className: 'icon' }, [
+        createSpriteSvg(iconId, options)
+    ]);
+}
+
 function createActionButton({ className, text, action, dataset = {}, children = [] }) {
     const button = createEl('button', {
         className,
@@ -417,7 +423,6 @@ let allMovies = []; // 存储所有搜索结果
 // 定义全局配置变量
 let staticDelegatesInitialized = false;
 let dynamicDelegatesInitialized = false;
-
 function openStaticModalById(modalId) {
     const modalOpeners = {
         duplicateModal: openDuplicateModal,
@@ -724,11 +729,108 @@ function closeDuplicateModal() {
     // 清空输入框
     document.getElementById('duplicate-input').value = '';
     // 清空结果区域
-    document.getElementById('check-result').innerHTML = '<span class="has-text-grey-light">等待核对...</span>';
+    const resultDiv = document.getElementById('check-result');
+    clearElement(resultDiv);
+    resultDiv.appendChild(createEl('span', { className: 'has-text-grey-light', text: '等待核对...' }));
     // 清空表格区域
-    document.getElementById('duplicate-table').innerHTML = '';
+    clearElement(document.getElementById('duplicate-table'));
     // 关闭模态框
     ModalManager.close('duplicateModal');
+}
+
+function setDuplicateInlineStatus(container, className, message) {
+    clearElement(container);
+    container.appendChild(createEl('span', { className, text: message }));
+}
+
+function renderDuplicateSummary(container, duplicateCount, newMovieCount) {
+    clearElement(container);
+    container.appendChild(createEl('div', { className: 'notification is-success' }, [
+        createEl('p', { text: '核对完成！' }),
+        createEl('p', {}, [
+            '发现 ',
+            createEl('strong', { text: String(duplicateCount) }),
+            ' 个重复项'
+        ]),
+        createEl('p', {}, [
+            '剩余 ',
+            createEl('strong', { text: String(newMovieCount) }),
+            ' 个未收录项'
+        ])
+    ]));
+}
+
+function createDuplicateCopyButton(value) {
+    return createEl('button', {
+        className: 'button is-small copy-btn',
+        attrs: { type: 'button' },
+        dataset: {
+            action: 'copy-extra',
+            copyValue: value
+        }
+    }, [
+        createIconSpan('copy-btn-icon', {
+            width: 20,
+            height: 20,
+            fill: '#888888',
+            ariaLabel: '复制'
+        })
+    ]);
+}
+
+function createDuplicateMovieRow(movie, className = '') {
+    const row = createEl('tr', { className });
+    const title = movie.title || '';
+    const matchedTitle = movie.matchedTitle || '';
+    const extra = movie.extra || '';
+    appendChildren(row, [
+        createEl('td', { text: title, attrs: { title } }),
+        createEl('td', { text: matchedTitle, attrs: { title: matchedTitle } }),
+        createEl('td', { text: extra, attrs: { title: extra } }),
+        createEl('td', {}, [createDuplicateCopyButton(extra)])
+    ]);
+    return row;
+}
+
+function renderDuplicateTable(container, newMovies, duplicateMovies) {
+    clearElement(container);
+    const table = createEl('table', { className: 'table is-fullwidth is-striped is-hoverable' });
+    const colgroup = createEl('colgroup');
+    ['15%', '15%', '62%', '8%'].forEach(width => {
+        colgroup.appendChild(createEl('col', { attrs: { style: `width: ${width}` } }));
+    });
+    const headerRow = createEl('tr', {}, [
+        createEl('th', { text: '电影名称' }),
+        createEl('th', { text: '匹配名称' }),
+        createEl('th', { text: '磁力链接' }),
+        createEl('th', { text: '操作' })
+    ]);
+    const tbody = createEl('tbody');
+    newMovies.forEach(movie => {
+        tbody.appendChild(createDuplicateMovieRow(movie));
+    });
+    if (duplicateMovies.length > 0) {
+        tbody.appendChild(createEl('tr', { className: 'duplicate-separator' }, [
+            createEl('td', { text: '以下为重复项', attrs: { colspan: '4' } })
+        ]));
+        duplicateMovies.forEach(movie => {
+            tbody.appendChild(createDuplicateMovieRow(movie, 'is-duplicate'));
+        });
+    }
+    appendChildren(table, [
+        colgroup,
+        createEl('thead', {}, [headerRow]),
+        tbody
+    ]);
+    container.appendChild(table);
+}
+
+function cloneButtonContents(button) {
+    return Array.from(button.childNodes).map(node => node.cloneNode(true));
+}
+
+function restoreButtonContents(button, contents) {
+    button.replaceChildren(...contents.map(node => node.cloneNode(true)));
 }
 
 function checkDuplicates() {
@@ -738,15 +840,15 @@ function checkDuplicates() {
     const movies = input.value.split('\n').filter(line => line.trim());
     
     if (movies.length === 0) {
-        resultDiv.innerHTML = '<span class="has-text-danger">请输入电影列表</span>';
-        tableDiv.innerHTML = '';
+        setDuplicateInlineStatus(resultDiv, 'has-text-danger', '请输入电影列表');
+        clearElement(tableDiv);
         return;
     }
     
     const button = document.querySelector('#duplicateModal .dupStart-btn');
-    const originalHtml = button.innerHTML; 
+    const originalButtonContent = cloneButtonContents(button);
     button.disabled = true;
-    resultDiv.innerHTML = '<span class="has-text-info">正在核对...</span>';
+    setDuplicateInlineStatus(resultDiv, 'has-text-info', '正在核对...');
     
     // 解析每行内容,分离电影名和其他信息
     const movieData = movies.map(line => {
@@ -775,77 +877,16 @@ function checkDuplicates() {
                     matchedTitle: result.matched_titles[movie.title] || movie.title
                 }));
 
-                // 更新统计信息
-                resultDiv.innerHTML = `
-                    <div class="notification is-success">
-                        <p>核对完成！</p>
-                        <p>发现 <strong>${duplicateCount}</strong> 个重复项</p>
-                        <p>剩余 <strong>${newMovies.length}</strong> 个未收录项</p>
-                    </div>
-                `;
-                
-                // 更新表格内容
-                tableDiv.innerHTML = `
-                <table class="table is-fullwidth is-striped is-hoverable">
-                    <colgroup>
-                        <col style="width: 15%">
-                        <col style="width: 15%">
-                        <col style="width: 62%">
-                        <col style="width: 8%">
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th>电影名称</th>
-                            <th>匹配名称</th>
-                            <th>磁力链接</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${newMovies.map(movie => `
-                            <tr>
-                                <td title="${escapeHtml(movie.title)}">${escapeHtml(movie.title)}</td>
-                                <td title="${escapeHtml(movie.matchedTitle || '')}">${escapeHtml(movie.matchedTitle || '')}</td>
-                                <td title="${escapeHtml(movie.extra)}">${escapeHtml(movie.extra)}</td>
-                                <td>
-                                    <button class="button is-small copy-btn" type="button" data-action="copy-extra" data-copy-value="${escapeHtml(movie.extra)}">
-                                        <span class="icon">
-                                            <svg width="20" height="20" fill="#888888" stroke="none" aria-label="复制">
-                                                <use href="../static/sprite.svg#copy-btn-icon"></use>
-                                            </svg>
-                                        </span>
-                                    </button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                        ${result.duplicates.length > 0 ? `
-                            <tr class="duplicate-separator">
-                                <td colspan="4">以下为重复项</td>
-                            </tr>
-                            ${duplicateMovies.map(movie => `
-                                <tr class="is-duplicate">
-                                    <td title="${escapeHtml(movie.title)}">${escapeHtml(movie.title)}</td>
-                                    <td title="${escapeHtml(movie.matchedTitle)}">${escapeHtml(movie.matchedTitle)}</td>
-                                    <td title="${escapeHtml(movie.extra)}">${escapeHtml(movie.extra)}</td>
-                                    <td>
-                                        <button class="button is-small copy-btn" type="button" data-action="copy-extra" data-copy-value="${escapeHtml(movie.extra)}">
-                                            <span class="icon">
-                                                <svg width="20" height="20" fill="#888888" stroke="none" aria-label="复制">
-                                                    <use href="../static/sprite.svg#copy-btn-icon"></use>
-                                                </svg>
-                                            </span>
-                                        </button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        ` : ''}
-                    </tbody>
-                </table>
-            `;
+                renderDuplicateSummary(resultDiv, duplicateCount, newMovies.length);
+                renderDuplicateTable(tableDiv, newMovies, duplicateMovies);
             }
         })
         .catch(error => {
-            resultDiv.innerHTML = '<div class="notification is-danger is-light">核对过程出错，请重试</div>';
+            clearElement(resultDiv);
+            resultDiv.appendChild(createEl('div', {
+                className: 'notification is-danger is-light',
+                text: '核对过程出错，请重试'
+            }));
             showAlert({
                 title: '核对失败',
                 message: error.message || '核对过程出错',
@@ -854,15 +895,13 @@ function checkDuplicates() {
             });
         })
         .finally(() => {
-            button.innerHTML = originalHtml;
+            restoreButtonContents(button, originalButtonContent);
             button.disabled = false;
         });
 }
 
 // 复制内容到剪贴板
 async function copyToClipboard(text, button) {
-    //const originalHtml = button.innerHTML;
-
     // 创建临时文本框
     const textarea = document.createElement('textarea');
     textarea.value = text;
@@ -874,21 +913,26 @@ async function copyToClipboard(text, button) {
         textarea.select();
         document.execCommand('copy');
         // 修改按钮显示成功
-        button.innerHTML = '<span class="icon"><svg width="20" height="20" fill="#fff"><use href="../static/sprite.svg#copy-success-btn-icon"></use></svg></span>';
+        button.replaceChildren(createIconSpan('copy-success-btn-icon', {
+            width: 20,
+            height: 20,
+            fill: '#fff'
+        }));
         button.classList.add('is-success'); // 添加成功样式
     } catch (err) {
         // 修改按钮显示失败
-        button.innerHTML = '<span class="icon"><svg width="20" height="20" fill="#fff"><use href="../static/sprite.svg#copy-fail-btn-icon"></use></svg></span>';
+        button.replaceChildren(createIconSpan('copy-fail-btn-icon', {
+            width: 20,
+            height: 20,
+            fill: '#fff'
+        }));
         button.classList.add('is-danger'); // 添加失败样式
     }
     
     // 清理临时元素
     document.body.removeChild(textarea);
     
-    // 5秒后恢复按钮原样
-    //setTimeout(() => {
-    //    button.innerHTML = originalHtml;
-    //}, 5000);
+    // 复制按钮保持结果状态，直到列表刷新。
 }
 
 // Emby搜索相关代码
@@ -950,7 +994,7 @@ function clearEmbyModalState() {
         input.value = '';
     }
     if (resultsDiv) {
-        resultsDiv.innerHTML = '';
+        clearElement(resultsDiv);
     }
     if (modalBody) {
         modalBody.scrollTop = 0;
@@ -980,16 +1024,6 @@ function resizeEmbyModalForResults() {
         modalCard.style.overflowY = 'hidden';
         centerEmbyModal();
     });
-}
-
-function escapeHtml(value) {
-    return String(value ?? '').replace(/[&<>"']/g, char => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-    }[char]));
 }
 
 function openEmbyPlayer(streamUrl, title) {
@@ -1030,11 +1064,11 @@ function searchEmby() {
     
     if (!query.trim()) {
         resetEmbyModalHeight();
-        resultsDiv.innerHTML = '<div class="notification is-warning">请输入搜索内容</div>';
+        setNotification(resultsDiv, 'warning', '请输入搜索内容');
         return;
     }
     
-    resultsDiv.innerHTML = '<div class="notification is-info">正在搜索...</div>';
+    setNotification(resultsDiv, 'info', '正在搜索...');
     
     callApi(event_map.search_emby, { query })
         .then(result => {
@@ -1047,39 +1081,45 @@ function searchEmby() {
             const items = result.data?.items || [];
             if (items.length === 0) {
                 resetEmbyModalHeight();
-                resultsDiv.innerHTML = '<div class="notification is-info">未找到相关影片</div>';
+                setNotification(resultsDiv, 'info', '未找到相关影片');
                 return;
             }
             
             const fragment = document.createDocumentFragment();
-            const container = document.createElement('div');
-            container.className = 'columns is-multiline';
+            const container = createEl('div', { className: 'columns is-multiline' });
             
             items.forEach(movie => {
-                const column = document.createElement('div');
-                column.className = 'column emby-result-column';
                 const movieName = movie.name || '';
                 const imageUrl = movie.imageUrl || '';
                 const streamUrl = movie.streamUrl || '';
-                const cardClass = streamUrl ? 'card movie-card emby-playable-card' : 'card movie-card emby-unplayable-card';
-                const cardAttributes = streamUrl
-                    ? `role="button" tabindex="0" aria-label="播放 ${escapeHtml(movieName)}"`
-                    : 'aria-disabled="true"';
-                column.innerHTML = `
-                    <div class="${cardClass}" ${cardAttributes}>
-                        <div class="card-image">
-                            <figure class="image is-2by3">
-                                <img data-src="${escapeHtml(imageUrl)}"
-                                     alt="${escapeHtml(movieName)}"
-                                     src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
-                                <div class="runtime-badge">${formatRuntime(movie.runtimeTicks)}</div>
-                            </figure>
-                        </div>
-                        <div class="card-content fixed-height emby-card-content">
-                            <p class="title is-6 movie-title" data-full-title="${escapeHtml(movieName)}">${escapeHtml(movieName)}</p>
-                        </div>
-                    </div>
-                `;
+                const column = createEl('div', { className: 'column emby-result-column' });
+                const card = createEl('div', {
+                    className: streamUrl ? 'card movie-card emby-playable-card' : 'card movie-card emby-unplayable-card',
+                    attrs: streamUrl
+                        ? { role: 'button', tabindex: '0', 'aria-label': `播放 ${movieName}` }
+                        : { 'aria-disabled': 'true' }
+                }, [
+                    createEl('div', { className: 'card-image' }, [
+                        createEl('figure', { className: 'image is-2by3' }, [
+                            createEl('img', {
+                                attrs: {
+                                    alt: movieName,
+                                    src: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
+                                },
+                                dataset: { src: imageUrl }
+                            }),
+                            createEl('div', { className: 'runtime-badge', text: formatRuntime(movie.runtimeTicks) })
+                        ])
+                    ]),
+                    createEl('div', { className: 'card-content fixed-height emby-card-content' }, [
+                        createEl('p', {
+                            className: 'title is-6 movie-title',
+                            text: movieName,
+                            dataset: { fullTitle: movieName }
+                        })
+                    ])
+                ]);
+                column.appendChild(card);
                 
                 // 为新加载的图片添加懒加载观察
                 const img = column.querySelector('img');
@@ -1102,7 +1142,7 @@ function searchEmby() {
             });
             
             fragment.appendChild(container);
-            resultsDiv.innerHTML = '';
+            clearElement(resultsDiv);
             resultsDiv.appendChild(fragment);
             resizeEmbyModalForResults();
         })
@@ -1110,7 +1150,7 @@ function searchEmby() {
             if (requestId !== embySearchRequestId) return;
 
             resetEmbyModalHeight();
-            resultsDiv.innerHTML = '<div class="notification is-danger">搜索出错，请稍后重试</div>';
+            setNotification(resultsDiv, 'danger', '搜索出错，请稍后重试');
             showAlert({
                 title: '搜索出错',
                 message: error.message || '搜索过程出错',
@@ -1165,7 +1205,7 @@ function openWtlModal() {
     } else {
         ModalManager.open('wtlModal');
         document.getElementById('wtl-input').value = '';
-        document.getElementById('wtl-results').innerHTML = '';
+        clearElement(document.getElementById('wtl-results'));
         resetWtlModalHeight();
     }
 }
@@ -1236,26 +1276,17 @@ function searchWtl() {
     
     if (!query.trim()) {
         resetWtlModalHeight();
-        resultsDiv.innerHTML = '<div class="notification is-warning">请输入链接</div>';
+        setNotification(resultsDiv, 'warning', '请输入链接');
         return;
     }
     
-    resultsDiv.innerHTML = '<div class="notification is-info">正在查询...</div>';
+    setNotification(resultsDiv, 'info', '正在查询...');
     
     fetch(`https://whatslink.info/api/v1/link?url=${encodeURIComponent(query)}`)
         .then(response => response.json())
         .then(data => {
-            resultsDiv.innerHTML = `
-                <div class="box">
-                    <div class="content">
-                        <p><strong>文件类型:</strong> ${data.file_type}</p>
-                        <p><strong>资源名称:</strong> ${data.name}</p>
-                        <p><strong>总文件大小:</strong> ${formatFileSize(data.size)}</p>
-                        <p><strong>文件数量:</strong> ${data.count}</p>
-                    </div>
-                    ${renderScreenshots(data.screenshots)}
-                </div>
-            `;
+            clearElement(resultsDiv);
+            resultsDiv.appendChild(createWtlResultBox(data));
             resultsDiv.querySelectorAll('img').forEach(img => {
                 if (!img.complete) {
                     img.addEventListener('load', resizeWtlModalForResults, { once: true });
@@ -1266,7 +1297,7 @@ function searchWtl() {
         })
         .catch(error => {
             resetWtlModalHeight();
-            resultsDiv.innerHTML = '<div class="notification is-danger">查询失败，请检查链接是否正确</div>';
+            setNotification(resultsDiv, 'danger', '查询失败，请检查链接是否正确');
             showAlert({
                 title: '查询失败',
                 message: error.message || '查询过程出错',
@@ -1284,18 +1315,37 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-function renderScreenshots(screenshots) {
-    if (!screenshots || screenshots.length === 0) return '';
-    
-    return `
-        <div class="screenshots">
-            ${screenshots.map(shot => `
-                <div class="screenshot-item">
-                    <img src="${shot.screenshot}" alt="截图">
-                </div>
-            `).join('')}
-        </div>
-    `;
+function createWtlInfoRow(label, value) {
+    return createEl('p', {}, [
+        createEl('strong', { text: `${label}:` }),
+        ` ${value ?? ''}`
+    ]);
+}
+
+function createWtlScreenshots(screenshots) {
+    if (!Array.isArray(screenshots) || screenshots.length === 0) return null;
+    const container = createEl('div', { className: 'screenshots' });
+    screenshots.forEach(shot => {
+        const imageUrl = shot?.screenshot || '';
+        if (!imageUrl) return;
+        container.appendChild(createEl('div', { className: 'screenshot-item' }, [
+            createEl('img', { attrs: { src: imageUrl, alt: '截图' } })
+        ]));
+    });
+    return container;
+}
+
+function createWtlResultBox(data) {
+    const box = createEl('div', { className: 'box' });
+    box.appendChild(createEl('div', { className: 'content' }, [
+        createWtlInfoRow('文件类型', data.file_type),
+        createWtlInfoRow('资源名称', data.name),
+        createWtlInfoRow('总文件大小', formatFileSize(data.size)),
+        createWtlInfoRow('文件数量', data.count)
+    ]));
+    const screenshots = createWtlScreenshots(data.screenshots);
+    if (screenshots) box.appendChild(screenshots);
+    return box;
 }
 
 function formatTime(seconds) {
@@ -2089,7 +2139,7 @@ function loadTags() {
         .then(result => {
             if (result.success) {
                 const addTagsDiv = document.getElementById('add-tags');
-                addTagsDiv.innerHTML = '';
+                clearElement(addTagsDiv);
                 result.data.forEach(tag => {
                     const tagSpan = document.createElement('span');
                     tagSpan.className = 'tag';
@@ -2127,7 +2177,11 @@ function loadFilters() {
     const ratingsRequest = callApi(event_map.get_ratings_dimensions)
         .then(data => {
             if (data.success) {
-                dimensionSelect.innerHTML = '<option value="">全部维度</option>';
+                clearElement(dimensionSelect);
+                dimensionSelect.appendChild(createEl('option', {
+                    text: '全部维度',
+                    attrs: { value: '' }
+                }));
                 
                 data.dimensions.forEach(dimension => {
                     const option = document.createElement('option');
@@ -2154,7 +2208,7 @@ function loadFilters() {
         .then(data => {
             if (data.success) {
                 const tagsFilter = document.getElementById('tags-filter');
-                tagsFilter.innerHTML = ''; // 清空现有标签
+                clearElement(tagsFilter); // 清空现有标签
                 
                 data.data.forEach(tagName => {
                     const tagSpan = document.createElement('span');
@@ -2511,7 +2565,7 @@ function createRatingForms() {
     // 添加电影 表单的评分区域
     const addRatingsContainer = document.getElementById('add-ratings-container');
     if (!addRatingsContainer) return;
-    addRatingsContainer.innerHTML = '';
+    clearElement(addRatingsContainer);
     ratingsDimensions.forEach(dimension => {
         // 为添加电影 表单创建评分字段
         const addField = createRatingField(dimension, false);
@@ -2523,35 +2577,31 @@ function createRatingForms() {
 // 创建评分字段
 function createRatingField(dimension, isEdit) {
     const prefix = isEdit ? 'edit-' : '';
-    const field = document.createElement('div');
-    field.className = 'field';
-    field.innerHTML = `
-        <label class="label">${dimension.name}</label>
-        <div class="control">
-            <div class="rating" data-dimension-id="${dimension.id}">
-                <input type="radio" id="${prefix}rating-${dimension.id}-5" name="${prefix}rating-${dimension.id}" value="5">
-                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="星级">
-                    <use href="../static/sprite.svg#rating-star-icon"></use>
-                </svg>
-                <input type="radio" id="${prefix}rating-${dimension.id}-4" name="${prefix}rating-${dimension.id}" value="4">
-                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
-                    <use href="../static/sprite.svg#rating-star-icon"></use>
-                </svg>
-                <input type="radio" id="${prefix}rating-${dimension.id}-3" name="${prefix}rating-${dimension.id}" value="3">
-                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
-                    <use href="../static/sprite.svg#rating-star-icon"></use>
-                </svg>
-                <input type="radio" id="${prefix}rating-${dimension.id}-2" name="${prefix}rating-${dimension.id}" value="2">
-                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
-                    <use href="../static/sprite.svg#rating-star-icon"></use>
-                </svg>
-                <input type="radio" id="${prefix}rating-${dimension.id}-1" name="${prefix}rating-${dimension.id}" value="1">
-                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
-                    <use href="../static/sprite.svg#rating-star-icon"></use>
-                </svg>
-            </div>
-        </div>
-    `;
+    const dimensionId = String(dimension.id);
+    const rating = createEl('div', {
+        className: 'rating',
+        dataset: { dimensionId }
+    });
+    for (let value = 5; value >= 1; value--) {
+        rating.appendChild(createEl('input', {
+            attrs: {
+                type: 'radio',
+                id: `${prefix}rating-${dimensionId}-${value}`,
+                name: `${prefix}rating-${dimensionId}`,
+                value: String(value)
+            }
+        }));
+        rating.appendChild(createSpriteSvg('rating-star-icon', {
+            width: 16,
+            height: 16,
+            fill: 'currentColor',
+            ariaLabel: value === 5 ? '星级' : '评分'
+        }));
+    }
+    const field = createEl('div', { className: 'field' }, [
+        createEl('label', { className: 'label', text: dimension.name || '' }),
+        createEl('div', { className: 'control' }, [rating])
+    ]);
     // 为新创建的评分字段绑定点击事件
     const stars = field.querySelectorAll('.rating svg');
     stars.forEach(star => {
@@ -2635,11 +2685,10 @@ function openModal(movie) {
     // 添加新日期显示
     const dateField = document.createElement('div');
     dateField.className = 'field';
-    dateField.innerHTML = `
-        <p class="has-text-grey">
-            添加日期: ${formatDate(movie.added_date)}
-        </p>
-    `;
+    dateField.appendChild(createEl('p', {
+        className: 'has-text-grey',
+        text: `添加日期: ${formatDate(movie.added_date)}`
+    }));
     // 将日期字段插入到表单开头
     const form = document.getElementById('edit-movie-form');
     form.insertBefore(dateField, form.firstChild);
@@ -2844,7 +2893,7 @@ async function loadEditTags() {
         const result = await callApi(event_map.get_tags);
         if (result.success) {
             const editTagsDiv = document.getElementById('edit-tags');
-            editTagsDiv.innerHTML = '';
+            clearElement(editTagsDiv);
             result.data.forEach(tag => {
                 const tagSpan = document.createElement('span');
                 tagSpan.className = 'tag';
@@ -3407,16 +3456,7 @@ function formatDate(dateString) {
 
 // 辅助函数：渲染星星
 function renderStars(rating) {
-    const stars = [];
-    for(let i = 1; i <= 5; i++) {
-        const starColor = i <= rating ? getStarColor(rating) : '#d3d3d3';
-        stars.push(`
-            <svg width="16" height="16" fill="${starColor}" stroke="none" aria-label="星级">
-                <use href="../static/sprite.svg#rating-star-icon"></use>
-            </svg>
-        `);
-    }
-    return stars.join('');
+    return createStarsFragment(rating);
 }
 // 辅助函数：获取星星颜色
 function getStarColor(rating) {
@@ -3584,10 +3624,10 @@ function resetThumbnailToolState() {
     clearThumbnailDragCache();
 
     const list = document.getElementById('thumbnail-file-list');
-    if (list) list.innerHTML = '';
+    if (list) clearElement(list);
 
     const breadcrumbs = document.getElementById('thumbnail-breadcrumbs');
-    if (breadcrumbs) breadcrumbs.innerHTML = '';
+    if (breadcrumbs) clearElement(breadcrumbs);
 
     const embyInput = document.getElementById('thumbnail-emby-search-input');
     if (embyInput) embyInput.value = '';
@@ -3801,7 +3841,7 @@ function renderThumbnailEmbyResults(items = thumbnailState.embyResults) {
     syncThumbnailSourceControls();
     const list = document.getElementById('thumbnail-file-list');
     if (!list) return;
-    list.innerHTML = '';
+    clearElement(list);
 
     if (!thumbnailState.embyQuery) {
         const empty = document.createElement('div');
@@ -3841,17 +3881,16 @@ function createThumbnailEmbyRow(item) {
         row.classList.add('is-selected');
     }
 
-    row.innerHTML = `
-        <span class="thumbnail-file-name"><span class="thumbnail-file-name-text"></span></span>
-        <span class="thumbnail-file-meta"></span>
-        <button class="thumbnail-copy-name" type="button" aria-label="复制片名">
-            <svg fill="currentColor" stroke="none" aria-label="复制">
-                <use href="../static/sprite.svg#copy-btn-icon"></use>
-            </svg>
-        </button>
-    `;
-    row.querySelector('.thumbnail-file-name-text').textContent = videoFile.name;
-    row.querySelector('.thumbnail-file-meta').textContent = formatThumbnailEmbyMeta(item, videoFile);
+    appendChildren(row, [
+        createEl('span', { className: 'thumbnail-file-name' }, [
+            createEl('span', { className: 'thumbnail-file-name-text', text: videoFile.name })
+        ]),
+        createEl('span', {
+            className: 'thumbnail-file-meta',
+            text: formatThumbnailEmbyMeta(item, videoFile)
+        }),
+        createThumbnailCopyNameButton('复制片名')
+    ]);
     row.title = videoFile.name;
 
     const selectEmbyVideo = () => {
@@ -3967,7 +4006,7 @@ function renderThumbnailBrowser(data) {
 
     const list = document.getElementById('thumbnail-file-list');
     if (!list) return;
-    list.innerHTML = '';
+    clearElement(list);
 
     const directories = data.directories || [];
     const files = data.files || [];
@@ -3990,7 +4029,7 @@ function renderThumbnailBrowser(data) {
 function renderThumbnailBreadcrumbs(path) {
     const breadcrumbs = document.getElementById('thumbnail-breadcrumbs');
     if (!breadcrumbs) return;
-    breadcrumbs.innerHTML = '';
+    clearElement(breadcrumbs);
 
     const rootButton = document.createElement('button');
     rootButton.type = 'button';
@@ -4017,8 +4056,12 @@ function createThumbnailDirectoryRow(directory) {
     if (directory.name.length > 18) {
         row.classList.add('is-long-name');
     }
-    row.innerHTML = '<span class="thumbnail-file-name"><span class="thumbnail-file-name-text"></span></span><span class="thumbnail-file-meta">目录</span>';
-    row.querySelector('.thumbnail-file-name-text').textContent = `/${directory.name}`;
+    appendChildren(row, [
+        createEl('span', { className: 'thumbnail-file-name' }, [
+            createEl('span', { className: 'thumbnail-file-name-text', text: `/${directory.name}` })
+        ]),
+        createEl('span', { className: 'thumbnail-file-meta', text: '目录' })
+    ]);
     row.title = directory.name;
     row.addEventListener('click', () => loadThumbnailDirectory(directory.path));
     return row;
@@ -4039,17 +4082,16 @@ function createThumbnailFileRow(file) {
     if (isThumbnailVideoSelected(videoFile)) {
         row.classList.add('is-selected');
     }
-    row.innerHTML = `
-        <span class="thumbnail-file-name"><span class="thumbnail-file-name-text"></span></span>
-        <span class="thumbnail-file-meta"></span>
-        <button class="thumbnail-copy-name" type="button" aria-label="复制文件名">
-            <svg fill="currentColor" stroke="none" aria-label="复制">
-                <use href="../static/sprite.svg#copy-btn-icon"></use>
-            </svg>
-        </button>
-    `;
-    row.querySelector('.thumbnail-file-name-text').textContent = videoFile.name;
-    row.querySelector('.thumbnail-file-meta').textContent = formatThumbnailBytes(videoFile.size);
+    appendChildren(row, [
+        createEl('span', { className: 'thumbnail-file-name' }, [
+            createEl('span', { className: 'thumbnail-file-name-text', text: videoFile.name })
+        ]),
+        createEl('span', {
+            className: 'thumbnail-file-meta',
+            text: formatThumbnailBytes(videoFile.size)
+        }),
+        createThumbnailCopyNameButton('复制文件名')
+    ]);
     row.title = videoFile.name;
     row.addEventListener('click', () => selectThumbnailVideo(videoFile));
     row.addEventListener('keydown', event => {
@@ -4066,16 +4108,27 @@ function createThumbnailFileRow(file) {
     return row;
 }
 
+function createThumbnailCopyNameButton(ariaLabel) {
+    return createEl('button', {
+        className: 'thumbnail-copy-name',
+        attrs: { type: 'button', 'aria-label': ariaLabel }
+    }, [
+        createSpriteSvg('copy-btn-icon', {
+            fill: 'currentColor',
+            ariaLabel: '复制'
+        })
+    ]);
+}
+
 async function copyThumbnailVideoFileName(fileName, button) {
     const setCopyIcon = (symbolId, stateClass) => {
         if (!button) return;
         button.classList.remove('is-success', 'is-danger');
         if (stateClass) button.classList.add(stateClass);
-        button.innerHTML = `
-            <svg fill="currentColor" stroke="none" aria-label="复制">
-                <use href="../static/sprite.svg#${symbolId}"></use>
-            </svg>
-        `;
+        button.replaceChildren(createSpriteSvg(symbolId, {
+            fill: 'currentColor',
+            ariaLabel: '复制'
+        }));
     };
 
     try {
@@ -4490,7 +4543,7 @@ function updateThumbnailProgress(value) {
 function renderThumbnailCaptures() {
     const grid = document.getElementById('thumbnail-grid');
     if (!grid) return;
-    grid.innerHTML = '';
+    clearElement(grid);
 
     if (!thumbnailState.captures.length) {
         const empty = document.createElement('div');
@@ -4532,11 +4585,12 @@ function renderThumbnailCaptures() {
         deleteButton.className = 'thumbnail-delete';
         deleteButton.type = 'button';
         deleteButton.setAttribute('aria-label', '删除');
-        deleteButton.innerHTML = `
-            <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
-                <use href="../static/sprite.svg#close-icon"></use>
-            </svg>
-        `;
+        deleteButton.appendChild(createSpriteSvg('close-icon', {
+            width: 12,
+            height: 12,
+            fill: 'currentColor',
+            ariaLabel: '删除'
+        }));
         deleteButton.addEventListener('click', event => {
             event.preventDefault();
             event.stopPropagation();
@@ -5021,7 +5075,7 @@ function initUploadArea(areaId, inputId) {
     // 重置函数
     window[`reset${areaId}`] = () => {
         uploadedFiles = [];
-        previewContainer.innerHTML = '';
+        clearElement(previewContainer);
         uploadPlaceholder.style.display = 'block';
         imageInput.value = '';
     };
@@ -5039,14 +5093,20 @@ function addImagePreview(imageData, uploadArea, index) {
     previewItem.dataset.index = index;
     previewItem.draggable = true; // 允许拖拽
 
-    previewItem.innerHTML = `
-        <img src="${imageData}" alt="预览图">
-        <button class="delete-image" type="button">
-            <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
-                <use href="../static/sprite.svg#close-icon"></use>
-            </svg>
-        </button>
-    `;
+    appendChildren(previewItem, [
+        createEl('img', { attrs: { src: imageData, alt: '预览图' } }),
+        createEl('button', {
+            className: 'delete-image',
+            attrs: { type: 'button' }
+        }, [
+            createSpriteSvg('close-icon', {
+                width: 12,
+                height: 12,
+                fill: 'currentColor',
+                ariaLabel: '删除'
+            })
+        ])
+    ]);
     
     // 拖拽事件
     previewItem.addEventListener('dragstart', (e) => {
@@ -5266,7 +5326,7 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
 
         // 清除表单
         if (result.message) {
-            messageDiv.innerHTML = `<div class="notification is-success">${result.message}</div>`;
+            setNotification(messageDiv, 'success', result.message);
             this.reset();
             document.querySelectorAll('#add-tags .tag').forEach(tag => 
                 tag.classList.remove('is-selected'));
@@ -5275,13 +5335,13 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
             //searchMovies(); 不自动搜索电影
             // 成功消息定时清除
             setTimeout(() => {
-                messageDiv.innerHTML = '';
+                clearElement(messageDiv);
             }, 3000);
         } else {
-            messageDiv.innerHTML = `<div class="notification is-danger">${result.error || '添加失败'}</div>`;
+            setNotification(messageDiv, 'danger', result.error || '添加失败');
         }
     } catch (error) {
-        messageDiv.innerHTML = `<div class="notification is-danger">添加失败: ${error.message}</div>`;
+        setNotification(messageDiv, 'danger', `添加失败: ${error.message}`);
     }
 });
 

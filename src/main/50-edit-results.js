@@ -18,7 +18,7 @@ function createRatingForms() {
     // 添加电影 表单的评分区域
     const addRatingsContainer = document.getElementById('add-ratings-container');
     if (!addRatingsContainer) return;
-    addRatingsContainer.innerHTML = '';
+    clearElement(addRatingsContainer);
     ratingsDimensions.forEach(dimension => {
         // 为添加电影 表单创建评分字段
         const addField = createRatingField(dimension, false);
@@ -30,35 +30,31 @@ function createRatingForms() {
 // 创建评分字段
 function createRatingField(dimension, isEdit) {
     const prefix = isEdit ? 'edit-' : '';
-    const field = document.createElement('div');
-    field.className = 'field';
-    field.innerHTML = `
-        <label class="label">${dimension.name}</label>
-        <div class="control">
-            <div class="rating" data-dimension-id="${dimension.id}">
-                <input type="radio" id="${prefix}rating-${dimension.id}-5" name="${prefix}rating-${dimension.id}" value="5">
-                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="星级">
-                    <use href="../static/sprite.svg#rating-star-icon"></use>
-                </svg>
-                <input type="radio" id="${prefix}rating-${dimension.id}-4" name="${prefix}rating-${dimension.id}" value="4">
-                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
-                    <use href="../static/sprite.svg#rating-star-icon"></use>
-                </svg>
-                <input type="radio" id="${prefix}rating-${dimension.id}-3" name="${prefix}rating-${dimension.id}" value="3">
-                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
-                    <use href="../static/sprite.svg#rating-star-icon"></use>
-                </svg>
-                <input type="radio" id="${prefix}rating-${dimension.id}-2" name="${prefix}rating-${dimension.id}" value="2">
-                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
-                    <use href="../static/sprite.svg#rating-star-icon"></use>
-                </svg>
-                <input type="radio" id="${prefix}rating-${dimension.id}-1" name="${prefix}rating-${dimension.id}" value="1">
-                <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="评分">
-                    <use href="../static/sprite.svg#rating-star-icon"></use>
-                </svg>
-            </div>
-        </div>
-    `;
+    const dimensionId = String(dimension.id);
+    const rating = createEl('div', {
+        className: 'rating',
+        dataset: { dimensionId }
+    });
+    for (let value = 5; value >= 1; value--) {
+        rating.appendChild(createEl('input', {
+            attrs: {
+                type: 'radio',
+                id: `${prefix}rating-${dimensionId}-${value}`,
+                name: `${prefix}rating-${dimensionId}`,
+                value: String(value)
+            }
+        }));
+        rating.appendChild(createSpriteSvg('rating-star-icon', {
+            width: 16,
+            height: 16,
+            fill: 'currentColor',
+            ariaLabel: value === 5 ? '星级' : '评分'
+        }));
+    }
+    const field = createEl('div', { className: 'field' }, [
+        createEl('label', { className: 'label', text: dimension.name || '' }),
+        createEl('div', { className: 'control' }, [rating])
+    ]);
     // 为新创建的评分字段绑定点击事件
     const stars = field.querySelectorAll('.rating svg');
     stars.forEach(star => {
@@ -142,11 +138,10 @@ function openModal(movie) {
     // 添加新日期显示
     const dateField = document.createElement('div');
     dateField.className = 'field';
-    dateField.innerHTML = `
-        <p class="has-text-grey">
-            添加日期: ${formatDate(movie.added_date)}
-        </p>
-    `;
+    dateField.appendChild(createEl('p', {
+        className: 'has-text-grey',
+        text: `添加日期: ${formatDate(movie.added_date)}`
+    }));
     // 将日期字段插入到表单开头
     const form = document.getElementById('edit-movie-form');
     form.insertBefore(dateField, form.firstChild);
@@ -351,7 +346,7 @@ async function loadEditTags() {
         const result = await callApi(event_map.get_tags);
         if (result.success) {
             const editTagsDiv = document.getElementById('edit-tags');
-            editTagsDiv.innerHTML = '';
+            clearElement(editTagsDiv);
             result.data.forEach(tag => {
                 const tagSpan = document.createElement('span');
                 tagSpan.className = 'tag';
@@ -914,16 +909,7 @@ function formatDate(dateString) {
 
 // 辅助函数：渲染星星
 function renderStars(rating) {
-    const stars = [];
-    for(let i = 1; i <= 5; i++) {
-        const starColor = i <= rating ? getStarColor(rating) : '#d3d3d3';
-        stars.push(`
-            <svg width="16" height="16" fill="${starColor}" stroke="none" aria-label="星级">
-                <use href="../static/sprite.svg#rating-star-icon"></use>
-            </svg>
-        `);
-    }
-    return stars.join('');
+    return createStarsFragment(rating);
 }
 // 辅助函数：获取星星颜色
 function getStarColor(rating) {

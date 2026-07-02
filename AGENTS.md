@@ -56,6 +56,7 @@
 
 - Prefer small feature modules when splitting `app.py` or frontend code; keep behavior covered by tests before moving code.
 - Add new frontend behavior to the matching `src/main/` section instead of editing generated `static/main.js` directly.
+- Render user/API/service data with DOM/text APIs (`textContent`, safe attributes, `createEl`) instead of assigning HTML strings.
 - Add new styles to the matching `src/styles/` section instead of editing generated `static/non-critical.css` directly.
 - Preserve UTF-8 when moving Chinese constants, labels, or messages; prefer small `apply_patch` edits over whole-file rewrites for text-bearing files.
 - Do not commit local secrets, media, database files, backups, or generated cache directories.

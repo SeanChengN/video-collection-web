@@ -3,7 +3,7 @@ function loadTags() {
         .then(result => {
             if (result.success) {
                 const addTagsDiv = document.getElementById('add-tags');
-                addTagsDiv.innerHTML = '';
+                clearElement(addTagsDiv);
                 result.data.forEach(tag => {
                     const tagSpan = document.createElement('span');
                     tagSpan.className = 'tag';
@@ -41,7 +41,11 @@ function loadFilters() {
     const ratingsRequest = callApi(event_map.get_ratings_dimensions)
         .then(data => {
             if (data.success) {
-                dimensionSelect.innerHTML = '<option value="">全部维度</option>';
+                clearElement(dimensionSelect);
+                dimensionSelect.appendChild(createEl('option', {
+                    text: '全部维度',
+                    attrs: { value: '' }
+                }));
                 
                 data.dimensions.forEach(dimension => {
                     const option = document.createElement('option');
@@ -68,7 +72,7 @@ function loadFilters() {
         .then(data => {
             if (data.success) {
                 const tagsFilter = document.getElementById('tags-filter');
-                tagsFilter.innerHTML = ''; // 清空现有标签
+                clearElement(tagsFilter); // 清空现有标签
                 
                 data.data.forEach(tagName => {
                     const tagSpan = document.createElement('span');

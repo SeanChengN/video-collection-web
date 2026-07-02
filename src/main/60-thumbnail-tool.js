@@ -76,10 +76,10 @@ function resetThumbnailToolState() {
     clearThumbnailDragCache();
 
     const list = document.getElementById('thumbnail-file-list');
-    if (list) list.innerHTML = '';
+    if (list) clearElement(list);
 
     const breadcrumbs = document.getElementById('thumbnail-breadcrumbs');
-    if (breadcrumbs) breadcrumbs.innerHTML = '';
+    if (breadcrumbs) clearElement(breadcrumbs);
 
     const embyInput = document.getElementById('thumbnail-emby-search-input');
     if (embyInput) embyInput.value = '';
@@ -293,7 +293,7 @@ function renderThumbnailEmbyResults(items = thumbnailState.embyResults) {
     syncThumbnailSourceControls();
     const list = document.getElementById('thumbnail-file-list');
     if (!list) return;
-    list.innerHTML = '';
+    clearElement(list);
 
     if (!thumbnailState.embyQuery) {
         const empty = document.createElement('div');
@@ -333,17 +333,16 @@ function createThumbnailEmbyRow(item) {
         row.classList.add('is-selected');
     }
 
-    row.innerHTML = `
-        <span class="thumbnail-file-name"><span class="thumbnail-file-name-text"></span></span>
-        <span class="thumbnail-file-meta"></span>
-        <button class="thumbnail-copy-name" type="button" aria-label="复制片名">
-            <svg fill="currentColor" stroke="none" aria-label="复制">
-                <use href="../static/sprite.svg#copy-btn-icon"></use>
-            </svg>
-        </button>
-    `;
-    row.querySelector('.thumbnail-file-name-text').textContent = videoFile.name;
-    row.querySelector('.thumbnail-file-meta').textContent = formatThumbnailEmbyMeta(item, videoFile);
+    appendChildren(row, [
+        createEl('span', { className: 'thumbnail-file-name' }, [
+            createEl('span', { className: 'thumbnail-file-name-text', text: videoFile.name })
+        ]),
+        createEl('span', {
+            className: 'thumbnail-file-meta',
+            text: formatThumbnailEmbyMeta(item, videoFile)
+        }),
+        createThumbnailCopyNameButton('复制片名')
+    ]);
     row.title = videoFile.name;
 
     const selectEmbyVideo = () => {
@@ -459,7 +458,7 @@ function renderThumbnailBrowser(data) {
 
     const list = document.getElementById('thumbnail-file-list');
     if (!list) return;
-    list.innerHTML = '';
+    clearElement(list);
 
     const directories = data.directories || [];
     const files = data.files || [];
@@ -482,7 +481,7 @@ function renderThumbnailBrowser(data) {
 function renderThumbnailBreadcrumbs(path) {
     const breadcrumbs = document.getElementById('thumbnail-breadcrumbs');
     if (!breadcrumbs) return;
-    breadcrumbs.innerHTML = '';
+    clearElement(breadcrumbs);
 
     const rootButton = document.createElement('button');
     rootButton.type = 'button';
@@ -509,8 +508,12 @@ function createThumbnailDirectoryRow(directory) {
     if (directory.name.length > 18) {
         row.classList.add('is-long-name');
     }
-    row.innerHTML = '<span class="thumbnail-file-name"><span class="thumbnail-file-name-text"></span></span><span class="thumbnail-file-meta">目录</span>';
-    row.querySelector('.thumbnail-file-name-text').textContent = `/${directory.name}`;
+    appendChildren(row, [
+        createEl('span', { className: 'thumbnail-file-name' }, [
+            createEl('span', { className: 'thumbnail-file-name-text', text: `/${directory.name}` })
+        ]),
+        createEl('span', { className: 'thumbnail-file-meta', text: '目录' })
+    ]);
     row.title = directory.name;
     row.addEventListener('click', () => loadThumbnailDirectory(directory.path));
     return row;
@@ -531,17 +534,16 @@ function createThumbnailFileRow(file) {
     if (isThumbnailVideoSelected(videoFile)) {
         row.classList.add('is-selected');
     }
-    row.innerHTML = `
-        <span class="thumbnail-file-name"><span class="thumbnail-file-name-text"></span></span>
-        <span class="thumbnail-file-meta"></span>
-        <button class="thumbnail-copy-name" type="button" aria-label="复制文件名">
-            <svg fill="currentColor" stroke="none" aria-label="复制">
-                <use href="../static/sprite.svg#copy-btn-icon"></use>
-            </svg>
-        </button>
-    `;
-    row.querySelector('.thumbnail-file-name-text').textContent = videoFile.name;
-    row.querySelector('.thumbnail-file-meta').textContent = formatThumbnailBytes(videoFile.size);
+    appendChildren(row, [
+        createEl('span', { className: 'thumbnail-file-name' }, [
+            createEl('span', { className: 'thumbnail-file-name-text', text: videoFile.name })
+        ]),
+        createEl('span', {
+            className: 'thumbnail-file-meta',
+            text: formatThumbnailBytes(videoFile.size)
+        }),
+        createThumbnailCopyNameButton('复制文件名')
+    ]);
     row.title = videoFile.name;
     row.addEventListener('click', () => selectThumbnailVideo(videoFile));
     row.addEventListener('keydown', event => {
@@ -558,16 +560,27 @@ function createThumbnailFileRow(file) {
     return row;
 }
 
+function createThumbnailCopyNameButton(ariaLabel) {
+    return createEl('button', {
+        className: 'thumbnail-copy-name',
+        attrs: { type: 'button', 'aria-label': ariaLabel }
+    }, [
+        createSpriteSvg('copy-btn-icon', {
+            fill: 'currentColor',
+            ariaLabel: '复制'
+        })
+    ]);
+}
+
 async function copyThumbnailVideoFileName(fileName, button) {
     const setCopyIcon = (symbolId, stateClass) => {
         if (!button) return;
         button.classList.remove('is-success', 'is-danger');
         if (stateClass) button.classList.add(stateClass);
-        button.innerHTML = `
-            <svg fill="currentColor" stroke="none" aria-label="复制">
-                <use href="../static/sprite.svg#${symbolId}"></use>
-            </svg>
-        `;
+        button.replaceChildren(createSpriteSvg(symbolId, {
+            fill: 'currentColor',
+            ariaLabel: '复制'
+        }));
     };
 
     try {
@@ -982,7 +995,7 @@ function updateThumbnailProgress(value) {
 function renderThumbnailCaptures() {
     const grid = document.getElementById('thumbnail-grid');
     if (!grid) return;
-    grid.innerHTML = '';
+    clearElement(grid);
 
     if (!thumbnailState.captures.length) {
         const empty = document.createElement('div');
@@ -1024,11 +1037,12 @@ function renderThumbnailCaptures() {
         deleteButton.className = 'thumbnail-delete';
         deleteButton.type = 'button';
         deleteButton.setAttribute('aria-label', '删除');
-        deleteButton.innerHTML = `
-            <svg width="12" height="12" fill="currentColor" stroke="none" aria-label="删除">
-                <use href="../static/sprite.svg#close-icon"></use>
-            </svg>
-        `;
+        deleteButton.appendChild(createSpriteSvg('close-icon', {
+            width: 12,
+            height: 12,
+            fill: 'currentColor',
+            ariaLabel: '删除'
+        }));
         deleteButton.addEventListener('click', event => {
             event.preventDefault();
             event.stopPropagation();
