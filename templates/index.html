@@ -1166,6 +1166,14 @@
                         <div id="thumbnail-status" class="thumbnail-status">请选择视频文件</div>
                     </div>
                     <aside class="thumbnail-browser">
+                    <div class="thumbnail-source-tabs" role="tablist" aria-label="视频来源">
+                        <button class="button is-small is-info" id="thumbnail-source-local" type="button">本地视频</button>
+                        <button class="button is-small" id="thumbnail-source-emby" type="button">Emby</button>
+                    </div>
+                    <div class="thumbnail-emby-search" hidden>
+                        <input class="input is-small" id="thumbnail-emby-search-input" type="search" placeholder="搜索 Emby 电影">
+                        <button class="button is-small is-info" id="thumbnail-emby-search-button" type="button">搜索</button>
+                    </div>
                     <div class="thumbnail-browser-actions">
                         <button class="button is-small" id="thumbnail-up-button" type="button">
                             <span class="icon">

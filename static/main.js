@@ -3507,8 +3507,11 @@ function updatePagination() {
 
 // 图片上传相关代码
 const thumbnailState = {
+    source: 'local',
     currentPath: '',
     currentListing: null,
+    embyQuery: '',
+    embyResults: [],
     selectedVideo: null,
     captures: [],
     selectedCaptureIds: new Set(),
@@ -3518,6 +3521,7 @@ const thumbnailState = {
     fpsProbeToken: 0,
     adaptiveFps: 30,
     directoryRequestToken: 0,
+    embyRequestToken: 0,
     sessionToken: 0,
     seekToken: 0,
     stepSeekToken: 0,
@@ -3533,7 +3537,10 @@ function openThumbnailModal() {
         ModalManager.open('thumbnailModal');
     }
     initThumbnailTool();
-    if (!thumbnailState.currentListing) {
+    syncThumbnailSourceControls();
+    if (thumbnailState.source === 'emby') {
+        renderThumbnailEmbyResults(thumbnailState.embyResults);
+    } else if (!thumbnailState.currentListing) {
         loadThumbnailDirectory('');
     }
 }
@@ -3551,6 +3558,7 @@ function resetThumbnailToolState() {
     thumbnailState.sessionToken += 1;
     thumbnailState.seekToken += 1;
     thumbnailState.stepSeekToken += 1;
+    thumbnailState.embyRequestToken += 1;
     clearTimeout(thumbnailState.stepSeekTimer);
     thumbnailState.stepSeekTimer = null;
     thumbnailState.pendingStepTarget = null;
@@ -3563,8 +3571,11 @@ function resetThumbnailToolState() {
         video.load();
     }
 
+    thumbnailState.source = 'local';
     thumbnailState.currentPath = '';
     thumbnailState.currentListing = null;
+    thumbnailState.embyQuery = '';
+    thumbnailState.embyResults = [];
     thumbnailState.selectedVideo = null;
     thumbnailState.adaptiveFps = 30;
     thumbnailState.captures.forEach(capture => URL.revokeObjectURL(capture.url));
@@ -3578,6 +3589,9 @@ function resetThumbnailToolState() {
     const breadcrumbs = document.getElementById('thumbnail-breadcrumbs');
     if (breadcrumbs) breadcrumbs.innerHTML = '';
 
+    const embyInput = document.getElementById('thumbnail-emby-search-input');
+    if (embyInput) embyInput.value = '';
+
     setThumbnailStatus('请选择视频文件');
     updateThumbnailProgress(0);
     setThumbnailBatchControls(false);
@@ -3586,6 +3600,7 @@ function resetThumbnailToolState() {
     if (summary) summary.textContent = '';
 
     renderThumbnailCaptures();
+    syncThumbnailSourceControls();
     syncThumbnailPercentPreset();
     updateThumbnailBatchSummary();
     updateThumbnailSelectionControls();
@@ -3598,6 +3613,10 @@ function initThumbnailTool() {
     if (!modal) return;
 
     const video = document.getElementById('thumbnail-video');
+    const localSourceButton = document.getElementById('thumbnail-source-local');
+    const embySourceButton = document.getElementById('thumbnail-source-emby');
+    const embySearchInput = document.getElementById('thumbnail-emby-search-input');
+    const embySearchButton = document.getElementById('thumbnail-emby-search-button');
     const upButton = document.getElementById('thumbnail-up-button');
     const refreshButton = document.getElementById('thumbnail-refresh-button');
     const frameBack = document.getElementById('thumbnail-frame-back');
@@ -3619,6 +3638,16 @@ function initThumbnailTool() {
     const downloadSelectedButton = document.getElementById('thumbnail-download-selected');
     const percentInput = document.getElementById('thumbnail-percent-step');
     const presetButtons = modal.querySelectorAll('.thumbnail-percent-preset');
+
+    localSourceButton?.addEventListener('click', () => setThumbnailSource('local'));
+    embySourceButton?.addEventListener('click', () => setThumbnailSource('emby'));
+    embySearchButton?.addEventListener('click', searchThumbnailEmby);
+    embySearchInput?.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            searchThumbnailEmby();
+        }
+    });
 
     upButton?.addEventListener('click', () => {
         if (thumbnailState.currentPath) {
@@ -3676,13 +3705,221 @@ function initThumbnailTool() {
     });
 
     thumbnailState.initialized = true;
+    syncThumbnailSourceControls();
     syncThumbnailPercentPreset();
     updateThumbnailBatchSummary();
     renderThumbnailCaptures();
 }
 
+function setThumbnailSource(source) {
+    const nextSource = source === 'emby' ? 'emby' : 'local';
+    const sourceChanged = thumbnailState.source !== nextSource;
+    thumbnailState.source = nextSource;
+    syncThumbnailSourceControls();
+
+    if (nextSource === 'local') {
+        thumbnailState.embyRequestToken += 1;
+        if (thumbnailState.currentListing) {
+            renderThumbnailBrowser(thumbnailState.currentListing);
+        } else {
+            loadThumbnailDirectory(thumbnailState.currentPath || '');
+        }
+        return;
+    }
+
+    thumbnailState.directoryRequestToken += 1;
+    renderThumbnailEmbyResults(thumbnailState.embyResults);
+    if (sourceChanged) {
+        document.getElementById('thumbnail-emby-search-input')?.focus();
+    }
+}
+
+function syncThumbnailSourceControls() {
+    const isEmby = thumbnailState.source === 'emby';
+    const localSourceButton = document.getElementById('thumbnail-source-local');
+    const embySourceButton = document.getElementById('thumbnail-source-emby');
+    const browserActions = document.querySelector('#thumbnailModal .thumbnail-browser-actions');
+    const breadcrumbs = document.getElementById('thumbnail-breadcrumbs');
+    const embySearch = document.querySelector('#thumbnailModal .thumbnail-emby-search');
+    const embyInput = document.getElementById('thumbnail-emby-search-input');
+
+    if (localSourceButton) {
+        localSourceButton.classList.toggle('is-info', !isEmby);
+        localSourceButton.classList.toggle('is-light', isEmby);
+        localSourceButton.setAttribute('aria-pressed', isEmby ? 'false' : 'true');
+    }
+    if (embySourceButton) {
+        embySourceButton.classList.toggle('is-info', isEmby);
+        embySourceButton.classList.toggle('is-light', !isEmby);
+        embySourceButton.setAttribute('aria-pressed', isEmby ? 'true' : 'false');
+    }
+    if (browserActions) browserActions.hidden = isEmby;
+    if (breadcrumbs) breadcrumbs.hidden = isEmby;
+    if (embySearch) embySearch.hidden = !isEmby;
+    if (embyInput && embyInput.value !== thumbnailState.embyQuery) {
+        embyInput.value = thumbnailState.embyQuery;
+    }
+}
+
+function searchThumbnailEmby() {
+    const input = document.getElementById('thumbnail-emby-search-input');
+    const query = (input?.value || '').trim();
+    thumbnailState.source = 'emby';
+    thumbnailState.embyQuery = query;
+    syncThumbnailSourceControls();
+
+    if (!query) {
+        thumbnailState.embyResults = [];
+        renderThumbnailEmbyResults([]);
+        setThumbnailStatus('请输入关键词搜索 Emby 视频');
+        return;
+    }
+
+    const requestToken = ++thumbnailState.embyRequestToken;
+    setThumbnailFileListLoading('正在搜索 Emby...');
+    callApi(event_map.search_emby, { query })
+        .then(result => {
+            if (requestToken !== thumbnailState.embyRequestToken) return;
+            if (!result.success) {
+                throw new Error(result.message || 'Emby 搜索失败');
+            }
+            const items = result.data?.items || [];
+            thumbnailState.embyResults = items;
+            renderThumbnailEmbyResults(items);
+            setThumbnailStatus(items.length ? `找到 ${items.length} 个 Emby 视频` : '未找到匹配的 Emby 视频');
+        })
+        .catch(error => {
+            if (requestToken !== thumbnailState.embyRequestToken) return;
+            thumbnailState.embyResults = [];
+            const message = error.message || 'Emby 搜索失败';
+            setThumbnailFileListLoading(message);
+            setThumbnailStatus(message);
+        });
+}
+
+function renderThumbnailEmbyResults(items = thumbnailState.embyResults) {
+    syncThumbnailSourceControls();
+    const list = document.getElementById('thumbnail-file-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    if (!thumbnailState.embyQuery) {
+        const empty = document.createElement('div');
+        empty.className = 'thumbnail-empty';
+        empty.textContent = '输入关键词搜索 Emby 视频';
+        list.appendChild(empty);
+        return;
+    }
+
+    if (!items.length) {
+        const empty = document.createElement('div');
+        empty.className = 'thumbnail-empty';
+        empty.textContent = '未找到匹配的 Emby 视频';
+        list.appendChild(empty);
+        return;
+    }
+
+    items.forEach(item => {
+        list.appendChild(createThumbnailEmbyRow(item));
+    });
+}
+
+function createThumbnailEmbyRow(item) {
+    const videoFile = toThumbnailEmbyVideo(item);
+    const row = document.createElement('div');
+    row.className = 'thumbnail-file-row thumbnail-emby-row has-copy';
+    row.setAttribute('role', 'button');
+    row.tabIndex = videoFile.url ? 0 : -1;
+    if (videoFile.name.length > 18) {
+        row.classList.add('is-long-name');
+    }
+    if (!videoFile.url) {
+        row.classList.add('is-disabled');
+        row.setAttribute('aria-disabled', 'true');
+    }
+    if (isThumbnailVideoSelected(videoFile)) {
+        row.classList.add('is-selected');
+    }
+
+    row.innerHTML = `
+        <span class="thumbnail-file-name"><span class="thumbnail-file-name-text"></span></span>
+        <span class="thumbnail-file-meta"></span>
+        <button class="thumbnail-copy-name" type="button" aria-label="复制片名">
+            <svg fill="currentColor" stroke="none" aria-label="复制">
+                <use href="../static/sprite.svg#copy-btn-icon"></use>
+            </svg>
+        </button>
+    `;
+    row.querySelector('.thumbnail-file-name-text').textContent = videoFile.name;
+    row.querySelector('.thumbnail-file-meta').textContent = formatThumbnailEmbyMeta(item, videoFile);
+    row.title = videoFile.name;
+
+    const selectEmbyVideo = () => {
+        if (!videoFile.url) {
+            setThumbnailStatus('这个 Emby 条目没有可用播放地址');
+            return;
+        }
+        selectThumbnailVideo(videoFile);
+    };
+    row.addEventListener('click', selectEmbyVideo);
+    row.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            selectEmbyVideo();
+        }
+    });
+    row.querySelector('.thumbnail-copy-name')?.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        copyThumbnailVideoFileName(videoFile.name, event.currentTarget);
+    });
+    return row;
+}
+
+function toThumbnailEmbyVideo(item) {
+    const id = String(item?.id || '');
+    const name = item?.name || 'Emby video';
+    return {
+        source: 'emby',
+        id,
+        name,
+        path: id ? `emby:${id}` : `emby:${name}`,
+        url: item?.streamUrl || '',
+        runtimeTicks: item?.runtimeTicks || 0,
+        imageUrl: item?.imageUrl || ''
+    };
+}
+
+function formatThumbnailEmbyMeta(item, videoFile) {
+    if (!videoFile.url) return 'Emby · 不可播放';
+    const runtime = formatRuntime(item?.runtimeTicks);
+    return runtime ? `Emby · ${runtime}` : 'Emby';
+}
+
+function isThumbnailVideoSelected(file) {
+    const selected = thumbnailState.selectedVideo;
+    if (!selected || !file) return false;
+    const selectedSource = selected.source || 'local';
+    const fileSource = file.source || 'local';
+    if (selectedSource !== fileSource) return false;
+    if (fileSource === 'emby') {
+        return Boolean(selected.id && file.id && selected.id === file.id);
+    }
+    return Boolean(selected.path && file.path && selected.path === file.path);
+}
+
+function renderThumbnailCurrentSourceList() {
+    if (thumbnailState.source === 'emby') {
+        renderThumbnailEmbyResults(thumbnailState.embyResults);
+    } else {
+        renderThumbnailBrowser(thumbnailState.currentListing || { path: thumbnailState.currentPath, directories: [], files: [] });
+    }
+}
+
 function loadThumbnailDirectory(path = '') {
     const safePath = path || '';
+    thumbnailState.source = 'local';
+    syncThumbnailSourceControls();
     const requestToken = ++thumbnailState.directoryRequestToken;
     setThumbnailFileListLoading();
     callApi(event_map.list_video_files, { path: safePath })
@@ -3710,14 +3947,18 @@ function loadThumbnailDirectory(path = '') {
         });
 }
 
-function setThumbnailFileListLoading() {
+function setThumbnailFileListLoading(message = '正在读取...') {
     const list = document.getElementById('thumbnail-file-list');
     if (list) {
-        list.innerHTML = '<div class="thumbnail-empty">正在读取...</div>';
+        const empty = document.createElement('div');
+        empty.className = 'thumbnail-empty';
+        empty.textContent = message;
+        list.replaceChildren(empty);
     }
 }
 
 function renderThumbnailBrowser(data) {
+    syncThumbnailSourceControls();
     renderThumbnailBreadcrumbs(data.path || '');
     const upButton = document.getElementById('thumbnail-up-button');
     if (upButton) {
@@ -3784,14 +4025,18 @@ function createThumbnailDirectoryRow(directory) {
 }
 
 function createThumbnailFileRow(file) {
+    const videoFile = {
+        ...file,
+        source: file.source || 'local'
+    };
     const row = document.createElement('div');
     row.className = 'thumbnail-file-row has-copy';
     row.setAttribute('role', 'button');
     row.tabIndex = 0;
-    if (file.name.length > 18) {
+    if (videoFile.name.length > 18) {
         row.classList.add('is-long-name');
     }
-    if (thumbnailState.selectedVideo?.path === file.path) {
+    if (isThumbnailVideoSelected(videoFile)) {
         row.classList.add('is-selected');
     }
     row.innerHTML = `
@@ -3803,20 +4048,20 @@ function createThumbnailFileRow(file) {
             </svg>
         </button>
     `;
-    row.querySelector('.thumbnail-file-name-text').textContent = file.name;
-    row.querySelector('.thumbnail-file-meta').textContent = formatThumbnailBytes(file.size);
-    row.title = file.name;
-    row.addEventListener('click', () => selectThumbnailVideo(file));
+    row.querySelector('.thumbnail-file-name-text').textContent = videoFile.name;
+    row.querySelector('.thumbnail-file-meta').textContent = formatThumbnailBytes(videoFile.size);
+    row.title = videoFile.name;
+    row.addEventListener('click', () => selectThumbnailVideo(videoFile));
     row.addEventListener('keydown', event => {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            selectThumbnailVideo(file);
+            selectThumbnailVideo(videoFile);
         }
     });
     row.querySelector('.thumbnail-copy-name')?.addEventListener('click', event => {
         event.preventDefault();
         event.stopPropagation();
-        copyThumbnailVideoFileName(file.name, event.currentTarget);
+        copyThumbnailVideoFileName(videoFile.name, event.currentTarget);
     });
     return row;
 }
@@ -3857,7 +4102,11 @@ async function copyThumbnailVideoFileName(fileName, button) {
 }
 
 function selectThumbnailVideo(file) {
-    thumbnailState.selectedVideo = file;
+    const videoFile = {
+        ...file,
+        source: file.source || 'local'
+    };
+    thumbnailState.selectedVideo = videoFile;
     const video = document.getElementById('thumbnail-video');
     if (!video) return;
 
@@ -3869,10 +4118,10 @@ function selectThumbnailVideo(file) {
     thumbnailState.pendingStepShouldResume = false;
     video.pause();
     video.preload = 'metadata';
-    video.src = file.url;
+    video.src = videoFile.url;
     video.load();
-    setThumbnailStatus(`已选择：${file.name}`);
-    renderThumbnailBrowser(thumbnailState.currentListing || { path: thumbnailState.currentPath, directories: [], files: [] });
+    setThumbnailStatus(`已选择：${videoFile.name}`);
+    renderThumbnailCurrentSourceList();
 }
 
 function updateThumbnailStatusForVideo() {
