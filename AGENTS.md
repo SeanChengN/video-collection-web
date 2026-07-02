@@ -22,6 +22,7 @@
 - Security/auth helpers live in `video_collection/security.py`; keep `app.py` wrappers reading current globals for monkeypatch-friendly tests.
 - Emby client logic lives in `video_collection/emby.py`; `app.py` still exposes `EMBY_TOKEN_CACHE`, `authenticate_emby`, and `emby_request`.
 - Database connection setup lives in `video_collection/database.py`.
+- Database schema initialization lives in `video_collection/schema.py`; keep initialization idempotent and covered by startup/init tests.
 - Movie metadata parsing, hydration, and schema helper functions live in `video_collection/movie_metadata.py`.
 - API handler implementations live in `video_collection/api_handlers.py`; `app.py` keeps `/api`, compatibility wrappers, and event registration.
 - API handlers use `ApiHandlerDependencies`; add new handler dependencies there and inject them from `app.py`, instead of relying on implicit globals.

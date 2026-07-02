@@ -3,7 +3,6 @@ import hmac
 import logging
 import threading
 import mimetypes
-import mysql.connector #数据库连接
 import time #时间处理
 from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, session, url_for #Flask框架
 from datetime import timedelta
@@ -13,7 +12,7 @@ import requests
 from flask import Response, stream_with_context
 from werkzeug.exceptions import RequestEntityTooLarge
 
-from video_collection import database, movie_metadata, security
+from video_collection import database, movie_metadata, schema, security
 from video_collection.config import env_bool, env_int
 from video_collection.paths import is_path_inside
 from video_collection import uploads as upload_helpers
@@ -610,145 +609,16 @@ def migrate_movie_images_schema(conn, cursor):
 # Database initialization
 def init_db():
     try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            # 创建movies表 - tags字段和ratings字段存储逗号分隔的ID和值
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS movies (
-                    title VARCHAR(255) PRIMARY KEY,
-                    recommended BOOLEAN,
-                    review TEXT,
-                    added_date DATETIME DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS schema_migrations (
-                    version VARCHAR(100) PRIMARY KEY,
-                    applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-            # 创建tags表
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS tags (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    name VARCHAR(50) UNIQUE
-                )
-            """)
-            # 创建ratings_dimensions表
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS ratings_dimensions (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    name VARCHAR(50) UNIQUE
-                )
-            """)
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS movie_tags (
-                    movie_title VARCHAR(255) NOT NULL,
-                    tag_id INT NOT NULL,
-                    PRIMARY KEY (movie_title, tag_id),
-                    CONSTRAINT fk_movie_tags_movie
-                        FOREIGN KEY (movie_title) REFERENCES movies(title)
-                        ON DELETE CASCADE ON UPDATE CASCADE,
-                    CONSTRAINT fk_movie_tags_tag
-                        FOREIGN KEY (tag_id) REFERENCES tags(id)
-                        ON DELETE CASCADE ON UPDATE CASCADE
-                )
-            """)
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS movie_ratings (
-                    movie_title VARCHAR(255) NOT NULL,
-                    dimension_id INT NOT NULL,
-                    rating TINYINT NOT NULL,
-                    PRIMARY KEY (movie_title, dimension_id),
-                    CONSTRAINT fk_movie_ratings_movie
-                        FOREIGN KEY (movie_title) REFERENCES movies(title)
-                        ON DELETE CASCADE ON UPDATE CASCADE,
-                    CONSTRAINT fk_movie_ratings_dimension
-                        FOREIGN KEY (dimension_id) REFERENCES ratings_dimensions(id)
-                        ON DELETE CASCADE ON UPDATE CASCADE,
-                    CONSTRAINT chk_movie_rating_range CHECK (rating BETWEEN 1 AND 5)
-                )
-            """)
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS movie_images (
-                    movie_title VARCHAR(255) NOT NULL,
-                    filename VARCHAR(255) NOT NULL,
-                    sort_order INT NOT NULL DEFAULT 0,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    PRIMARY KEY (movie_title, filename),
-                    CONSTRAINT fk_movie_images_movie
-                        FOREIGN KEY (movie_title) REFERENCES movies(title)
-                        ON DELETE CASCADE ON UPDATE CASCADE
-                )
-            """)
-
-            ensure_index(cursor, 'movies', 'idx_movies_added_date', """
-                CREATE INDEX idx_movies_added_date ON movies (added_date)
-            """)
-            ensure_index(cursor, 'movie_tags', 'idx_movie_tags_tag_movie', """
-                CREATE INDEX idx_movie_tags_tag_movie ON movie_tags (tag_id, movie_title)
-            """)
-            ensure_index(cursor, 'movie_ratings', 'idx_movie_ratings_dimension_rating_title', """
-                CREATE INDEX idx_movie_ratings_dimension_rating_title
-                ON movie_ratings (dimension_id, rating, movie_title)
-            """)
-            ensure_index(cursor, 'movie_ratings', 'idx_movie_ratings_movie_rating', """
-                CREATE INDEX idx_movie_ratings_movie_rating
-                ON movie_ratings (movie_title, rating)
-            """)
-            ensure_index(cursor, 'movie_images', 'idx_movie_images_movie_sort', """
-                CREATE INDEX idx_movie_images_movie_sort
-                ON movie_images (movie_title, sort_order)
-            """)
-            ensure_index(cursor, 'movie_images', 'idx_movie_images_filename', """
-                CREATE INDEX idx_movie_images_filename ON movie_images (filename)
-            """)
-            
-            # 预设标签
-            default_tags = [
-                "精品", "剧情", "写实", "激烈", 
-                "抽象", "情感", "蒙面"
-            ]
-            
-            # 预设评分维度
-            default_dimensions = [
-                "颜值", "身材", "皮肤", "表演", "画面", "剧情"
-            ]
-
-            # 检查tags表是否为空
-            cursor.execute("SELECT COUNT(*) FROM tags")
-            tags_count = cursor.fetchone()[0]
-            
-            # 检查ratings_dimensions表是否为空
-            cursor.execute("SELECT COUNT(*) FROM ratings_dimensions")
-            ratings_count = cursor.fetchone()[0]
-            
-            # 插入预设标签（表为空时）
-            if tags_count == 0:
-                for tag in default_tags:
-                    try:
-                        cursor.execute("INSERT INTO tags (name) VALUES (%s)", (tag,))
-                    except mysql.connector.Error as err:
-                        if err.errno != 1062:  # 忽略重复键错误
-                            raise
-            
-            # 插入预设评分维度（表为空时）
-            if ratings_count == 0:
-                for dimension in default_dimensions:
-                    try:
-                        cursor.execute("INSERT INTO ratings_dimensions (name) VALUES (%s)", (dimension,))
-                    except mysql.connector.Error as err:
-                        if err.errno != 1062:  # 忽略重复键错误
-                            raise
-                        
-            migrate_movie_metadata_schema(conn, cursor)
-            migrate_movie_images_schema(conn, cursor)
-            conn.commit()
-            return True
+        return schema.initialize_database(
+            get_db_connection,
+            logger,
+            ensure_index,
+            migrate_movie_metadata_schema,
+            migrate_movie_images_schema
+        )
     except Exception as e:
         log_exception('Database initialization', e)
         return False
-
 @app.route("/")
 def index():
     return render_template("index.html")  # 确保 index.html 存在于 templates 文件夹中
