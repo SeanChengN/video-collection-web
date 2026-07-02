@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build-vendor": "node scripts/copy-vendor-assets.js",
-    "build-js": "terser static/main.js -o static/main.min.js -c -m",
+    "build-js": "node scripts/build-js.js && terser static/main.js -o static/main.min.js -c -m",
     "build-css": "cleancss -O2 static/non-critical.css -o static/styles.min.css",
     "build": "npm run build-vendor && npm run build-js && npm run build-css",
     "cleanup": "docker stop video-collection && docker rm video-collection && docker rmi video-collection-web",
