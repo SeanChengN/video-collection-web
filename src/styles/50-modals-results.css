@@ -1,0 +1,996 @@
+/*----------------------------------------
+  1. 模态框基础样式
+----------------------------------------*/
+/* 模态框容器 */
+.modal-card {
+    /* 基础布局 */
+    overflow: auto; /* 允许内容溢出时滚动 */
+    pointer-events: auto; /* 启用模态框的鼠标事件 */
+    resize: both; /* 允许双向调整大小 */
+    min-width: 300px;
+    min-height: 200px;
+
+    transform-origin: top left; /* 动画和最小化的变形原点 */
+    position: fixed;
+    margin: 0;
+
+    /* 边框和圆角 */
+    --modal-padding: 0rem;
+    --modal-border-radius: 12px;
+    padding: var(--modal-padding);
+    border-radius: var(--modal-border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.4); /* 半透明边框 */
+
+    /* 毛玻璃效果 */
+    backdrop-filter: blur(12px) saturate(180%) !important; /* 背景模糊 */
+    background: rgba(255, 255, 255, 0.3) !important; /* 半透明背景 */
+
+    /* 动画相关 */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), /* 窗口最小化动画 */
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    will-change: transform, opacity; /* 提示浏览器需要优化的属性 */
+    transform: translateZ(0); /* 强制GPU加速 */
+    backface-visibility: hidden; /* 防止3D变换闪烁 */
+    perspective: 1000px; /* 3D空间深度 */
+
+    /* 阴影效果 */
+    box-shadow: 
+        0 20px 50px 0 rgba(31, 38, 135, 0.25),  /* 主阴影 */
+        0 10px 24px 0 rgba(31, 38, 135, 0.2),   /* 中层阴影 */
+        0 0 0 1px rgba(255, 255, 255, 0.4),      /* 边缘描边 */
+        inset 0 0 60px rgba(255, 255, 255, 0.2), /* 内发光 */
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);/* 顶部高光 */
+}
+
+/* 模态框背景 */
+.modal-background {
+    display: none;
+}
+
+/* 模态框头部 */
+.modal-card-head {
+    cursor: grab;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between !important;
+    padding: 15px 20px !important;
+    /* 毛玻璃效果 */
+    background: rgba(255, 255, 255, 0.4) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+    border-radius: 12px 12px 0 0;
+}
+.modal-card-head:active {
+    cursor: grabbing;
+}
+
+/* 模态框标题 */
+.modal-card-title {
+    pointer-events: none;
+    max-width: calc(100% - 40px);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+    overflow: hidden;
+    line-height: 32px !important;
+}
+
+/* 模态框内容区 */
+.modal-card-body {
+    flex: 1; /* 占用剩余空间 */
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    background: transparent !important;
+    padding: 20px 15px !important;
+}
+.modal-card-body iframe {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+}
+
+/* 模态框控制 */
+.modal-card-controls {
+    display: flex;
+    gap: 14px;
+}
+.modal-control-button {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* 防止按钮被压缩 */
+}
+.modal-control-button svg {
+    fill: #4a4a4a;
+    width: 10px;
+    height: 10px;
+    transition: fill 0.2s ease;
+}
+/* 悬停效果 */
+.modal-control-button.minimize:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+.modal-control-button.close:hover {
+    background: #ff3860;
+}
+.modal-control-button.minimize:hover svg {
+    fill: #2a2a2a;
+}
+.modal-control-button.close:hover svg {
+    fill: white;
+}
+.modal-control-button.minimize:active {
+    transform: scale(0.9);
+    background: rgba(0, 0, 0, 0.2);
+}
+.modal-control-button.close:active {
+    transform: scale(0.9);
+    background: #e8324d;
+}
+
+/* 模态框动画 */
+.modal-card.minimizing {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: top left;
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+
+/* 拖拽时禁用过渡效果 */
+.modal-card.dragging {
+    transition: none !important;
+    will-change: left, top;
+}
+
+/* 模态框底部 */
+.modal-card-foot {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 15px 20px !important;
+    /* 毛玻璃效果 */
+    background: rgba(255, 255, 255, 0.4) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.5) !important;
+    border-radius: 0 0 12px 12px;   
+}
+
+.modal-card-foot .btn-group-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: nowrap;
+}
+
+/* 激活时才显示为flex */
+.modal.is-active {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    pointer-events: none;
+}
+
+/* 模态框底部 删除按钮靠右 */
+.modal-card-foot .delete-btn {
+    margin-left: auto;
+}
+
+/*----------------------------------------
+  2. 特定模态框样式
+----------------------------------------*/
+/* Emby模态框 */
+#embyModal .modal-card {
+    width: 60%;
+    height: 30vh;
+}
+#embyPlayerModal .modal-card {
+    width: 72%;
+    height: 75vh;
+}
+#embyPlayerModal .emby-player-body {
+    padding: 0 !important;
+    overflow: hidden;
+    background: #000 !important;
+}
+#emby-player-video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #000;
+}
+
+/* WTL模态框 */
+#thumbnailModal .modal-card {
+    width: 78%;
+    height: 82vh;
+}
+
+#wtlModal .modal-card {
+    width: 60%;
+    height: 30vh;
+}
+
+/* 查重模态框 */
+#duplicateModal .modal-card {
+    width: 60%;
+    height: 80vh;
+}
+
+/* Jackett模态框 */
+#jackettModal .modal-card {
+    width: 65%;
+    height: 80vh;
+}
+
+/* 迅雷模态框 */
+#thunderModal .modal-card {
+    width: 60%;
+    height: 70vh;
+}
+
+/* 编辑模态框 */
+#editModal .modal-card {
+    width: 30%;
+    height: 60vh;
+}
+#editModal .modal-card .textarea {
+    min-height: 5.5rem;
+    overflow-y: auto !important;
+    resize: vertical;
+}
+
+/*----------------------------------------
+  3. 响应式样式
+----------------------------------------*/
+@media screen and (max-width: 768px) {
+    /* 通用模态框响应式样式 */
+    .modal-card {
+        margin: 10px;
+        max-height: calc(100vh - 20px);
+        max-width: calc(100vw - 20px);
+        overflow: hidden;
+    }
+    .modal-card-head {
+        min-width: 0;
+        padding: 0.75rem 1rem !important;
+    }
+    .modal-card-title {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 1rem;
+    }
+    
+    /* 特定模态框响应式宽度 */
+    #settingsModal .modal-card,
+    #embyModal .modal-card,
+    #wtlModal .modal-card,
+    #thumbnailModal .modal-card,
+    #jackettModal .modal-card {
+        width: 90% !important;
+        height: 90% !important;
+    }
+    #thumbnailModal .modal-card-body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .modal-card-foot {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.75rem !important;
+    }
+    .modal-card-foot .btn-group-left {
+        flex: 1 1 auto;
+        min-width: 0;
+        gap: 0.5rem;
+    }
+    .modal-card-foot .button {
+        height: 2.5rem !important;
+        min-height: 2.5rem !important;
+        padding: 0 0.85rem !important;
+        font-size: 0.95rem !important;
+    }
+    .modal-card-foot .delete-btn {
+        flex: 0 0 auto;
+        margin-left: auto;
+    }
+    .thumbnail-layout {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        min-height: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    .thumbnail-left-pane {
+        display: flex;
+        flex-direction: column;
+        flex: 0 0 auto;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+    }
+    .thumbnail-browser {
+        order: 1;
+        flex: 0 0 auto;
+        min-height: 270px;
+        max-height: 42vh;
+        border-right: none;
+        background: rgba(255, 255, 255, 0.22);
+        padding: 0.75rem;
+    }
+    .thumbnail-browser-actions {
+        margin-bottom: 0.5rem;
+    }
+    .thumbnail-breadcrumbs {
+        margin-bottom: 0.5rem;
+    }
+    .thumbnail-file-list {
+        flex: 1 1 0;
+        min-height: 190px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-gutter: stable;
+    }
+    .thumbnail-right-pane {
+        display: flex;
+        flex-direction: column;
+        flex: 0 0 auto;
+        overflow: visible;
+        gap: 0.6rem;
+        padding: 0.75rem;
+    }
+    .thumbnail-player-pane {
+        order: 2;
+        flex: 0 0 auto;
+        justify-self: stretch;
+        width: 100%;
+        padding: 0.75rem;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+    }
+    #thumbnail-video {
+        height: auto;
+    }
+    .thumbnail-control-panel {
+        gap: 0.55rem;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding: 0;
+    }
+    .thumbnail-control-section {
+        min-width: 0;
+        padding: 0.55rem;
+    }
+    .thumbnail-batch-section {
+        order: 2;
+        width: 100%;
+    }
+    .thumbnail-manual-section {
+        order: 1;
+        width: 100%;
+    }
+    #thumbnailModal .button.is-small {
+        height: 2rem !important;
+        min-height: 2rem !important;
+        padding: 0 0.55rem !important;
+        font-size: 0.8rem !important;
+    }
+    #thumbnailModal .input.is-small {
+        height: 2rem !important;
+        padding: 0 0.5rem !important;
+        font-size: 0.85rem !important;
+    }
+    .thumbnail-manual-grid {
+        grid-template-columns: repeat(5, minmax(2.7rem, 1fr));
+        gap: 0.35rem;
+    }
+    .thumbnail-manual-grid .button.is-small {
+        width: 100%;
+        min-width: 0;
+        min-height: 2rem;
+        padding: 0 0.3rem !important;
+        font-size: 0.75rem !important;
+    }
+    #thumbnail-capture-current {
+        width: 100%;
+        height: 2rem !important;
+        min-height: 2rem !important;
+    }
+    .thumbnail-manual-capture {
+        width: 100%;
+    }
+    .thumbnail-control-group {
+        gap: 0.4rem;
+        width: 100%;
+    }
+    .thumbnail-control-group .button.is-small {
+        min-width: 0;
+        padding: 0 0.55rem !important;
+    }
+    .thumbnail-percent-label,
+    .thumbnail-batch-summary,
+    .thumbnail-selected-count {
+        min-width: 0;
+        white-space: normal;
+        line-height: 1.3;
+    }
+    .thumbnail-reuse-group .button.is-small {
+        flex: 1 1 7rem;
+    }
+    .thumbnail-grid-scroll {
+        flex: 0 0 auto;
+        min-height: 260px;
+        max-height: 48vh;
+        overflow-y: auto;
+        padding: 0 0.25rem 0.25rem 0;
+    }
+    .thumbnail-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    
+    #duplicateModal .modal-card {
+        width: 90% !important;
+        height: 90% !important;
+    }
+    
+    #thunderModal .modal-card {
+        width: 90% !important;
+        height: 90% !important;
+    }
+
+    #embyPlayerModal .modal-card {
+        width: 95% !important;
+        height: 70vh !important;
+    }
+
+    #imageViewerModal .modal-card {
+        width: 90% !important;
+        height: auto !important;
+    }
+    
+    #editModal .modal-card {
+        width: 90% !important;
+        height: 90% !important;
+    }
+    #editModal .modal-card .textarea {
+        min-height: 8rem;
+    }
+}
+
+/* 讯雷窗口滚动条 */
+@media screen and (max-width: 815px) {
+    #thunderModal iframe {
+        min-width: 815px;
+    }
+}
+
+
+/*----------------------------------------
+  表格相关样式 - 必要样式在index中
+----------------------------------------*/
+/* 表格基础样式 */
+.table {
+    width: 100%;
+    table-layout: fixed;
+    background: none;
+}
+
+.table td {
+    vertical-align: middle !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0.5em !important;
+    border-width: 1px !important;
+}
+
+/* 评价和标签的特殊处理 */
+.table td.review-cell {
+    white-space: normal;
+    max-width: 300px;
+}
+
+.table td.tags-cell {
+    max-width: 150px;
+}
+
+/* 悬浮提示功能 */
+.table td[data-tooltip] {
+    position: relative;
+}
+
+.table td[data-tooltip]:hover::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 1000;
+    width: auto;
+    min-width: 100%;
+    max-width: 300px;
+    padding: 8px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* 表格单元格悬浮提示样式 */
+.table td.hoverable {
+    position: relative;
+}
+.table td.hoverable:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 1000;
+    width: auto;
+    min-width: 100%;
+    max-width: 300px;
+    padding: 8px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* 特定列的悬浮提示 */
+.table td.ellipsis:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 1000;
+    width: auto;
+    min-width: 100%;
+    max-width: 300px;
+    padding: 5px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    white-space: normal;
+}
+
+/* 所有需要缩略的单元格通用样式 */
+.table td.ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 0; /* 关键属性，确保文本会被截断 */
+}
+
+.search-skeleton {
+    overflow: hidden;
+}
+
+.search-skeleton .movie-results-table {
+    table-layout: fixed;
+}
+
+.search-skeleton .skeleton-cell {
+    pointer-events: none;
+}
+
+.search-skeleton .movie-title-with-image {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.search-skeleton .skeleton-title-lines {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.search-skeleton .skeleton-block {
+    display: block;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #eef1f5 25%, #e2e7ee 37%, #eef1f5 63%);
+    background-size: 400% 100%;
+    animation: search-skeleton-loading 1.2s ease-in-out infinite;
+}
+
+.search-skeleton .skeleton-thumb {
+    width: 52px;
+    height: 70px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+}
+
+.search-skeleton .skeleton-line {
+    height: 0.75rem;
+    margin: 0.32rem 0;
+}
+
+.search-skeleton .skeleton-line-wide {
+    width: 88%;
+}
+
+.search-skeleton .skeleton-line-medium {
+    width: 62%;
+}
+
+.search-skeleton .skeleton-line-short {
+    width: 46%;
+}
+
+.search-skeleton .skeleton-pill {
+    width: 3.2rem;
+    height: 1.5rem;
+    border-radius: 999px;
+}
+
+.search-skeleton .skeleton-button {
+    width: 4.5rem;
+    height: 2.1rem;
+    border-radius: 6px;
+}
+
+@keyframes search-skeleton-loading {
+    0% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0 50%;
+    }
+}
+
+/* 移动端响应式布局 */
+@media screen and (max-width: 768px) {
+    .table {
+        display: block;
+        background: none;
+        border: none;
+    }
+
+    .table thead {
+        display: none;
+    }
+
+    .table tbody {
+        display: block;
+    }
+
+    .table tr {
+        display: block;
+        background: white;
+        padding: 0.8rem;
+        margin-bottom: 0.8rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .table td {
+        display: flex;
+        align-items: baseline;
+        padding: 0.5rem 0;
+        border: none;
+        font-size: 1.2rem;
+        font-weight: 500;
+        line-height: 1.5;
+        max-width: none;
+        white-space: normal;
+    }
+
+    .table td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #666;
+        flex-shrink: 0;
+    }
+    
+    .table td.review-cell {
+        flex-direction: column;
+    }
+
+    .table td.tags-cell {
+        flex-direction: column;
+        white-space: normal;
+    }
+
+    /* 评价和标签的特殊处理 */
+    .table td.review-cell > :last-child {
+        width: 100%;
+        margin-top: 0.3rem;
+    }
+    .table td.tags-cell > :last-child {
+        width: 100%;
+        margin-top: 0.3rem;
+    }
+    .table td.tags-cell > :last-child {
+        width: 100%;
+        margin-top: 0.3rem;
+        overflow: visible;
+        text-overflow: clip;
+        word-break: break-all;
+    }
+
+    /* 操作按钮优化 */
+    .table td:last-child {
+        justify-content: flex-end;
+        padding: 0.5rem 0;
+    }
+    .table td:last-child .button {
+        width: auto !important;
+        min-width: 3rem !important;
+        max-width: 100%;
+        height: 2.25rem !important;
+        min-height: 2.25rem !important;
+        padding: 0 0.75rem !important;
+        font-size: 0.95rem !important;
+    }
+
+    #search-results {
+        margin-top: 0.75rem;
+    }
+    #search-results .table-container {
+        overflow: visible !important;
+    }
+    #search-results .movie-results-table {
+        display: block;
+        width: 100%;
+        background: transparent;
+        border: none;
+    }
+    #search-results .movie-results-table tbody {
+        display: grid;
+        gap: 0.9rem;
+    }
+    #search-results .movie-results-table tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "title title"
+            "recommended action"
+            "review review"
+            "tags tags"
+            "ratings ratings";
+        align-content: start;
+        gap: 0.55rem 0.85rem;
+        margin: 0;
+        padding: 0.9rem;
+        border: 1px solid rgba(219, 219, 219, 0.9);
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(10, 10, 10, 0.08);
+    }
+    #search-results .movie-results-table td {
+        min-width: 0;
+        max-width: none;
+        border: none;
+        padding: 0;
+        color: #363636;
+        font-size: 0.9rem;
+        font-weight: 400;
+        line-height: 1.45;
+        white-space: normal;
+    }
+    #search-results .movie-results-table td::before {
+        color: #7a7a7a;
+        font-size: 0.78rem;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+    #search-results .movie-results-table .movie-title-cell {
+        grid-area: title;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid rgba(219, 219, 219, 0.75);
+    }
+    #search-results .movie-results-table .movie-title-cell::before,
+    #search-results .movie-results-table .movie-action-cell::before,
+    #search-results .movie-results-table .movie-recommended-cell::before {
+        content: none;
+    }
+    #search-results .movie-results-table .movie-title-with-image {
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+    #search-results .movie-results-table .movie-preview-image {
+        width: 82px;
+        height: 108px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f5f5f5;
+    }
+    #search-results .movie-results-table .movie-preview-image img {
+        border-radius: 8px;
+    }
+    #search-results .movie-results-table .movie-title-text {
+        display: -webkit-box;
+        overflow: hidden;
+        color: #242424;
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.35;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        word-break: break-word;
+    }
+    #search-results .movie-results-table .movie-recommended-cell {
+        grid-area: recommended;
+        display: flex;
+        align-items: center;
+    }
+    #search-results .movie-results-table .movie-recommended-chip {
+        min-height: 1.8rem;
+        border-radius: 999px;
+        background: #f5f5f5;
+        color: #666;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 0.25rem 0.55rem;
+    }
+    #search-results .movie-results-table .movie-recommended-chip.is-recommended {
+        background: rgba(255, 123, 0, 0.12);
+        color: #b55300;
+    }
+    #search-results .movie-results-table .movie-recommended-text {
+        display: inline;
+    }
+    #search-results .movie-results-table .review-cell {
+        grid-area: review;
+    }
+    #search-results .movie-results-table .tags-cell {
+        grid-area: tags;
+    }
+    #search-results .movie-results-table .ratings-cell {
+        grid-area: ratings;
+        overflow: hidden !important;
+    }
+    #search-results .movie-results-table .review-cell,
+    #search-results .movie-results-table .tags-cell,
+    #search-results .movie-results-table .ratings-cell {
+        display: grid;
+        grid-template-columns: 3.5rem minmax(0, 1fr);
+        align-items: start;
+        gap: 0.55rem;
+        border-top: 1px solid rgba(219, 219, 219, 0.72);
+        background: rgba(245, 245, 245, 0.5);
+        border-radius: 6px;
+        padding: 0.55rem 0.6rem;
+    }
+    #search-results .movie-results-table .review-cell::before,
+    #search-results .movie-results-table .tags-cell::before,
+    #search-results .movie-results-table .ratings-cell::before {
+        display: block;
+        width: 3.5rem;
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: start;
+        align-self: start;
+        padding-top: 0;
+        text-align: left;
+    }
+    #search-results .movie-results-table .movie-review-text,
+    #search-results .movie-results-table .movie-tags-text,
+    #search-results .movie-results-table .mobile-ratings-list {
+        grid-column: 2;
+        grid-row: 1;
+        align-self: start;
+        width: 100%;
+        min-width: 0;
+    }
+    #search-results .movie-results-table .movie-review-text,
+    #search-results .movie-results-table .movie-tags-text {
+        display: -webkit-box;
+        overflow: hidden;
+        color: #4a4a4a;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        word-break: break-word;
+    }
+    #search-results .movie-results-table .movie-review-text.is-empty::before {
+        content: "暂无评价";
+        color: #9a9a9a;
+    }
+    #search-results .movie-results-table .movie-tags-text.is-empty::before {
+        content: "暂无标签";
+        color: #9a9a9a;
+    }
+    #search-results .movie-results-table .desktop-ratings-dropdown,
+    #search-results .movie-results-table .desktop-ratings-empty {
+        display: none;
+    }
+    #search-results .movie-results-table .mobile-ratings-list {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+    #search-results .movie-results-table .mobile-ratings-list.is-empty {
+        color: #9a9a9a;
+    }
+    #search-results .movie-results-table .mobile-ratings-list .rating-item {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 0.35rem;
+        flex-wrap: wrap;
+    }
+    #search-results .movie-results-table .mobile-ratings-list .dimension-name {
+        color: #4a4a4a;
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+    #search-results .movie-results-table .mobile-ratings-list .stars {
+        display: inline-flex;
+        gap: 0.08rem;
+    }
+    #search-results .movie-results-table .mobile-ratings-list .stars svg {
+        width: 14px;
+        height: 14px;
+    }
+    #search-results .movie-results-table .movie-action-cell {
+        grid-area: action;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+    #search-results .movie-results-table .movie-action-cell .button {
+        width: auto !important;
+        min-width: 4.5rem !important;
+        height: 2.1rem !important;
+        min-height: 2.1rem !important;
+        padding: 0 0.8rem !important;
+        font-size: 0.9rem !important;
+    }
+    #search-results .search-skeleton .skeleton-thumb {
+        width: 82px;
+        height: 108px;
+    }
+    #search-results .search-skeleton .skeleton-cell {
+        min-height: 1.8rem;
+    }
+    #search-results .search-skeleton .review-cell,
+    #search-results .search-skeleton .tags-cell,
+    #search-results .search-skeleton .ratings-cell {
+        min-height: 3rem;
+    }
+    #search-results .search-skeleton .movie-action-cell {
+        justify-content: flex-end;
+    }
+    #pagination .pagination {
+        gap: 0.45rem;
+        flex-wrap: wrap;
+    }
+    #pagination .pagination-list {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+    }
+    #pagination .pagination-link,
+    #pagination .pagination-previous,
+    #pagination .pagination-next {
+        height: 2.15rem !important;
+        min-height: 2.15rem !important;
+        padding: 0 0.7rem !important;
+        font-size: 0.85rem !important;
+    }
+}
+
+
+

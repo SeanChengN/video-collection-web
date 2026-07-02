@@ -1,0 +1,426 @@
+/*----------------------------------------
+  搜索电影相关样式
+----------------------------------------*/
+@media screen and (max-width: 768px) {
+    .select.is-fullwidth select {
+        height: 2.75rem !important;
+    }
+    .filter-options .column {
+        display: grid;
+        grid-template-columns: var(--filter-label-width, 4.25rem) minmax(0, 1fr);
+        column-gap: var(--filter-control-gap, 0.5rem);
+        align-items: start;
+    }
+    .filter-options .label {
+        width: auto !important;
+        margin: 0;
+        padding-top: 0.45rem;
+        white-space: nowrap;
+    }
+    .select select {
+        width: 100%;
+        max-width: 100%;
+        font-size: 1rem !important;
+    }
+    .filter-options .select {
+        height: auto !important;
+        width: 100% !important;
+        max-width: 100%;
+    }
+    #editModal .existing-images,
+    #editModal #edit-image-upload-area .image-preview-container {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.5rem;
+        align-items: start;
+        width: 100%;
+    }
+    #editModal .existing-image-item,
+    #editModal #edit-image-upload-area .preview-item {
+        width: 100% !important;
+        min-width: 0;
+        height: auto !important;
+        aspect-ratio: 1 / 1;
+    }
+}
+
+
+
+/*----------------------------------------
+  特效相关样式 - 必要样式在index中
+----------------------------------------*/
+/* 输入框效果 */
+.input:hover,
+.input:focus,
+.textarea:hover,
+.textarea:focus {
+    border: 1px solid #4A9DEC !important;
+    box-shadow: 0px 0px 0px 5px rgb(74, 157, 236, 20%) !important;
+    background-color: white !important;
+}
+
+/* 推荐按钮样式 */
+.recommend-field input:checked + label svg {
+    fill: #ff7b00;
+    animation: thumbUpButton 1s;
+    transform: rotate(180deg); /* 旋转到最终状态 */
+}
+@keyframes thumbUpButton {
+    0% {transform: rotate(0deg) scale(1);}
+    25% {transform: rotate(180deg) scale(1.3);}
+    50% {transform: rotate(180deg) scale(1);}
+    75% {transform: rotate(180deg) scale(1.3);}
+    100% {transform: rotate(180deg) scale(1);}
+}
+.recommend-field input:checked + label .action span.option-1 {
+    transform: translate(0px,-100%);
+    opacity: 0;
+}
+.recommend-field input:checked + label .action span.option-2 {
+    transform: translate(0px,0%);
+    opacity: 1;
+}
+.recommend-field input:checked + label {
+    background-color: #fff3e0;  /* 浅橙色背景 */
+    border-color: #ffcc80;     /* 浅橙色边框 */
+    color: #f57c00;           /* 深橙色文字 */
+}
+.recommend-field label:hover {
+    transform: translateY(-1px);
+    background-color: #fff8e1;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+.recommend-field label:active {
+    transform: translateY(1px);
+    background-color: #fffde7;
+    box-shadow: 0 2px 6px rgba(255, 152, 0, 0.2);
+}
+
+/* 设置按钮尺寸，确保特效正常 */
+.save-btn-small {
+    max-width: 77px;
+    min-width: 77px;
+}
+
+/* 设置按钮样式 */
+@keyframes rotate {
+    from {transform: rotate(0deg);}
+    to {transform: rotate(360deg);}
+}
+
+
+/* 开始核对按钮样式 */
+.dupStart-btn {
+    min-width: 120px;
+    width: 100%;
+    overflow: hidden;
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(223, 113, 255, 0.8) 0%,
+        rgba(223, 113, 255, 0) 100%
+        ),
+        linear-gradient(0deg, #7a5af8, #7a5af8);
+    border: none !important;
+    outline: none;
+    transition: background-color 0.3s ease, transform 0.3s, box-shadow 0.3s, position 0.3s, opacity 0.3s;
+}
+.dupStart-btn span {
+    z-index: 2;
+}
+.dupStart-btn::before,
+.dupStart-btn::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+}
+.dupStart-btn::before {
+    background: linear-gradient(
+        177.95deg,
+        rgba(255, 255, 255, 0.19) 0%,
+        rgba(255, 255, 255, 0) 100%
+    );
+}
+.dupStart-btn::after {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(223, 113, 255, 0.8) 0%,
+        rgba(223, 113, 255, 0) 100%
+        ),
+        linear-gradient(0deg, #7a5af8, #7a5af8);
+}
+.dupStart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(151, 71, 255, 0.4) !important;
+}
+.dupStart-btn:active {
+    transform: scale(0.95) translateY(1px);
+    box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
+}
+/* 泡泡特效 */
+.dupStart-btn .points_wrapper {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    position: absolute;
+    z-index: 1;
+}
+.dupStart-btn .points_wrapper .point {
+    bottom: -10px;
+    position: absolute;
+    animation: floating-points infinite ease-in-out;
+    pointer-events: none;
+    width: 2px;
+    height: 2px;
+    background-color: #fff;
+    border-radius: 9999px;
+}
+@keyframes floating-points {
+    0% {transform: translateY(0);}
+    85% {opacity: 0;}
+    100% {transform: translateY(-55px); opacity: 0;}
+}
+.dupStart-btn .points_wrapper .point:nth-child(1) {
+    left: 10%;
+    opacity: 1;
+    animation-duration: 2.35s;
+    animation-delay: 0.2s;
+}
+.dupStart-btn .points_wrapper .point:nth-child(2) {
+    left: 30%;
+    opacity: 0.7;
+    animation-duration: 2.5s;
+    animation-delay: 0.5s;
+}
+.dupStart-btn .points_wrapper .point:nth-child(3) {
+    left: 25%;
+    opacity: 0.8;
+    animation-duration: 2.2s;
+    animation-delay: 0.1s;
+}
+.dupStart-btn .points_wrapper .point:nth-child(4) {
+    left: 44%;
+    opacity: 0.6;
+    animation-duration: 2.05s;
+}
+.dupStart-btn .points_wrapper .point:nth-child(5) {
+    left: 50%;
+    opacity: 1;
+    animation-duration: 1.9s;
+}
+.dupStart-btn .points_wrapper .point:nth-child(6) {
+    left: 75%;
+    opacity: 0.5;
+    animation-duration: 1.5s;
+    animation-delay: 1.5s;
+}
+.dupStart-btn .points_wrapper .point:nth-child(7) {
+    left: 88%;
+    opacity: 0.9;
+    animation-duration: 2.2s;
+    animation-delay: 0.2s;
+}
+.dupStart-btn .points_wrapper .point:nth-child(8) {
+    left: 58%;
+    opacity: 0.8;
+    animation-duration: 2.25s;
+    animation-delay: 0.2s;
+}
+.dupStart-btn .points_wrapper .point:nth-child(9) {
+    left: 98%;
+    opacity: 0.6;
+    animation-duration: 2.6s;
+    animation-delay: 0.1s;
+}
+.dupStart-btn .points_wrapper .point:nth-child(10) {
+    left: 65%;
+    opacity: 1;
+    animation-duration: 2.5s;
+    animation-delay: 0.2s;
+}
+
+/* 图标特效 */
+.dupStart-btn .inner {
+    padding-right: 0.9rem;
+    display: inline-flex;
+}
+.dupStart-btn .inner svg.icon {
+    width: 18px;
+    transition: fill 0.1s linear;
+}
+.dupStart-btn:focus svg.icon {
+    fill: white;
+}
+.dupStart-btn:hover svg.icon {
+    fill: transparent;
+    animation:
+        dasharray 1s linear forwards,
+        filled 0.1s linear forwards 0.95s;
+}
+@keyframes dasharray {
+    from {stroke-dasharray: 0 0 0 0;}
+    to {stroke-dasharray: 68 68 0 0;}
+}
+@keyframes filled {
+    to {fill: white;}
+}
+
+
+
+/*----------------------------------------
+  alert通知样式 - 必要样式在index中
+----------------------------------------*/
+.alert-card {
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+    min-width: 20rem;
+    max-width: 24rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+.alert-card:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+.alert-header {
+    padding: 1.25rem 1rem 1rem 1rem;
+}
+.alert-icon {
+    display: flex;
+    margin: 0 auto;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    justify-content: center;
+    align-items: center;
+}
+/* 颜色常量 */
+.alert-card {
+    --alert-success: #22c55e;
+    --alert-error: #ef4444;
+    --alert-warning: #ffaa1f;
+    --alert-info: #3b82f6;
+}
+/* 图标背景色 */
+.alert-icon.success { background-color: color-mix(in srgb, var(--alert-success) 20%, transparent); }
+.alert-icon.error { background-color: color-mix(in srgb, var(--alert-error) 20%, transparent); }
+.alert-icon.warning { background-color: color-mix(in srgb, var(--alert-warning) 20%, transparent); }
+.alert-icon.info { background-color: color-mix(in srgb, var(--alert-info) 20%, transparent); }
+
+.alert-icon svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+/* 图标颜色 */
+.alert-icon.success svg { color: var(--alert-success); }
+.alert-icon.error svg { color: var(--alert-error); }
+.alert-icon.warning svg { color: var(--alert-warning); }
+.alert-icon.info svg { color: var(--alert-info); }
+
+.alert-content {
+    margin-top: 1rem;
+    text-align: center;
+}
+.alert-title {
+    color: #111827;
+    font-size: 1rem;
+    font-weight: 600;
+}
+.alert-message {
+    margin: 0.5rem 1rem;
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+.alert-actions {
+    margin: 1rem 1rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+/* 按钮样式 */
+.confirm-btn,
+.cancel-btn {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 500;
+    width: 100%;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease, filter 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.confirm-btn span,
+.cancel-btn span {
+    position: relative;
+    z-index: 2;
+}
+.confirm-btn::before,
+.cancel-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0) 100%
+    );
+}
+.confirm-btn:hover,
+.cancel-btn:hover {
+    filter: brightness(97%);
+}
+.confirm-btn:active,
+.cancel-btn:active {
+    transform: scale(0.95);
+    filter: brightness(94%);
+}
+/* 确认按钮颜色 */
+.confirm-btn.success { background-color: var(--alert-success); }
+.confirm-btn.error { background-color: var(--alert-error); }
+.confirm-btn.warning { background-color: var(--alert-warning); }
+.confirm-btn.info { background-color: var(--alert-info); }
+
+.confirm-btn {
+    color: #ffffff;
+    border: none;
+}
+.cancel-btn {
+    background-color: #ffffff;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+
+
+/*----------------------------------------
+  下拉框相关样式 - 必要样式在index中
+----------------------------------------*/
+/* 悬浮效果 */
+.select select:hover {
+    background: linear-gradient(
+        177.95deg,
+        rgba(74, 157, 236, 0.08) 0%,
+        rgba(74, 157, 236, 0.02) 100%
+    ),
+    #ffffff;
+    border-color: rgba(74, 157, 236, 0.4) !important;
+    box-shadow: 0 2px 6px rgba(74, 157, 236, 0.15);
+}
+/* 聚焦效果 */
+.select select:focus {
+    background: linear-gradient(
+        177.95deg,
+        rgba(74, 157, 236, 0.15) 0%,
+        rgba(74, 157, 236, 0.02) 100%
+    ),
+    #ffffff;
+    border-color: rgba(74, 157, 236, 0.8) !important;
+}
+/* 下拉箭头样式 */
+.select:not(.is-multiple):not(.is-loading):hover::after {
+    transform: translateY(2px);
+}

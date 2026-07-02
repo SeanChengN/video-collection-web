@@ -1,0 +1,303 @@
+/* 移动端响应式布局 */
+@media screen and (max-width: 768px) {
+    .columns {
+        margin: 0;
+    }
+    .column {
+        padding: 1.5rem;
+    }
+
+
+    /* 移动端元素放大 */
+    .section {
+        padding: 0rem 0.5rem 1rem !important;
+    }
+    .box {
+        padding: 0.5rem !important;
+    }
+    .subtitle {
+        font-size: 1.1rem !important;
+    }
+    .input, .textarea {
+        font-size: 1.3rem !important;
+        height: 3.5em;
+        padding: 1rem;
+    }
+    .button {
+        font-size: 1.3rem !important;
+        height: 3.5em;
+        padding: 0 2rem;
+    }
+    .tag {
+        height: 2.4em !important;
+    }
+    .label {
+        margin-bottom: 1rem;
+    }
+    .radio {
+        font-size: 1.5rem;
+        margin: 0.8em 0;
+    }
+    .field:not(:last-child) {
+        margin-bottom: 1.5rem;
+    }
+    #search-results {
+        margin: 5px 0 0;
+    }
+
+    /* 工具栏按钮内图标尺寸 */
+    .function-tools {
+        padding: 0.45rem;
+        margin-bottom: 1rem;
+    }
+    .function-tools .buttons {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0.35rem;
+        margin: 0;
+    }
+    .function-tools .buttons .button,
+    .function-tools .buttons .button:not(:last-child):not(.is-fullwidth) {
+        width: 100%;
+        min-width: 0;
+        height: clamp(3.1rem, 14vw, 4.2rem) !important;
+        min-height: clamp(3.1rem, 14vw, 4.2rem) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 1rem !important;
+    }
+    .function-tools .buttons .icon {
+        display: inline-flex;
+        width: 100%;
+        height: 100%;
+        margin: 0 !important;
+    }
+    .function-tools .tool-btn svg {
+        width: clamp(30px, 9.5vw, 48px);
+        height: clamp(30px, 9.5vw, 48px);
+    }
+
+
+    /* 调整Emby搜索界面 */
+    .movie-card .card-content {
+        padding: 0.6rem;
+    }
+
+    .movie-card .card-content .title.is-6 {
+        font-size: 1.3rem !important;
+    }
+
+    .movie-card .image .runtime-badge {
+        padding: 0.5rem 0.8rem !important;
+        font-size: 1.3rem !important;
+    }
+
+
+
+    /* 查重核对结果框字体 */
+    #check-result .notification p {
+        font-size: 1.5rem !important;
+    }
+    #check-result .notification strong {
+        font-size: 1.4rem !important;
+    }
+    #check-result {
+        font-size: 1.8rem;
+    }
+
+
+
+    /* 导航栏样式 */
+    .navbar-brand {
+        justify-content: center;
+        height: 2rem;
+    }
+    .navbar-brand .title {
+        text-align: center;  
+    }
+    .navbar-brand svg {
+        width: 50px;
+        height: 50px;
+    }
+
+
+    /* 评价和标签相关样式 */
+    .review-cell:hover::after,
+    .tags-cell:hover::after {
+        display: none;
+    }
+    .filter-options {
+        --filter-label-width: 4.25rem;
+        --filter-control-gap: 0.5rem;
+        overflow: hidden;
+    }
+    .filter-options .column,
+    .filter-options .column.is-full {
+        display: grid;
+        grid-template-columns: var(--filter-label-width) minmax(0, 1fr);
+        column-gap: var(--filter-control-gap);
+        align-items: start;
+        min-width: 0;
+    }
+    .filter-options .label,
+    .filter-options .column.is-full .label {
+        width: auto !important;
+        min-width: 0;
+        margin: 0;
+        padding-top: 0.45rem;
+        white-space: nowrap;
+    }
+    .filter-options .select,
+    .filter-options .tags-filter {
+        width: 100% !important;
+        min-width: 0;
+        max-width: 100%;
+    }
+    .tags-filter {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    .tags-box .tag,
+    .tags-filter .tag {
+        font-size: 1.1rem;
+        padding: 0.5em 0.5em;
+        max-width: 100%;
+        height: auto !important;
+        min-height: 2.2em;
+        margin: 0.15rem;
+        white-space: normal;
+        word-break: break-word;
+    }
+    .field.has-addons {
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+    .field.has-addons .control {
+        min-width: 0;
+    }
+    .field.has-addons .control.is-expanded {
+        flex: 1 1 auto;
+    }
+    .search-btn {
+        min-width: 5rem;
+        padding: 0 1rem !important;
+        white-space: nowrap;
+    }
+    .subtitle-with-controls .settings-btn {
+        width: 2.5rem !important;
+        min-width: 2.5rem !important;
+        height: 2.5rem !important;
+        min-height: 2.5rem !important;
+        padding: 0 !important;
+    }
+
+
+    /* 添加触摸优化 */
+    .button, .tag {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+
+    /* 增加点击区域 */
+    .table td, .button {
+        min-height: 40px;
+    }
+    .copy-btn,
+    .table td:last-child .button {
+        width: auto !important;
+        min-width: 3rem !important;
+        max-width: 100%;
+        height: 2.25rem !important;
+        min-height: 2.25rem !important;
+        padding: 0 0.75rem !important;
+        font-size: 0.95rem !important;
+    }
+    .copy-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+
+    /* 评分星星样式 */
+    .rating svg {
+        transform: scale(1.5);
+    }
+    .rating svg:hover {
+        transform: scale(1.6) !important;
+    }
+    .rating {
+        gap: 0 14px !important;
+    }
+    
+
+    /* 模态框关闭/最小化按钮尺寸 */
+    .modal-control-button {
+        width: 40px !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        padding: 0 !important;
+    }
+    .modal-control-button svg {
+        width: 20px !important;
+        height: 20px !important;
+    }
+    .modal-card-controls {
+        gap: 0.5rem !important;
+        flex: 0 0 auto;
+    }
+    
+    /* 设置框标签字体尺寸 */
+    .tabs a {
+        font-size: 1rem;
+    }
+}
+
+.message { 
+    margin: 10px 0; 
+}
+
+.notification {
+    margin-top: 1rem;
+}
+
+/* 工具提示支持 */
+[data-tooltip] {
+    position: relative;
+    cursor: default;
+}
+
+
+
+/*----------------------------------------
+  What's the link?查询截图样式
+----------------------------------------*/
+.screenshots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+.screenshot-item {
+    text-align: center;
+}
+.screenshot-item img {
+    max-width: 100%;
+    border-radius: 4px;
+}
+#wtlModal .screenshots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+#wtlModal .screenshot-item img {
+    display: block;
+    width: 100%;
+}
+@media screen and (max-width: 768px) {
+    #wtlModal .screenshots {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+

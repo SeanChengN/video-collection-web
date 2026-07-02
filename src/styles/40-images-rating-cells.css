@@ -1,0 +1,609 @@
+/*----------------------------------------
+  图片上传框 - 通用样式 - 必要样式在index中
+----------------------------------------*/
+.image-upload-area.dragover {
+    border-color: #3273dc;
+    background-color: rgba(50, 115, 220, 0.1);
+}
+.image-upload-area:hover {
+    border-color: rgba(50, 115, 220, 0.5);
+    background-color: rgba(50, 115, 220, 0.02);
+}
+/* 图片预览样式 */
+.preview-item {
+    position: relative;
+    aspect-ratio: 1;
+    box-shadow: 0 4px 8px rgba(50, 115, 220, 0.2);
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    cursor: move;
+    /* 移动端触摸拖拽支持 */
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.preview-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(50, 115, 220, 0.3);
+}
+.preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+    pointer-events: none;
+}
+/* 删除按钮样式 */
+.preview-item .delete-image {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ff3860;
+    color: white;
+    border: none;
+    cursor: pointer;
+    z-index: 1;
+    box-shadow: 0 2px 4px rgba(255, 56, 96, 0.3);
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    pointer-events: auto;
+}
+.preview-item .delete-image:hover {
+    background: #eb0023;
+    transform: scale(1.3);
+    box-shadow: 0 4px 8px rgba(255, 17, 51, 0.4);
+}
+.preview-item .delete-image:active {
+    background: #c7001e;
+    transform: scale(0.95);
+    box-shadow: 0 1px 2px rgba(230, 0, 34, 0.3);
+}
+.preview-item .delete-image svg {
+    height: 100%;
+}
+/* 顺序拖拽样式 */
+.preview-item.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+
+
+/*----------------------------------------
+  编辑电影框中已存在图片样式
+----------------------------------------*/
+/* 图片预览容器 */
+.existing-images {
+    padding: 0.5rem 0.2rem 0.2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-start;
+    /* 移动端触摸拖拽支持 */
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+/* 图片预览样式 */
+.existing-image-item {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    transform-origin: center;
+    cursor: grab;
+    /* 移动端触摸拖拽支持 */
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.existing-image-item:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.existing-image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+}
+/* 删除按钮样式 */
+.delete-existing-image {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.3);
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    pointer-events: auto;
+}
+.delete-existing-image:hover {
+    transform: scale(1.15);
+    background: rgba(0, 0, 0, 0.5);
+}
+.delete-existing-image:active {
+    transform: scale(0.95);
+    background: rgba(0, 0, 0, 0.7);
+}
+/* 顺序拖拽样式 */
+.existing-image-item.dragging {
+    opacity: 0.8;
+    transform: scale(1.05);
+    z-index: 100;
+    cursor: grabbing;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+.existing-image-item:not(.dragging) {
+    transform: scale(1);
+    transition: transform 0.2s ease-in-out;
+}
+/* 拖动时其他图片的挤压效果 */
+.existing-images.dragging-over .existing-image-item:not(.dragging) {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+/* 图片容器拖动状态 */
+.existing-images.dragging-over {
+    background: rgba(50, 115, 220, 0.05);
+    border-radius: 4px;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .existing-image-item {
+        cursor: move; /* 触摸设备显示移动光标 */
+    }
+    
+    .existing-image-item:active {
+        transform: scale(0.98); /* 触摸时的压缩效果 */
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .existing-image-item {
+        width: 116px;
+        height: 116px;
+    }
+    #editModal .existing-images,
+    #editModal #edit-image-upload-area .image-preview-container {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.5rem;
+        align-items: start;
+        width: 100%;
+    }
+    #editModal .existing-image-item,
+    #editModal #edit-image-upload-area .preview-item {
+        width: 100% !important;
+        min-width: 0;
+        height: auto !important;
+        aspect-ratio: 1 / 1;
+    }
+}
+
+
+/*----------------------------------------
+  搜索结果中的图片样式
+----------------------------------------*/
+/* 标题和图片容器 */
+.movie-title-with-image {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+/* 图片样式 */
+.movie-preview-image {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+.movie-preview-image:hover img {
+    transform: scale(1.05);
+    transition: transform 0.2s ease;
+}
+.movie-preview-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+}
+.movie-recommended-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.movie-recommended-text,
+.mobile-ratings-list {
+    display: none;
+}
+
+/* 大图片容器样式 */
+#imageViewerModal .modal-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    height: auto;
+    max-height: 90vh;
+    overflow: hidden !important;
+}
+#imageViewerModal .modal-card-head {
+    flex: 0 0 auto;
+}
+#imageViewerModal .modal-card-body {
+    flex: none;
+    display: block;
+    position: relative;
+    padding: 0 !important;
+    overflow: hidden;
+}
+.image-viewer-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#imageViewerModal .image-viewer-container {
+    width: 100%;
+    height: 100%;
+    flex: none;
+    display: block;
+    overflow: hidden;
+}
+#imageViewerModal .image-viewer-scroll {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+#imageViewerModal .viewer-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+#imageViewerModal .nav-buttons {
+    inset: 0;
+    top: 0;
+    height: 100%;
+    pointer-events: none;
+}
+#imageViewerModal .nav-button {
+    top: 50%;
+    z-index: 2;
+    transform: translateY(-50%);
+    pointer-events: auto;
+}
+#imageViewerModal .nav-button.prev:hover {
+    transform: translateY(-50%) scale(1.15) translateX(-3px);
+}
+#imageViewerModal .nav-button.prev:active {
+    transform: translateY(-50%) scale(0.95) translateX(-3px);
+}
+#imageViewerModal .nav-button.next:hover {
+    transform: translateY(-50%) scale(1.15) translateX(3px);
+}
+#imageViewerModal .nav-button.next:active {
+    transform: translateY(-50%) scale(0.95) translateX(3px);
+}
+#imageViewerModal .image-counter {
+    left: 50%;
+    z-index: 2;
+    transform: translateX(-50%);
+    pointer-events: auto;
+}
+#imageViewerModal .image-counter:hover {
+    transform: translateX(-50%) scale(1.15);
+}
+/* 导航按钮样式 */
+.nav-buttons {
+    position: absolute;
+    top: 45%;
+    width: 100%;
+}
+.nav-button {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    pointer-events: auto;
+}
+.nav-button:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+.nav-button:active {
+    background: rgba(0, 0, 0, 0.5);
+}
+.nav-button.prev {
+    left: 20px;
+}
+.nav-button.prev:hover {
+    transform: scale(1.15) translateX(-3px);
+}
+.nav-button.prev:active {
+    transform: scale(0.95) translateX(-3px);
+}
+.nav-button.next {
+    right: 20px;
+}
+.nav-button.next:hover {
+    transform: scale(1.15) translateX(3px);
+}
+.nav-button.next:active {
+    transform: scale(0.95) translateX(3px);
+}
+/* 计数器样式 */
+.image-counter {
+    position: absolute;
+    bottom: 20px;
+    background: rgba(0, 0, 0, 0.1);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 15px;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.image-counter:hover {
+    transform: scale(1.15);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+
+
+/*----------------------------------------
+  评分星星通用样式 - 必要样式在index中
+----------------------------------------*/
+/* 评分星星颜色 */
+.rating input[value="1"]:checked ~ svg { color: var(--star-1); }
+.rating input[value="2"]:checked ~ svg { color: var(--star-2); }
+.rating input[value="3"]:checked ~ svg { color: var(--star-3); }
+.rating input[value="4"]:checked ~ svg { color: var(--star-4); }
+.rating input[value="5"]:checked ~ svg { color: var(--star-5); }
+
+/* Hover效果 */
+.rating svg:nth-child(10):hover,
+.rating svg:nth-child(10):hover ~ svg { color: var(--star-1) !important; }
+
+.rating svg:nth-child(8):hover,
+.rating svg:nth-child(8):hover ~ svg { color: var(--star-2) !important; }
+
+.rating svg:nth-child(6):hover,
+.rating svg:nth-child(6):hover ~ svg { color: var(--star-3) !important; }
+
+.rating svg:nth-child(4):hover,
+.rating svg:nth-child(4):hover ~ svg { color: var(--star-4) !important; }
+
+.rating svg:nth-child(2):hover,
+.rating svg:nth-child(2):hover ~ svg { color: var(--star-5) !important; }
+
+/* Hover动画效果 */
+.rating svg:hover {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 1px currentColor);
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+/*----------------------------------------
+  编辑电影框中的星星样式
+----------------------------------------*/
+#editModal .rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+    user-select: none;
+    gap: 0px 6px;
+}
+
+
+
+/*----------------------------------------
+  评分框和标签框通用样式 - 必要样式在index中 
+----------------------------------------*/
+.image-box-title,
+.ratings-box-title,
+.tags-box-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #363636;
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
+    border-bottom: 1px solid #eee;
+    padding-left: 0.3rem;
+}
+
+/*----------------------------------------
+  评分框特有样式
+----------------------------------------*/
+.ratings-box label.radio {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    height: 1.5rem;
+}
+
+.ratings-box label.radio input {
+    margin-right: 0.3rem;
+}
+
+.ratings-box label.radio:hover {
+    color: #3273dc;
+}
+
+
+
+/*----------------------------------------
+  移动端响应式样式
+----------------------------------------*/
+@media screen and (max-width: 768px) {
+    .ratings-box {
+        grid-template-columns: 1fr;
+    }
+    
+    .ratings-box .field {
+        width: 100%;
+    }
+    
+    .ratings-box .field label:first-child {
+        font-size: 1rem;
+    }
+}
+
+
+/*----------------------------------------
+  查看评分下拉菜单样式
+----------------------------------------*/
+/* 评分下拉菜单基础样式 */
+.dropdown {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+/* 下拉菜单内容区域 */
+.dropdown-content {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 0.5rem;
+}
+
+/* 评分项样式 */
+.rating-item {
+    padding-right: 0.5rem;
+    padding-bottom: 0.5rem;
+    padding-left: 0.5rem;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+.rating-item .stars  {
+    transform: translateY(2px);
+}
+
+/* 评分维度名称 */
+.dimension-name {
+    font-weight: normal;
+    min-width: 2.8rem;
+    color: #4a4a4a;
+}
+
+/* 悬浮显示下拉菜单 */
+.dropdown.is-hoverable:hover .dropdown-menu {
+    display: block;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+    /* 评分项间距调整 */
+    .rating-item {
+        padding: 0.1rem 0.3rem;
+    }
+
+    /* 维度名称字体调整 */
+    .dimension-name {
+        font-size: 1.4rem;
+        min-width: 5rem;
+    }
+
+    /* 星星大小调整 */
+    .rating-item .stars {
+        transform: scale(1.4);
+    }
+
+    /* 下拉触发按钮样式 */
+    .dropdown-trigger button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* 移动端下拉菜单定位 */
+    .dropdown-menu {
+        position: fixed !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%);
+        max-height: 80vh;
+        min-width: 15rem !important;
+        overflow-y: auto;
+    }
+
+    /* 表格中下拉菜单宽度 */
+    .table td .dropdown {
+        width: 100%;
+    }
+}
+
+
+
+/*----------------------------------------
+  查看评分单元格样式
+----------------------------------------*/
+/* 评分单元格样式 */
+.ratings-cell {
+    position: relative;
+    overflow: visible !important; /* 必须显示，否则会挡住下拉菜单 */
+}
+/* 评分下拉菜单样式 */
+.ratings-cell .dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.ratings-cell .dropdown-menu {
+  position: absolute;
+  z-index: 1000;
+  display: none;
+  min-width: 9rem;
+  background-color: white;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+  box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+}
+
+.ratings-cell .dropdown.is-active .dropdown-menu,
+.ratings-cell .dropdown.is-hoverable:hover .dropdown-menu {
+  display: block;
+}
+
+/* 评分下拉菜单单元格特殊处理 */
+.table td.ratings-cell {
+    overflow: visible;
+    white-space: normal;
+}
+
+/* 覆盖 Bulma 的默认样式 */
+.ratings-cell .dropdown-content {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0.5rem;
+}
+
+
+

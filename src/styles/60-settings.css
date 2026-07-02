@@ -1,0 +1,715 @@
+/*----------------------------------------
+  设置模态框样式 - 必要样式在index中
+----------------------------------------*/
+.settings-btn:hover {
+    background-color: #f0f0f0;
+}
+
+/* 设置模态框样式 */
+.settings-modal .modal-card {
+    width: min(760px, calc(100vw - 2rem));
+}
+
+.settings-modal .table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    position: relative;
+}
+
+.settings-tabs {
+    margin-bottom: 1.0rem !important;
+}
+.settings-tabs li {
+    flex: 1;
+    text-align: center;
+    height: 3rem;
+    align-content: center;
+    transition: border-color 0.8s ease, background-color 0.3s ease;
+}
+.settings-tabs li:hover,
+.settings-tabs li.is-active {
+    background: linear-gradient(
+        177.95deg,
+        rgba(74, 157, 236, 0.04) 0%,
+        rgba(74, 157, 236, 0.12) 100%
+    );
+}
+.settings-tabs li:active {
+    background: linear-gradient(
+        177.95deg,
+        rgba(74, 157, 236, 0.08) 0%,
+        rgba(74, 157, 236, 0.24) 100%
+    );
+}
+.settings-tabs li.is-active {
+    border-bottom: 1px solid #3273dc;
+}
+.settings-tabs li:not(.is-active) {
+    border-bottom: 1px solid #dbdbdb;
+}
+
+/* 标签特定样式 */
+.settings-tabs .rating-counter,
+.settings-tabs .tag-counter {
+    border-radius: 50% !important; /* 圆角 */
+    width: 1rem;
+    height: 1.2rem !important;
+    margin-left: 0.3rem;
+}
+
+.settings-content {
+    min-height: 300px;
+}
+
+.maintenance-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.maintenance-notice {
+    margin-bottom: 0 !important;
+}
+
+.maintenance-upgrade-notice {
+    margin-bottom: 0 !important;
+}
+
+.maintenance-upgrade-notice code {
+    display: block;
+    margin-top: 0.55rem;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.maintenance-schedule {
+    border: 1px solid rgba(50, 115, 220, 0.18);
+    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(50, 115, 220, 0.08), rgba(50, 115, 220, 0.03));
+    color: #334155;
+    padding: 0.75rem 0.85rem;
+}
+
+.maintenance-schedule.is-enabled {
+    border-color: rgba(34, 197, 94, 0.28);
+    background: linear-gradient(180deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.04));
+}
+
+.maintenance-schedule.is-disabled {
+    border-color: rgba(148, 163, 184, 0.32);
+    background: linear-gradient(180deg, rgba(148, 163, 184, 0.12), rgba(148, 163, 184, 0.04));
+}
+
+.maintenance-schedule-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.maintenance-schedule-details {
+    color: #64748b;
+    font-size: 0.84rem;
+    line-height: 1.45;
+}
+
+.maintenance-panel {
+    position: relative;
+    overflow: hidden;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(120deg, #2563eb, #06b6d4, #2563eb);
+    background-size: 220% 220%;
+    color: #fff;
+    padding: 1.05rem;
+    animation: maintenance-status-flow 8s ease infinite;
+}
+
+.maintenance-panel.is-ok {
+    background: linear-gradient(120deg, #15803d, #22c55e, #0f766e);
+    background-size: 220% 220%;
+}
+
+.maintenance-panel.is-error {
+    background: linear-gradient(120deg, #991b1b, #ef4444, #be123c);
+    background-size: 220% 220%;
+}
+
+.maintenance-panel.is-checking {
+    background: linear-gradient(120deg, #1d4ed8, #06b6d4, #0e7490);
+    background-size: 220% 220%;
+}
+
+@keyframes maintenance-status-flow {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.maintenance-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.maintenance-label {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    margin-bottom: 0.28rem;
+}
+
+.maintenance-db-status {
+    color: #fff;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.maintenance-db-status.is-ok {
+    color: #fff;
+}
+
+.maintenance-db-status.is-error {
+    color: #fff;
+}
+
+.maintenance-db-status.is-checking {
+    color: #fff;
+}
+
+.maintenance-actions-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.85rem;
+}
+
+.maintenance-panel-btn {
+    border-color: rgba(255, 255, 255, 0.44) !important;
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+.maintenance-panel-btn:hover {
+    background: rgba(255, 255, 255, 0.28) !important;
+    color: #fff !important;
+}
+
+.maintenance-panel-btn:disabled {
+    border-color: rgba(255, 255, 255, 0.24) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: rgba(255, 255, 255, 0.62) !important;
+}
+
+.maintenance-create-btn.maintenance-panel-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 148px;
+    border: none !important;
+    overflow: hidden;
+    background: transparent !important;
+    color: #fff !important;
+    transition: transform 0.3s, box-shadow 0.3s, opacity 0.3s, filter 0.3s;
+}
+
+.maintenance-create-btn::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    z-index: 1;
+    background: radial-gradient(
+        70% 70% at 50% 100%,
+        rgba(253, 230, 138, 0.85) 0%,
+        rgba(253, 230, 138, 0) 100%
+    ),
+    linear-gradient(0deg, #f59e0b, #f59e0b);
+    transition: filter 0.3s;
+}
+
+.maintenance-create-btn span {
+    position: relative;
+    z-index: 2;
+    transition: transform 0.3s ease-in-out;
+}
+
+.maintenance-create-btn svg {
+    display: block;
+    transform-origin: center center;
+    transition: transform 0.3s ease-in-out;
+}
+
+.maintenance-create-btn:hover {
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.42) !important;
+}
+
+.maintenance-create-btn:hover::before {
+    filter: brightness(92%) saturate(112%);
+}
+
+.maintenance-create-btn:hover .icon {
+    animation: fly-1 0.6s ease-in-out infinite alternate;
+}
+
+.maintenance-create-btn:hover svg {
+    transform: translateX(3.4em) rotate(90deg) scale(1.35);
+}
+
+.maintenance-create-btn:hover span:not(.icon) {
+    transform: translateX(18em);
+}
+
+.maintenance-create-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.26) !important;
+}
+
+.maintenance-create-btn:active::before {
+    filter: brightness(84%) saturate(110%);
+}
+
+.maintenance-create-btn:disabled,
+.maintenance-create-btn[disabled] {
+    opacity: 0.68;
+    transform: none;
+    box-shadow: none !important;
+    cursor: not-allowed;
+}
+
+.maintenance-create-btn:disabled::before,
+.maintenance-create-btn[disabled]::before {
+    filter: grayscale(18%) brightness(82%);
+}
+
+.maintenance-create-btn:disabled .icon,
+.maintenance-create-btn[disabled] .icon,
+.maintenance-create-btn:disabled svg,
+.maintenance-create-btn[disabled] svg,
+.maintenance-create-btn:disabled span,
+.maintenance-create-btn[disabled] span {
+    animation: none;
+    transform: none;
+}
+
+.maintenance-backups-table {
+    max-height: min(420px, 45vh) !important;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+.maintenance-backups-table table {
+    min-width: 720px;
+    table-layout: fixed;
+}
+
+.maintenance-backups-table th:nth-child(1),
+.maintenance-backups-table td:nth-child(1) {
+    width: 42%;
+}
+
+.maintenance-backups-table th:nth-child(2),
+.maintenance-backups-table td:nth-child(2) {
+    width: 92px;
+}
+
+.maintenance-backups-table th:nth-child(3),
+.maintenance-backups-table td:nth-child(3) {
+    width: 88px;
+}
+
+.maintenance-backups-table th:nth-child(4),
+.maintenance-backups-table td:nth-child(4) {
+    width: 150px;
+}
+
+.maintenance-backups-table td:nth-child(1) {
+    word-break: break-all;
+}
+
+.maintenance-backups-table td:nth-child(2) {
+    white-space: nowrap;
+}
+
+.maintenance-backups-table .settings-actions-column {
+    width: 172px;
+    min-width: 172px;
+}
+
+.maintenance-empty-row td {
+    color: #6b7280;
+    text-align: center;
+}
+
+.settings-list {
+    margin-bottom: 1rem;
+}
+
+.settings-list-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid #dbdbdb;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    background-color: #fff;
+}
+
+.settings-list-item:hover {
+    background-color: #f8f8f8;
+}
+
+.settings-list-item .item-content {
+    flex-grow: 1;
+}
+
+.settings-list-item .item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.add-item-form {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.add-item-form .input {
+    flex-grow: 1;
+}
+
+.edit-form {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.edit-form .input {
+    flex-grow: 1;
+}
+
+/* 修改模态框层级样式 */
+.settings-modal.is-active {
+    pointer-events: auto;
+}
+
+.settings-modal .modal-background {
+    pointer-events: auto;
+}
+
+.settings-modal .modal-card {
+    pointer-events: auto;
+}
+
+/* 设置标签和维度的表格样式 */
+.table td .edit-form {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.table td .edit-form .button {
+    padding: 0rem 1.3rem;
+}
+
+.settings-modal .settings-actions-column {
+    width: 172px;
+    min-width: 172px;
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+    white-space: nowrap;
+}
+
+.settings-modal .settings-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+}
+
+.settings-modal .settings-action-btn,
+.settings-modal .save-btn-small {
+    width: 77px !important;
+    min-width: 77px;
+    max-width: 77px;
+    height: 2.25em;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.75rem !important;
+}
+
+.settings-modal .settings-action-btn {
+    position: relative;
+    overflow: hidden;
+    border: none !important;
+}
+
+.settings-modal .settings-action-btn span {
+    position: relative;
+    z-index: 2;
+}
+
+.settings-modal .settings-delete-btn {
+    background: transparent;
+    transition: box-shadow 0.3s ease, transform 0.2s, filter 0.3s ease;
+}
+
+.settings-modal .settings-delete-btn::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    z-index: 1;
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(248, 113, 113, 0.85) 0%,
+        rgba(248, 113, 113, 0) 100%
+    ),
+    linear-gradient(0deg, #e53935, #e53935);
+    transition: filter 0.3s;
+}
+
+.settings-modal .settings-delete-btn:hover {
+    filter: brightness(96%);
+    transform: scale(1.03);
+    box-shadow: 0 2px 8px rgba(229, 57, 53, 0.38);
+}
+
+.settings-modal .settings-delete-btn:hover::before {
+    filter: brightness(92%);
+}
+
+.settings-modal .settings-delete-btn:active {
+    filter: brightness(92%);
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(229, 57, 53, 0.32);
+}
+
+.settings-modal .settings-delete-btn:active::before {
+    filter: brightness(84%);
+}
+
+.settings-modal .maintenance-backup-restore-btn {
+    background: transparent;
+    transition: box-shadow 0.3s ease, transform 0.2s, filter 0.3s ease;
+}
+
+.settings-modal .maintenance-backup-restore-btn::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    z-index: 1;
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(96, 165, 250, 0.85) 0%,
+        rgba(96, 165, 250, 0) 100%
+    ),
+    linear-gradient(0deg, #2563eb, #2563eb);
+    transition: filter 0.3s;
+}
+
+.settings-modal .maintenance-backup-restore-btn:hover {
+    filter: brightness(98%);
+    transform: scale(1.03);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.36);
+}
+
+.settings-modal .maintenance-backup-restore-btn:hover::before {
+    filter: brightness(94%);
+}
+
+.settings-modal .maintenance-backup-restore-btn:active {
+    filter: brightness(92%);
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+
+.settings-modal .maintenance-backup-restore-btn:active::before {
+    filter: brightness(86%);
+}
+
+@media screen and (max-width: 768px) {
+    .settings-modal .modal-card {
+        width: calc(100vw - 20px) !important;
+        max-width: calc(100vw - 20px);
+    }
+    .settings-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .settings-tabs ul {
+        min-width: 0;
+    }
+    .settings-tabs li {
+        min-width: 0;
+        height: 2.5rem;
+    }
+    .settings-tabs a {
+        padding: 0 0.45rem;
+        font-size: 0.95rem !important;
+        white-space: nowrap;
+    }
+    .settings-modal .add-item-form,
+    .settings-modal .edit-form {
+        flex-wrap: wrap;
+    }
+    .settings-modal .add-item-form .input,
+    .settings-modal .edit-form .input {
+        min-width: 0;
+    }
+    .settings-modal .add-item-form .button,
+    .settings-modal .edit-form .button,
+    .settings-modal .settings-action-btn,
+    .settings-modal .save-btn-small {
+        height: 2.25rem !important;
+        min-height: 2.25rem !important;
+        padding: 0 0.75rem !important;
+        font-size: 0.9rem !important;
+    }
+    .settings-modal .settings-actions-column {
+        display: flex;
+        width: 100% !important;
+        min-width: 0 !important;
+        justify-content: flex-end;
+    }
+    .settings-modal .settings-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    .maintenance-backups-table .settings-actions-column {
+        display: table-cell;
+        width: 172px !important;
+        min-width: 172px !important;
+    }
+    .maintenance-backups-table .settings-actions {
+        width: auto;
+        justify-content: flex-start;
+    }
+    .maintenance-backups-table {
+        max-height: min(420px, 45vh) !important;
+        overflow-x: auto !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    .maintenance-backups-table .table {
+        display: table;
+        width: 100%;
+        min-width: 720px;
+        table-layout: fixed;
+        background: #fff;
+    }
+    .maintenance-backups-table .table thead {
+        display: table-header-group;
+    }
+    .maintenance-backups-table .table tbody {
+        display: table-row-group;
+    }
+    .maintenance-backups-table .table tr {
+        display: table-row;
+        padding: 0;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        background: inherit;
+    }
+    .maintenance-backups-table .table th,
+    .maintenance-backups-table .table td {
+        display: table-cell;
+        align-items: initial;
+        padding: 0.5em 0.75em;
+        border: 1px solid #dbdbdb;
+        font-size: 0.9rem;
+        font-weight: 400;
+        line-height: 1.5;
+        max-width: none;
+        vertical-align: middle;
+        white-space: normal;
+    }
+    .maintenance-backups-table .table th {
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .maintenance-backups-table .table td::before {
+        content: none !important;
+        display: none !important;
+    }
+    .maintenance-backups-table .table td:last-child {
+        justify-content: normal;
+        padding: 0.5em 0.25rem;
+    }
+    .maintenance-backups-table .table td:last-child .button,
+    .maintenance-backups-table .settings-action-btn {
+        width: 77px !important;
+        min-width: 77px !important;
+        max-width: 77px !important;
+        height: 2.25em !important;
+        padding: 0 0.75rem !important;
+        font-size: 0.9rem !important;
+    }
+    .maintenance-status,
+    .maintenance-actions-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+    .maintenance-actions-row .button,
+    .maintenance-status .button {
+        width: 100%;
+    }
+}
+
+.settings-modal .table thead {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 1;
+}
+
+/* 表格行悬停效果 */
+.settings-modal .table tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* 设置按钮特效 */
+.settings-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(151, 71, 255, 0.4) !important;
+}
+.settings-btn:hover::before {
+    opacity: 1;
+}
+.settings-btn:hover .icon,
+.settings-btn.is-active .icon {
+    animation-duration: 1.5s;
+}
+.settings-btn:hover svg,
+.settings-btn.is-active svg {
+    transform: scale(1.3);
+    fill: #fff;
+}
+.settings-btn:active {
+    transform: scale(0.95) translateY(1px);
+    box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
+}
+.settings-btn.is-active {
+    transform: scale(0.95) translateY(1px);
+    animation: button-pulse-settings-btn 2s infinite;
+}
+.settings-btn:active::before,
+.settings-btn.is-active::before {
+    opacity: 1;
+    filter: brightness(90%);
+}
+@keyframes button-pulse-settings-btn {
+    0% { box-shadow: 0 0 0 0 #712aec; }
+    70% { box-shadow: 0 0 0 10px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+
+

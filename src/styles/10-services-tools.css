@@ -1,0 +1,130 @@
+/*----------------------------------------
+  Emby搜索封面样式
+----------------------------------------*/
+.movie-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.movie-card .card-content {
+    padding: 0.8rem;
+}
+.movie-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 0 !important;
+    line-height: 1.4;
+    height: 4.2em;
+}
+.runtime-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.3rem 0.6rem;
+    font-weight: bold;
+    border-top-left-radius: 4px;
+}
+.image.is-2by3 {
+    position: relative;
+}
+#embyModal .emby-result-column {
+    flex: none;
+    flex-basis: 25%;
+    max-width: 25%;
+    width: 25% !important;
+}
+#embyModal .emby-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+#embyModal .emby-playable-card {
+    cursor: pointer;
+    overflow: hidden;
+    outline: none;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+#embyModal .emby-playable-card .image {
+    overflow: hidden;
+}
+#embyModal .emby-playable-card img {
+    transition: transform 0.22s ease, filter 0.22s ease;
+}
+#embyModal .emby-playable-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
+}
+#embyModal .emby-playable-card:hover img {
+    transform: scale(1.035);
+    filter: brightness(1.04);
+}
+#embyModal .emby-playable-card:active {
+    transform: translateY(-1px) scale(0.99);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+}
+#embyModal .emby-playable-card:focus-visible {
+    box-shadow: 0 0 0 3px rgba(50, 115, 220, 0.38), 0 14px 28px rgba(0, 0, 0, 0.18);
+}
+#embyModal .emby-unplayable-card {
+    cursor: default;
+    opacity: 0.72;
+}
+@media screen and (max-width: 768px) {
+    #embyModal .columns.is-multiline {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    #embyModal .emby-result-column {
+        flex-basis: 50%;
+        max-width: 50%;
+        width: 50% !important;
+        padding: 0.5rem;
+    }
+}
+.columns.is-multiline .column.is-one-fifth {
+    width: 16.666% !important;
+}
+
+/* 固定搜索区域样式 */
+.sticky-search {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: inherit;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 滚动内容区域 */
+.scroll-content {
+    margin-top: 1rem;
+    padding: 0 1rem;
+}
+
+/* 模态框特定样式 */
+#embyModal .modal-card-body {
+    padding: 0 !important;
+    overflow: auto;
+}
+#wtlModal .modal-card-body {
+    padding: 0 !important;
+    overflow: auto;
+}
+#thunderModal .modal-card-body {
+    padding: 0 !important;
+}
+#jackettModal .modal-card-body {
+    padding: 0 !important;
+}
+#thumbnailModal .modal-card-body {
+    padding: 0 !important;
+    overflow: hidden;
+}
+

@@ -37,6 +37,8 @@ AGENTS.md
 requirements-dev.txt
 tests/
 scripts/
+src/main/
+src/styles/
 
 # Runtime data and local media
 db_data/

@@ -1,0 +1,535 @@
+/*----------------------------------------
+  查重核对相关样式
+----------------------------------------*/
+#duplicateModal .textarea {
+    height: 200px;
+}
+
+.duplicate-result {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+    font-size: 0.9em;
+}
+
+#check-result {
+    min-height: 100px;
+    padding: 1rem;
+    border-radius: 4px;
+    background: #f5f5f5;
+    flex-grow: 1;
+    margin-bottom: 1rem;
+}
+
+#check-result .notification {
+    padding: 1rem;
+    margin-bottom: 0;
+}
+
+#check-result .notification p {
+    font-size: 0.8rem;
+}
+
+#check-result .notification strong {
+    font-size: 1.1rem;
+}
+
+#duplicateModal .columns {
+    margin-bottom: 1rem;
+}
+
+#duplicateModal .column.is-4 {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.duplicate-separator td {
+    text-align: center;
+    background-color: #f5f5f5;
+    font-weight: bold;
+    color: #666;
+    padding: 0.5rem !important;
+}
+
+tr.is-duplicate {
+    background-color: #fff3e0 !important;
+}
+
+tr.is-duplicate:hover {
+    background-color: #ffeaca !important;
+}
+
+/* 复制按钮样式 */
+.copy-btn {
+    min-width: 55px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important; /* 灰色阴影 */
+    overflow: hidden;
+    background: transparent;
+    transition: box-shadow 0.3s, background-color 0.3s;
+}
+.copy-btn svg {
+    z-index: 2;
+    transition: transform 0.3s;
+}
+.copy-btn::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    z-index: 1;
+    background: radial-gradient(
+      65.28% 65.28% at 50% 100%,
+      rgba(255, 255, 255, 1.0) 0%, /* 白色光晕 */
+      rgba(255, 255, 255, 0) 100%
+    ),
+    linear-gradient(0deg, #f1f1f1, #f1f1f1);
+    transition: filter 0.3s;
+}
+/* hover */
+.copy-btn:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+.copy-btn:hover svg {
+    transform: scale(1.1);
+}
+.copy-btn:hover::before {
+    filter: brightness(95%);
+}
+/* active */
+.copy-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+.copy-btn:active::before {
+    filter: brightness(90%);
+}
+/* 成功状态样式 */
+.copy-btn.is-success {
+    border: none !important;
+    transition: box-shadow 1.3s, background-color 1.3s;
+}
+.copy-btn.is-success::before {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(110, 231, 183, 0.6) 0%,  /* 浅绿色光晕 */
+        rgba(110, 231, 183, 0) 100%
+    ),
+    linear-gradient(0deg, #17a84c, #17a84c);
+}
+.copy-btn.is-success:hover {
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4) !important;
+}
+.copy-btn.is-success:active {
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2) !important;
+}
+/* 失败状态样式 */
+.copy-btn.is-danger {
+    border: none !important;
+    transition: box-shadow 1.3s, background-color 1.3s;
+}
+.copy-btn.is-danger::before {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(255, 134, 134, 0.6) 0%,  /* 浅红色光晕 */
+        rgba(255, 134, 134, 0) 100%
+    ),
+    linear-gradient(0deg, #ff3950, #ff3950);  /* 深红色底色 */
+}
+.copy-btn.is-danger:hover {
+    box-shadow: 0 6px 16px rgba(241, 70, 104, 0.4) !important;
+}
+.copy-btn.is-danger:active {
+    box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
+}
+
+@media screen and (max-width: 768px) {
+    #duplicateModal .column.is-4 {
+        height: auto !important;
+    }
+    .copy-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+
+
+/*----------------------------------------
+  标签相关样式 - 整合 - 必要样式在index中
+----------------------------------------*/
+.tag:hover {
+    background: linear-gradient(
+        177.95deg,
+        rgba(255, 255, 255, 0.25) 0%,
+        rgba(255, 255, 255, 0) 100%
+    ),
+    #e0e0e0;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.tag.is-selected {
+    background: linear-gradient(
+        177.95deg,
+        rgba(255, 255, 255, 0.25) 0%,
+        rgba(255, 255, 255, 0) 100%
+    ),
+    #4A9DEC;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 4px rgba(74, 157, 236, 0.2);
+}
+.tag.is-selected:hover {
+    background: linear-gradient(
+        177.95deg,
+        rgba(255, 255, 255, 0.3) 0%,
+        rgba(255, 255, 255, 0) 100%
+    ),
+    #3b8ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(74, 157, 236, 0.3);
+}
+
+
+
+/*----------------------------------------
+  功能区样式 - 必要样式在index中
+----------------------------------------*/
+/* 工具栏按钮特效 */
+.function-tools .tool-btn:hover svg {
+    fill: #fff;
+    transform: rotate(10deg);
+    transition: transform 0.3s, background-color 0.3s;
+}
+.function-tools .tool-btn.is-active svg {
+    fill: #fff;
+    transition: transform 0.3s, background-color 0.3s;
+}
+.function-tools .tool-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px color-mix(in srgb, var(--btn-color) 40%, transparent);
+}
+.function-tools .tool-btn:hover::before {
+    opacity: 1;
+}
+.function-tools .tool-btn:active {
+    transform: scale(0.95) translateY(1px);
+    box-shadow: 0 2px 5px color-mix(in srgb, var(--btn-color) 40%, transparent);
+}
+.function-tools .tool-btn.is-active {
+    transform: scale(0.95) translateY(1px);
+    animation: button-pulse 2s infinite;
+}
+.function-tools .tool-btn:active::before,
+.function-tools .tool-btn.is-active::before {
+    opacity: 1;
+    filter: brightness(95%);
+}
+/* 统一脉冲动画 */
+@keyframes button-pulse {
+    0% { box-shadow: 0 0 0 0 var(--btn-color); }
+    70% { box-shadow: 0 0 0 10px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+
+
+/*----------------------------------------
+  按钮样式 - 必要样式在index中
+----------------------------------------*/
+/* 按钮特效 */
+.save-btn-small span {
+    padding-left: 0.3rem;
+}
+
+.search-btn:hover {
+    box-shadow: 0 6px 16px rgba(67, 97, 238, 0.4) !important;
+}
+.save-btn:hover,
+.save-btn-small:hover,
+.add-btn:hover {
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4) !important;
+}
+.delete-btn:hover::before,
+.search-btn:hover::before,
+.save-btn:hover::before,
+.save-btn-small:hover::before,
+.add-btn:hover::before {
+    filter: brightness(90%);
+}
+.search-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.2) !important;
+}
+.save-btn:active,
+.save-btn-small:active,
+.add-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2) !important;
+}
+.delete-btn:active::before,
+.search-btn:active::before,
+.save-btn:active::before,
+.save-btn-small:active::before,
+.add-btn:active::before {
+    filter: brightness(80%);
+}
+.delete-btn:hover .icon,
+.search-btn:hover .icon,
+.save-btn:hover .icon,
+.save-btn-small:hover .icon,
+.add-btn:hover .icon {
+    animation: fly-1 0.6s ease-in-out infinite alternate;
+}
+.search-btn:hover svg {
+    transform: translateX(1.4em) rotate(90deg) scale(1.5);
+}
+.save-btn:hover svg {
+    transform: translateX(1.4em) rotate(20deg) scale(1.4);
+}
+.save-btn-small:hover svg {
+    transform: translateX(1.4em) rotate(20deg) scale(2.0);
+}
+.add-btn:hover svg {
+    transform: translateX(1.4em) rotate(90deg) scale(1.4);
+}
+.delete-btn:hover span:not(.icon),
+.search-btn:hover span,
+.save-btn:hover span,
+.save-btn-small:hover span,
+.add-btn:hover span {
+    transform: translateX(5em);
+}
+@keyframes fly-1 {
+    from {transform: translateY(0.1em);}
+    to {transform: translateY(-0.1em);}
+}
+
+/* 删除按钮 特效 */
+.delete-btn .bin-top,
+.delete-btn .bin-bottom {
+    position: absolute; /* 必要，使两个图标叠加 */
+    transition: transform 0.3s ease-in-out;
+}
+.delete-btn {
+    display: flex;
+    border: none !important;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    background: transparent;
+}
+.delete-btn::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    z-index: 1;
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(255, 134, 134, 0.8) 0%,  /* 浅红色光晕 */
+        rgba(255, 134, 134, 0) 100%
+    ),
+    linear-gradient(0deg, #ff3950, #ff3950);  /* 深红色底色 */
+    transition: filter 0.3s;
+}
+.delete-btn span {
+    position: relative;
+    z-index: 2;
+    transition: transform 0.3s ease-in-out;
+}
+.delete-btn:hover {
+    box-shadow: 0 6px 16px rgba(241, 70, 104, 0.4) !important;
+}
+.delete-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(241, 70, 104, 0.2) !important;
+}
+.delete-btn .bin-top {
+    transform-origin: right; /* 垃圾桶翻盖动画 以右侧为中心旋转*/
+}
+.delete-btn:hover .bin-top {
+    transform: translateX(1.4em) scale(1.1) rotate(45deg);
+}
+.delete-btn:hover .bin-bottom {
+    transform: translateX(1.4em) scale(1.1);
+}
+
+/* 编辑按钮样式 */
+.edit-btn {
+    border: none !important;
+    background: transparent;
+    transition: box-shadow 0.3s ease, background-color 0.3s ease, transform 0.2s, filter 0.3s ease;
+    position: relative;
+}
+.edit-btn span {
+    z-index: 2;
+    position: relative;
+}
+.edit-btn::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    z-index: 1;
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0) 100%
+    );
+}
+/* hover效果 */
+.edit-btn:hover {
+    filter: brightness(95%);
+    transform: scale(1.03);
+    box-shadow: 0 2px 6px rgba(23, 116, 255, 0.4);
+}
+/* active效果 */
+.edit-btn:active {
+    filter: brightness(92%);
+    transform: scale(0.95);
+    box-shadow: 0 2px 4px rgba(23, 116, 255, 0.4);
+}
+
+
+
+/*----------------------------------------
+  评价和标签相关样式
+----------------------------------------*/
+.review-cell {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tags-cell {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 评论和标签单元格 */
+.review-cell, .tags-cell {
+    position: relative;
+}
+
+.review-cell:hover::after,
+.tags-cell:hover::after {
+    display: none;
+    content: attr(title);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 1000;
+    width: auto;
+    min-width: 100%;
+    max-width: 300px;
+    padding: 5px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    white-space: normal;
+    word-wrap: break-word;
+}
+/* 标签容器hover效果 */
+.tags-filter:hover {
+    background: linear-gradient(
+        177.95deg,
+        rgba(74, 157, 236, 0.08) 0%,
+        rgba(74, 157, 236, 0.02) 100%
+    ),
+    #ffffff;
+    border-color: rgba(74, 157, 236, 0.4) !important;
+    box-shadow: 0 2px 6px rgba(74, 157, 236, 0.15);
+}
+
+
+
+/*----------------------------------------
+  折叠框样式 - 必要样式在index中
+----------------------------------------*/
+.collapse-icon:not(.collapsed) {
+    transform: rotate(0deg);
+}
+.collapsible-box .box-content.expanded {
+    padding: 0.8rem 0.5rem 0.3rem;
+    height: auto;
+    opacity: 1;
+    border-top: 1px solid #dbdbdb;
+    transition: opacity 0.35s ease, padding 0.35s ease;
+}
+
+
+
+/*----------------------------------------
+  评分框通用样式 - 必要样式在index中
+----------------------------------------*/
+.ratings-box-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #363636;
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
+    border-bottom: 1px solid #eee;
+}
+
+/*----------------------------------------
+  编辑电影框中的评分样式
+----------------------------------------*/
+/* 评分框标题 */
+#editModal .ratings-box-title {
+    position: static;
+}
+
+/* 评分维度三列布局 */
+#editModal #edit-ratings-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    padding-left: 0.1rem;
+}
+
+#editModal .ratings-box .field {
+    display: flex;
+    align-items: center;
+    padding-right: 1rem;
+    padding-bottom: 0.2rem;
+    margin-bottom: 0rem;
+}
+
+/* 维度名称样式 */
+#editModal .ratings-box .field label:first-child {
+    transform: translateY(3px);
+    min-width: 2.8em !important;
+}
+
+/*----------------------------------------
+  折叠框中的评分样式
+----------------------------------------*/
+/* 评分框容器 */
+.collapsible-box .ratings-box {
+    position: relative;
+}
+
+/* 评分框标题 */
+.collapsible-box .ratings-box-title {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 0.5rem;
+    background: white;
+    z-index: 1;
+    border-radius: 4px;
+    margin: 0;
+    border: none;
+}
+
+/* 评分维度两列布局 */
+.collapsible-box .ratings-box .field {
+    display: flex;
+    align-items: center;
+    padding: 0.2rem;
+}
+
+
+
