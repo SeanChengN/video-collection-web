@@ -23,6 +23,7 @@
 - Emby client logic lives in `video_collection/emby.py`; `app.py` still exposes `EMBY_TOKEN_CACHE`, `authenticate_emby`, and `emby_request`.
 - Database connection setup lives in `video_collection/database.py`.
 - Movie metadata parsing, hydration, and schema helper functions live in `video_collection/movie_metadata.py`.
+- API handler implementations live in `video_collection/api_handlers.py`; `app.py` keeps `/api`, compatibility wrappers, and event registration.
 
 ## Security Configuration
 
@@ -38,6 +39,7 @@
 - Each event records the public event name, handler, and allowed logical methods.
 - Frontend event IDs live in `src/config/events.js`; keep names aligned with `API_EVENTS`.
 - When adding an event, add focused tests for method validation and any input parsing.
+- New API events must update backend registration, `src/config/events.js`, and the event alignment test together.
 
 ## Frontend Assets
 
