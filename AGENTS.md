@@ -24,6 +24,7 @@
 - Database connection setup lives in `video_collection/database.py`.
 - Movie metadata parsing, hydration, and schema helper functions live in `video_collection/movie_metadata.py`.
 - API handler implementations live in `video_collection/api_handlers.py`; `app.py` keeps `/api`, compatibility wrappers, and event registration.
+- API handlers use `ApiHandlerDependencies`; add new handler dependencies there and inject them from `app.py`, instead of relying on implicit globals.
 
 ## Security Configuration
 

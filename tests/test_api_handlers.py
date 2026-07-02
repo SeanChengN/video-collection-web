@@ -2,6 +2,7 @@ import re
 from pathlib import Path
 
 import app as app_module
+from video_collection.api_handlers import ApiHandlerDependencies
 
 
 def unpack_response(result):
@@ -9,6 +10,12 @@ def unpack_response(result):
         response, status = result[:2]
         return response, status
     return result, result.status_code
+
+
+def test_api_handlers_use_explicit_dependencies():
+    assert not hasattr(app_module._api_handlers, '_namespace')
+    assert isinstance(app_module._api_handlers.dependencies, ApiHandlerDependencies)
+    assert app_module._api_handlers.dependencies.jsonify is app_module.jsonify
 
 
 def test_backend_api_events_match_frontend_event_map():

@@ -18,7 +18,7 @@ from video_collection.config import env_bool, env_int
 from video_collection.paths import is_path_inside
 from video_collection import uploads as upload_helpers
 from video_collection import videos as video_helpers
-from video_collection.api_handlers import ApiHandlers
+from video_collection.api_handlers import ApiHandlerDependencies, ApiHandlers
 from video_collection.emby import EmbyClient
 from video_collection.uploads import (
     ALLOWED_EXTENSIONS,
@@ -977,7 +977,7 @@ def api_handler():
     except Exception as e:
         return json_exception('API handler', e)
 
-_api_handlers = ApiHandlers(
+_api_handlers = ApiHandlers(ApiHandlerDependencies(
     jsonify=jsonify,
     json_error=json_error,
     json_exception=json_exception,
@@ -1005,10 +1005,10 @@ _api_handlers = ApiHandlers(
     get_scheduled_backup_status=get_scheduled_backup_status,
     list_database_backups=list_database_backups,
     backup_feature_enabled=backup_feature_enabled,
-    DB_MAINTENANCE_LOCK=DB_MAINTENANCE_LOCK,
+    db_maintenance_lock=DB_MAINTENANCE_LOCK,
     run_database_backup=run_database_backup,
     database_upgrade_command_hint=database_upgrade_command_hint,
-    DatabaseUpgradeRequiredError=DatabaseUpgradeRequiredError,
+    database_upgrade_required_error=DatabaseUpgradeRequiredError,
     safe_backup_filename=safe_backup_filename,
     get_backup_file_path=get_backup_file_path,
     run_backup_restore=run_backup_restore,
@@ -1021,7 +1021,7 @@ _api_handlers = ApiHandlers(
     process_image=process_image,
     get_upload_file_path=get_upload_file_path,
     get_upload_folder=lambda: app.config['UPLOAD_FOLDER'],
-)
+))
 
 
 def add_movie_handler(data, method='POST'):
@@ -1037,7 +1037,7 @@ def get_ratings_dimensions_handler(data, method='GET'):
 
 
 def search_movies_sql_handler(data):
-    return _api_handlers._namespace['search_movies_sql_handler'](data)
+    return _api_handlers.search_movies_sql_handler(data)
 
 
 def search_movies_handler(data, method='GET'):
@@ -1057,7 +1057,7 @@ def search_emby_handler(data, method='POST'):
 
 
 def check_title_match(title1, title2):
-    return _api_handlers._namespace['check_title_match'](title1, title2)
+    return _api_handlers.check_title_match(title1, title2)
 
 
 def check_duplicates_handler(data, method='POST'):
