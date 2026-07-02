@@ -87,6 +87,11 @@ def test_schema_initialization_does_not_seed_defaults_when_tables_have_rows():
     assert inserted_sql == []
 
 
+def test_schema_default_metadata_keeps_utf8_chinese_values():
+    assert list(schema.DEFAULT_TAGS) == ["精品", "剧情", "写实", "激烈", "抽象", "情感", "蒙面"]
+    assert list(schema.DEFAULT_RATING_DIMENSIONS) == ["颜值", "身材", "皮肤", "表演", "画面", "剧情"]
+
+
 def test_init_db_returns_false_when_schema_initialization_fails(monkeypatch):
     logged = []
 

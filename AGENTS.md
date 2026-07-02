@@ -24,6 +24,7 @@
 - Database connection setup lives in `video_collection/database.py`.
 - Database schema initialization lives in `video_collection/schema.py`; keep initialization idempotent and covered by startup/init tests.
 - Movie metadata parsing, hydration, and schema helper functions live in `video_collection/movie_metadata.py`.
+- Media and service route implementations live in `video_collection/media_routes.py`; `app.py` keeps route decorators and thin wrappers.
 - API handler implementations live in `video_collection/api_handlers.py`; `app.py` keeps `/api`, compatibility wrappers, and event registration.
 - API handlers use `ApiHandlerDependencies`; add new handler dependencies there and inject them from `app.py`, instead of relying on implicit globals.
 
@@ -56,5 +57,6 @@
 - Prefer small feature modules when splitting `app.py` or frontend code; keep behavior covered by tests before moving code.
 - Add new frontend behavior to the matching `src/main/` section instead of editing generated `static/main.js` directly.
 - Add new styles to the matching `src/styles/` section instead of editing generated `static/non-critical.css` directly.
+- Preserve UTF-8 when moving Chinese constants, labels, or messages; prefer small `apply_patch` edits over whole-file rewrites for text-bearing files.
 - Do not commit local secrets, media, database files, backups, or generated cache directories.
 - Avoid changing stored database schema without an idempotent migration path and a backup/restore test.

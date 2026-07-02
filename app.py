@@ -2,14 +2,12 @@ import os #文件操作
 import hmac
 import logging
 import threading
-import mimetypes
-import time #时间处理
 from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, session, url_for #Flask框架
 from datetime import timedelta
 from flask_compress import Compress #压缩代码
 from PIL import Image #图像处理
 import requests
-from flask import Response, stream_with_context
+from flask import Response
 from werkzeug.exceptions import RequestEntityTooLarge
 
 from video_collection import database, movie_metadata, schema, security
@@ -19,6 +17,7 @@ from video_collection import uploads as upload_helpers
 from video_collection import videos as video_helpers
 from video_collection.api_handlers import ApiHandlerDependencies, ApiHandlers
 from video_collection.emby import EmbyClient
+from video_collection.media_routes import MediaRouteDependencies, MediaRouteHandlers
 from video_collection.uploads import (
     ALLOWED_EXTENSIONS,
     ALLOWED_STORED_IMAGE_EXTENSIONS,
@@ -274,16 +273,7 @@ def get_service_url(service_name):
     return os.environ.get(env_name, '').strip().rstrip('/')
 
 def build_service_redirect_url(service_name):
-    service_url = get_service_url(service_name)
-    if not service_url:
-        return None
-
-    path = request.args.get('path', '').strip()
-    if path and not path.startswith('/'):
-        path = f'/{path}'
-    if '..' in path.replace('\\', '/').split('/'):
-        return None
-    return f'{service_url}{path}'
+    return _media_routes.build_service_redirect_url(service_name)
 
 # 数据库连接配置，从环境变量中读取
 DB_CONFIG = database.build_db_config()
@@ -329,6 +319,27 @@ def emby_request(method, path, params=None, headers=None, stream=False, timeout=
         timeout=timeout,
         force_refresh=force_refresh
     )
+
+_media_routes = MediaRouteHandlers(MediaRouteDependencies(
+    normalize_upload_filename=normalize_upload_filename,
+    get_upload_folder=lambda: app.config['UPLOAD_FOLDER'],
+    normalize_video_relative_path=video_helpers.normalize_video_relative_path,
+    get_video_library_abs_path=lambda relative_path='': video_helpers.get_video_library_abs_path(
+        relative_path,
+        VIDEO_LIBRARY_ROOT
+    ),
+    allowed_video_file=lambda filename: video_helpers.allowed_video_file(filename, ALLOWED_VIDEO_EXTENSIONS),
+    parse_byte_range=video_helpers.parse_byte_range,
+    stream_file_slice=lambda abs_path, start, end: video_helpers.stream_file_slice(
+        abs_path,
+        start,
+        end,
+        VIDEO_STREAM_CHUNK_BYTES
+    ),
+    emby_request=lambda *args, **kwargs: emby_request(*args, **kwargs),
+    log_exception=lambda action, exc: log_exception(action, exc),
+    get_service_url=lambda service_name: get_service_url(service_name),
+))
 
 def get_db_connection():
     return database.get_db_connection(DB_CONFIG)
@@ -631,10 +642,7 @@ def serve_src(filename):
 # 图片文件路由
 @app.route('/images/<path:filename>')
 def serve_image(filename):
-    safe_filename = normalize_upload_filename(filename)
-    if not safe_filename:
-        return Response(status=404)
-    return send_from_directory(app.config['UPLOAD_FOLDER'], safe_filename, conditional=True)
+    return _media_routes.serve_image(filename)
 
 def normalize_video_relative_path(path_value=''):
     return video_helpers.normalize_video_relative_path(path_value)
@@ -656,152 +664,15 @@ def format_video_file_item(directory_relative_path, filename):
 
 @app.route('/videos/<path:filename>')
 def serve_video(filename):
-    safe_relative = normalize_video_relative_path(filename)
-    if not safe_relative or not allowed_video_file(safe_relative):
-        return Response(status=404)
-
-    abs_path = get_video_library_abs_path(safe_relative)
-    if not abs_path or not os.path.isfile(abs_path):
-        return Response(status=404)
-
-    file_size = os.path.getsize(abs_path)
-    content_type = mimetypes.guess_type(abs_path)[0] or 'application/octet-stream'
-    range_header = request.headers.get('Range')
-    byte_range = parse_byte_range(range_header, file_size)
-    common_headers = {
-        'Accept-Ranges': 'bytes',
-        'Content-Type': content_type
-    }
-
-    if range_header and byte_range is None:
-        return Response(
-            status=416,
-            headers={
-                **common_headers,
-                'Content-Range': f'bytes */{file_size}',
-                'Content-Length': '0'
-            }
-        )
-
-    if byte_range:
-        start, end = byte_range
-        status_code = 206
-        response_headers = {
-            **common_headers,
-            'Content-Range': f'bytes {start}-{end}/{file_size}',
-            'Content-Length': str(end - start + 1)
-        }
-    else:
-        start, end = 0, max(file_size - 1, 0)
-        status_code = 200
-        response_headers = {
-            **common_headers,
-            'Content-Length': str(file_size)
-        }
-
-    if request.method == 'HEAD' or file_size == 0:
-        return Response(status=status_code, headers=response_headers)
-
-    return Response(
-        stream_with_context(stream_file_slice(abs_path, start, end)),
-        status=status_code,
-        headers=response_headers,
-        direct_passthrough=True
-    )
+    return _media_routes.serve_video(filename)
 
 @app.route('/emby/image/<item_id>')
 def serve_emby_image(item_id):
-    try:
-        image_tag = request.args.get('tag', '').strip()
-        params = {'tag': image_tag} if image_tag else None
-        upstream = emby_request(
-            'GET',
-            f'/emby/Items/{item_id}/Images/Primary',
-            params=params,
-            stream=True,
-            timeout=20
-        )
-
-        if upstream.status_code == 404:
-            upstream.close()
-            return Response(status=404)
-        if not upstream.ok:
-            status_code = upstream.status_code
-            upstream.close()
-            return Response(status=status_code)
-
-        response_headers = {
-            'Content-Type': upstream.headers.get('Content-Type', 'image/jpeg'),
-            'Cache-Control': 'private, max-age=86400'
-        }
-        if upstream.headers.get('Content-Length'):
-            response_headers['Content-Length'] = upstream.headers['Content-Length']
-
-        def generate():
-            try:
-                for chunk in upstream.iter_content(chunk_size=8192):
-                    if chunk:
-                        yield chunk
-            finally:
-                upstream.close()
-
-        return Response(stream_with_context(generate()), headers=response_headers)
-    except Exception as e:
-        log_exception('Emby image proxy', e)
-        return Response(status=502)
+    return _media_routes.serve_emby_image(item_id)
 
 @app.route('/emby/stream/<item_id>')
 def stream_emby_video(item_id):
-    try:
-        upstream_headers = {}
-        range_header = request.headers.get('Range')
-        if range_header:
-            upstream_headers['Range'] = range_header
-
-        upstream = emby_request(
-            'GET',
-            f'/emby/Videos/{item_id}/stream',
-            params={'Static': 'true'},
-            headers=upstream_headers,
-            stream=True,
-            timeout=(10, 60)
-        )
-
-        if upstream.status_code not in (200, 206):
-            status_code = upstream.status_code
-            upstream.close()
-            return Response('Unable to stream this Emby item', status=status_code)
-
-        response_headers = {}
-        for header_name in (
-            'Content-Type',
-            'Content-Length',
-            'Content-Range',
-            'Accept-Ranges',
-            'ETag',
-            'Last-Modified'
-        ):
-            if upstream.headers.get(header_name):
-                response_headers[header_name] = upstream.headers[header_name]
-        response_headers.setdefault('Accept-Ranges', 'bytes')
-
-        def generate():
-            try:
-                for chunk in upstream.iter_content(chunk_size=1024 * 1024):
-                    if chunk:
-                        yield chunk
-            finally:
-                upstream.close()
-
-        return Response(
-            stream_with_context(generate()),
-            status=upstream.status_code,
-            headers=response_headers,
-            direct_passthrough=True
-        )
-    except Exception as e:
-        log_exception('Emby stream proxy', e)
-        return Response('Unable to stream this Emby item', status=502)
+    return _media_routes.stream_emby_video(item_id)
 
 @app.route('/services/<service_name>')
 def service_redirect(service_name):
