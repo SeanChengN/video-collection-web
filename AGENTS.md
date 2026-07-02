@@ -16,6 +16,14 @@
 - Keep scheduled backup startup single-worker safe; do not increase gunicorn workers without moving the scheduler out of process.
 - Runtime data directories are mounted and ignored by git: `db_data/`, `images/`, `videos/`, and `backups/`.
 
+## Backend Modules
+
+- `app.py` remains the compatibility layer for Flask routes, API handlers, and public helper exports.
+- Security/auth helpers live in `video_collection/security.py`; keep `app.py` wrappers reading current globals for monkeypatch-friendly tests.
+- Emby client logic lives in `video_collection/emby.py`; `app.py` still exposes `EMBY_TOKEN_CACHE`, `authenticate_emby`, and `emby_request`.
+- Database connection setup lives in `video_collection/database.py`.
+- Movie metadata parsing, hydration, and schema helper functions live in `video_collection/movie_metadata.py`.
+
 ## Security Configuration
 
 - `APP_ACCESS_TOKEN` controls whether the app requires login.

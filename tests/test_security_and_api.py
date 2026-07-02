@@ -55,6 +55,27 @@ def test_auth_rate_limit_blocks_repeated_failures(monkeypatch):
     assert response.status_code == 429
 
 
+def test_safe_next_path_rejects_external_or_relative_paths():
+    assert app_module.safe_next_path('https://evil.example/auth') == '/'
+    assert app_module.safe_next_path('//evil.example/auth') == '/'
+    assert app_module.safe_next_path('relative/path') == '/'
+    assert app_module.safe_next_path('/movies?page=2') == '/movies?page=2'
+
+
+def test_csrf_validation_accepts_header_and_form_tokens():
+    with app_module.app.test_request_context('/api', method='POST', headers={'X-CSRF-Token': 'known-token'}):
+        app_module.session[app_module.CSRF_SESSION_KEY] = 'known-token'
+        assert app_module.csrf_token_is_valid() is True
+
+    with app_module.app.test_request_context('/api', method='POST', data={'csrf_token': 'known-token'}):
+        app_module.session[app_module.CSRF_SESSION_KEY] = 'known-token'
+        assert app_module.csrf_token_is_valid() is True
+
+    with app_module.app.test_request_context('/api', method='POST', headers={'X-CSRF-Token': 'bad-token'}):
+        app_module.session[app_module.CSRF_SESSION_KEY] = 'known-token'
+        assert app_module.csrf_token_is_valid() is False
+
+
 def test_api_registry_rejects_invalid_method(monkeypatch):
     monkeypatch.setenv('APP_ACCESS_TOKEN', '')
     client = make_client()

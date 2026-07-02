@@ -1,6 +1,5 @@
 import os #文件操作
 import hmac
-import secrets
 import logging
 import threading
 import mimetypes
@@ -10,18 +9,20 @@ import uuid #UUID生成
 import json #JSON处理
 from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, session, url_for #Flask框架
 from datetime import timedelta
-from contextlib import contextmanager #上下文管理器
 from flask_compress import Compress #压缩代码
 from PIL import Image, UnidentifiedImageError #图像处理
 import requests
-from urllib.parse import quote, urlsplit
+from urllib.parse import quote
 from flask import Response, stream_with_context
 from werkzeug.exceptions import RequestEntityTooLarge
 
+import time
+from video_collection import database, movie_metadata, security
 from video_collection.config import env_bool, env_int
 from video_collection.paths import is_path_inside
 from video_collection import uploads as upload_helpers
 from video_collection import videos as video_helpers
+from video_collection.emby import EmbyClient
 from video_collection.uploads import (
     ALLOWED_EXTENSIONS,
     ALLOWED_STORED_IMAGE_EXTENSIONS,
@@ -96,18 +97,16 @@ def json_exception(action, exc, message='Request failed'):
     return json_error(message, 500)
 
 def configured_access_token():
-    return os.environ.get('APP_ACCESS_TOKEN', '').strip()
+    return security.configured_access_token()
 
 def access_token_required():
-    return bool(configured_access_token())
+    return security.access_token_required()
 
 def configured_secret_key():
-    return os.environ.get('SECRET_KEY', '').strip()
+    return security.configured_secret_key()
 
 def fallback_secret_key():
-    if access_token_required():
-        logger.warning("SECRET_KEY is not configured; sessions will be invalidated on restart")
-    return os.urandom(32)
+    return security.fallback_secret_key(access_token_required(), logger)
 
 AUTH_SESSION_KEY = 'app_authenticated'
 CSRF_SESSION_KEY = 'csrf_token'
@@ -129,49 +128,47 @@ def is_authenticated_session():
     return session.get(AUTH_SESSION_KEY) is True
 
 def get_csrf_token():
-    token = session.get(CSRF_SESSION_KEY)
-    if not token:
-        token = secrets.token_urlsafe(32)
-        session[CSRF_SESSION_KEY] = token
-    return token
+    return security.get_csrf_token(session, CSRF_SESSION_KEY)
 
 def request_csrf_token():
-    return request.headers.get('X-CSRF-Token', '') or request.form.get('csrf_token', '')
+    return security.request_csrf_token(request)
 
 def csrf_token_is_valid():
-    expected = session.get(CSRF_SESSION_KEY, '')
-    provided = request_csrf_token()
-    return bool(expected and provided and hmac.compare_digest(provided, expected))
+    return security.csrf_token_is_valid(session, request, CSRF_SESSION_KEY)
 
 def csrf_required_for_request():
-    return (
-        access_token_required()
-        and request.method not in SAFE_HTTP_METHODS
-        and request.endpoint not in {'healthz'}
+    return security.csrf_required_for_request(
+        access_token_required(),
+        request.method,
+        request.endpoint,
+        SAFE_HTTP_METHODS,
+        {'healthz'}
     )
 
 def auth_rate_limit_key():
     return request.remote_addr or 'unknown'
 
 def auth_rate_limit_exceeded(key, now=None):
-    now = now or time.monotonic()
-    cutoff = now - AUTH_RATE_LIMIT_WINDOW_SECONDS
-    with AUTH_RATE_LIMIT_LOCK:
-        failures = [stamp for stamp in AUTH_RATE_LIMIT_FAILURES.get(key, []) if stamp >= cutoff]
-        AUTH_RATE_LIMIT_FAILURES[key] = failures
-        return len(failures) >= AUTH_RATE_LIMIT_ATTEMPTS
+    return security.auth_rate_limit_exceeded(
+        AUTH_RATE_LIMIT_FAILURES,
+        AUTH_RATE_LIMIT_LOCK,
+        AUTH_RATE_LIMIT_ATTEMPTS,
+        AUTH_RATE_LIMIT_WINDOW_SECONDS,
+        key,
+        now
+    )
 
 def record_auth_failure(key, now=None):
-    now = now or time.monotonic()
-    cutoff = now - AUTH_RATE_LIMIT_WINDOW_SECONDS
-    with AUTH_RATE_LIMIT_LOCK:
-        failures = [stamp for stamp in AUTH_RATE_LIMIT_FAILURES.get(key, []) if stamp >= cutoff]
-        failures.append(now)
-        AUTH_RATE_LIMIT_FAILURES[key] = failures
+    return security.record_auth_failure(
+        AUTH_RATE_LIMIT_FAILURES,
+        AUTH_RATE_LIMIT_LOCK,
+        AUTH_RATE_LIMIT_WINDOW_SECONDS,
+        key,
+        now
+    )
 
 def clear_auth_failures(key):
-    with AUTH_RATE_LIMIT_LOCK:
-        AUTH_RATE_LIMIT_FAILURES.pop(key, None)
+    return security.clear_auth_failures(AUTH_RATE_LIMIT_FAILURES, AUTH_RATE_LIMIT_LOCK, key)
 
 @app.context_processor
 def inject_template_security_context():
@@ -181,20 +178,10 @@ def inject_template_security_context():
 
 @app.after_request
 def add_security_headers(response):
-    response.headers.setdefault('X-Content-Type-Options', 'nosniff')
-    response.headers.setdefault('X-Frame-Options', 'SAMEORIGIN')
-    response.headers.setdefault('Referrer-Policy', 'same-origin')
-    response.headers.setdefault('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
-    return response
+    return security.add_security_headers(response)
 
 def safe_next_path(value):
-    value = (value or '/').strip()
-    parsed = urlsplit(value)
-    if parsed.scheme or parsed.netloc:
-        return '/'
-    if not parsed.path.startswith('/') or parsed.path.startswith('//'):
-        return '/'
-    return parsed.path + (f'?{parsed.query}' if parsed.query else '')
+    return security.safe_next_path(value)
 
 def current_request_path():
     return request.full_path.rstrip('?') or '/'
@@ -303,12 +290,7 @@ def build_service_redirect_url(service_name):
     return f'{service_url}{path}'
 
 # 数据库连接配置，从环境变量中读取
-DB_CONFIG = {
-    "host": os.environ["DB_HOST"],
-    "user": os.environ["DB_USER"], 
-    "password": os.environ["DB_PASSWORD"],
-    "database": os.environ["DB_DATABASE"]
-}
+DB_CONFIG = database.build_db_config()
 DB_BACKUP_DIR = os.environ.get('DB_BACKUP_DIR', '/backups')
 DB_BACKUP_INCLUDE_ROUTINES = env_bool('DB_BACKUP_INCLUDE_ROUTINES', False)
 DB_BACKUP_SCHEDULE_ENABLED = env_bool('DB_BACKUP_SCHEDULE_ENABLED', False)
@@ -319,116 +301,44 @@ EMBY_CLIENT_NAME = 'video-collection'
 EMBY_DEVICE_NAME = 'video-collection-server'
 EMBY_DEVICE_ID = os.environ.get('EMBY_DEVICE_ID', 'video-collection-server')
 EMBY_CLIENT_VERSION = '1.0.0'
-EMBY_TOKEN_CACHE = {
-    'access_token': None,
-    'user_id': None
-}
+emby_client = EmbyClient(
+    environ=os.environ,
+    requests_module=requests,
+    client_name=EMBY_CLIENT_NAME,
+    device_name=EMBY_DEVICE_NAME,
+    device_id=EMBY_DEVICE_ID,
+    client_version=EMBY_CLIENT_VERSION
+)
+EMBY_TOKEN_CACHE = emby_client.token_cache
 
 def get_emby_server_url():
-    server_url = os.environ.get('EMBY_SERVER_URL', '').strip().rstrip('/')
-    if not server_url:
-        raise ValueError('EMBY_SERVER_URL is not configured')
-    return server_url
+    return emby_client.get_server_url()
 
 def get_emby_credentials():
-    username = os.environ.get('EMBY_USERNAME', '').strip()
-    password = os.environ.get('EMBY_PASSWORD', '')
-    if not username or not password:
-        raise ValueError('EMBY_USERNAME or EMBY_PASSWORD is not configured')
-    return username, password
+    return emby_client.get_credentials()
 
 def get_emby_headers(access_token=None, accept_json=True):
-    auth_value = (
-        f'MediaBrowser Client="{EMBY_CLIENT_NAME}", '
-        f'Device="{EMBY_DEVICE_NAME}", '
-        f'DeviceId="{EMBY_DEVICE_ID}", '
-        f'Version="{EMBY_CLIENT_VERSION}"'
-    )
-    if access_token:
-        auth_value = f'{auth_value}, Token="{access_token}"'
-    headers = {
-        'X-Emby-Authorization': auth_value
-    }
-    if accept_json:
-        headers['Accept'] = 'application/json'
-    if access_token:
-        headers['X-Emby-Token'] = access_token
-    return headers
+    return emby_client.get_headers(access_token, accept_json)
 
 def authenticate_emby(force_refresh=False):
-    if EMBY_TOKEN_CACHE['access_token'] and not force_refresh:
-        return EMBY_TOKEN_CACHE['access_token'], EMBY_TOKEN_CACHE['user_id']
-
-    server_url = get_emby_server_url()
-    username, password = get_emby_credentials()
-    response = requests.post(
-        f'{server_url}/emby/Users/AuthenticateByName',
-        json={'Username': username, 'Pw': password},
-        headers=get_emby_headers(),
-        timeout=10
-    )
-
-    if not response.ok:
-        EMBY_TOKEN_CACHE['access_token'] = None
-        EMBY_TOKEN_CACHE['user_id'] = None
-        raise RuntimeError(f'Emby authentication failed: HTTP {response.status_code}')
-
-    auth_data = response.json()
-    access_token = auth_data.get('AccessToken')
-    user = auth_data.get('User') or {}
-    user_id = user.get('Id') or auth_data.get('UserId')
-    if not access_token:
-        raise RuntimeError('Emby authentication did not return an access token')
-
-    EMBY_TOKEN_CACHE['access_token'] = access_token
-    EMBY_TOKEN_CACHE['user_id'] = user_id
-    return access_token, user_id
+    return emby_client.authenticate(force_refresh)
 
 def emby_request(method, path, params=None, headers=None, stream=False, timeout=15, force_refresh=False):
-    server_url = get_emby_server_url()
-    access_token, _ = authenticate_emby(force_refresh)
-    request_headers = get_emby_headers(access_token, accept_json=not stream)
-    if headers:
-        request_headers.update(headers)
-
-    response = requests.request(
+    return emby_client.request(
         method,
-        f'{server_url}{path}',
+        path,
         params=params,
-        headers=request_headers,
+        headers=headers,
         stream=stream,
-        timeout=timeout
+        timeout=timeout,
+        force_refresh=force_refresh
     )
 
-    if response.status_code == 401 and not force_refresh:
-        response.close()
-        return emby_request(
-            method,
-            path,
-            params=params,
-            headers=headers,
-            stream=stream,
-            timeout=timeout,
-            force_refresh=True
-        )
-
-    return response
-
-@contextmanager
 def get_db_connection():
-    conn = mysql.connector.connect(**DB_CONFIG)
-    try:
-        yield conn
-    finally:
-        if conn.is_connected():
-            conn.close()
+    return database.get_db_connection(DB_CONFIG)
 
 def check_database_connection():
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT 1")
-        result = cursor.fetchone()
-        return first_row_value(result) == 1
+    return database.check_database_connection(get_db_connection)
 
 @app.route('/healthz')
 def healthz():
@@ -594,418 +504,113 @@ def start_scheduled_backup_thread(debug_enabled=False):
     backup_service.start_scheduled_backup_thread(debug_enabled)
     SCHEDULED_BACKUP_THREAD_STARTED = backup_service.thread_started
 
-MOVIE_METADATA_MIGRATION = '2026_06_18_normalize_movie_metadata'
-MOVIE_IMAGES_MIGRATION = '2026_06_21_normalize_movie_images'
+MOVIE_METADATA_MIGRATION = movie_metadata.MOVIE_METADATA_MIGRATION
+MOVIE_IMAGES_MIGRATION = movie_metadata.MOVIE_IMAGES_MIGRATION
+
 
 def table_exists(cursor, table_name):
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM information_schema.TABLES
-        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s
-    """, (table_name,))
-    return cursor.fetchone()[0] > 0
+    return movie_metadata.table_exists(cursor, table_name)
+
 
 def column_exists(cursor, table_name, column_name):
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM information_schema.COLUMNS
-        WHERE TABLE_SCHEMA = DATABASE()
-          AND TABLE_NAME = %s
-          AND COLUMN_NAME = %s
-    """, (table_name, column_name))
-    return cursor.fetchone()[0] > 0
+    return movie_metadata.column_exists(cursor, table_name, column_name)
+
 
 def index_exists(cursor, table_name, index_name):
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM information_schema.STATISTICS
-        WHERE TABLE_SCHEMA = DATABASE()
-          AND TABLE_NAME = %s
-          AND INDEX_NAME = %s
-    """, (table_name, index_name))
-    return cursor.fetchone()[0] > 0
+    return movie_metadata.index_exists(cursor, table_name, index_name)
+
 
 def ensure_index(cursor, table_name, index_name, create_sql):
-    if not index_exists(cursor, table_name, index_name):
-        cursor.execute(create_sql)
+    return movie_metadata.ensure_index(cursor, table_name, index_name, create_sql)
+
 
 def migration_recorded(cursor, version):
-    cursor.execute(
-        "SELECT 1 FROM schema_migrations WHERE version = %s LIMIT 1",
-        (version,)
-    )
-    return cursor.fetchone() is not None
+    return movie_metadata.migration_recorded(cursor, version)
+
 
 def record_schema_migration(cursor, version):
-    cursor.execute(
-        "INSERT IGNORE INTO schema_migrations (version) VALUES (%s)",
-        (version,)
-    )
+    return movie_metadata.record_schema_migration(cursor, version)
+
 
 def parse_legacy_id_list(value):
-    ids = []
-    seen = set()
-    for item in str(value or '').split(','):
-        item = item.strip()
-        if not item:
-            continue
-        try:
-            item_id = int(item)
-        except (TypeError, ValueError):
-            continue
-        if item_id <= 0 or item_id in seen:
-            continue
-        seen.add(item_id)
-        ids.append(item_id)
-    return ids
+    return movie_metadata.parse_legacy_id_list(value)
+
 
 def parse_tag_names(value):
-    names = []
-    seen = set()
-    for item in str(value or '').split(','):
-        name = item.strip()
-        if not name or name in seen:
-            continue
-        seen.add(name)
-        names.append(name)
-    return names
+    return movie_metadata.parse_tag_names(value)
+
 
 def parse_ratings_string(value):
-    ratings_by_dimension = {}
-    for item in str(value or '').split(','):
-        item = item.strip()
-        if ':' not in item:
-            continue
-        dimension_id, rating = item.split(':', 1)
-        try:
-            dimension_id = int(dimension_id.strip())
-            rating = int(rating.strip())
-        except (TypeError, ValueError):
-            continue
-        if dimension_id <= 0 or rating < 1 or rating > 5:
-            continue
-        ratings_by_dimension[dimension_id] = rating
-    return list(ratings_by_dimension.items())
+    return movie_metadata.parse_ratings_string(value)
+
 
 def parse_image_filenames(value):
-    filenames = []
-    seen = set()
-    for item in str(value or '').split(','):
-        filename = normalize_upload_filename(item)
-        if not filename or filename in seen:
-            continue
-        seen.add(filename)
-        filenames.append(filename)
-    return filenames
+    return movie_metadata.parse_image_filenames(value, normalize_upload_filename)
+
 
 def parse_positive_int(value, default, minimum=1, maximum=None):
-    try:
-        number = int(value)
-    except (TypeError, ValueError):
-        return default
-    if number < minimum:
-        return minimum
-    if maximum is not None and number > maximum:
-        return maximum
-    return number
+    return movie_metadata.parse_positive_int(value, default, minimum, maximum)
+
 
 def row_value(row, key='id'):
-    if isinstance(row, dict):
-        return row.get(key)
-    return row[0]
+    return movie_metadata.row_value(row, key)
+
 
 def first_row_value(row):
-    if isinstance(row, dict):
-        return next(iter(row.values()))
-    return row[0]
+    return movie_metadata.first_row_value(row)
+
 
 def resolve_tag_ids(cursor, tag_names):
-    tag_ids = []
-    for tag_name in tag_names:
-        cursor.execute("SELECT id FROM tags WHERE name = %s", (tag_name,))
-        result = cursor.fetchone()
-        if result:
-            tag_ids.append(row_value(result))
-    return tag_ids
+    return movie_metadata.resolve_tag_ids(cursor, tag_names)
+
 
 def replace_movie_tags(cursor, movie_title, tag_ids):
-    cursor.execute("DELETE FROM movie_tags WHERE movie_title = %s", (movie_title,))
-    for tag_id in tag_ids:
-        cursor.execute("""
-            INSERT IGNORE INTO movie_tags (movie_title, tag_id)
-            VALUES (%s, %s)
-        """, (movie_title, tag_id))
+    return movie_metadata.replace_movie_tags(cursor, movie_title, tag_ids)
+
 
 def replace_movie_ratings(cursor, movie_title, ratings_value):
-    cursor.execute("DELETE FROM movie_ratings WHERE movie_title = %s", (movie_title,))
-    for dimension_id, rating in parse_ratings_string(ratings_value):
-        cursor.execute("""
-            INSERT INTO movie_ratings (movie_title, dimension_id, rating)
-            SELECT %s, id, %s
-            FROM ratings_dimensions
-            WHERE id = %s
-            ON DUPLICATE KEY UPDATE rating = VALUES(rating)
-        """, (movie_title, rating, dimension_id))
+    return movie_metadata.replace_movie_ratings(cursor, movie_title, ratings_value)
+
 
 def replace_movie_images(cursor, movie_title, image_filenames_value):
-    cursor.execute("DELETE FROM movie_images WHERE movie_title = %s", (movie_title,))
-    for sort_order, filename in enumerate(parse_image_filenames(image_filenames_value)):
-        cursor.execute("""
-            INSERT INTO movie_images (movie_title, filename, sort_order)
-            VALUES (%s, %s, %s)
-            ON DUPLICATE KEY UPDATE sort_order = VALUES(sort_order)
-        """, (movie_title, filename, sort_order))
+    return movie_metadata.replace_movie_images(cursor, movie_title, image_filenames_value, normalize_upload_filename)
+
 
 def get_movie_image_filenames(cursor, movie_title):
-    cursor.execute("""
-        SELECT filename
-        FROM movie_images
-        WHERE movie_title = %s
-        ORDER BY sort_order, filename
-    """, (movie_title,))
-    rows = cursor.fetchall()
-    filenames = []
-    for row in rows:
-        filenames.append(row['filename'] if isinstance(row, dict) else row[0])
-    return filenames
+    return movie_metadata.get_movie_image_filenames(cursor, movie_title)
+
 
 def delete_unreferenced_uploaded_images(cursor, filenames):
-    for filename in filenames:
-        safe_filename = normalize_upload_filename(filename)
-        if not safe_filename:
-            continue
-        try:
-            cursor.execute("SELECT COUNT(*) FROM movie_images WHERE filename = %s", (safe_filename,))
-            if first_row_value(cursor.fetchone()) > 0:
-                continue
-            delete_uploaded_image(safe_filename)
-        except Exception as e:
-            logger.warning("Failed to delete unreferenced image %r: %s", safe_filename, e)
+    return movie_metadata.delete_unreferenced_uploaded_images(
+        cursor,
+        filenames,
+        normalize_upload_filename,
+        delete_uploaded_image,
+        logger
+    )
+
 
 def sync_movie_metadata(cursor, movie_title, tag_names_value, ratings_value):
-    tag_ids = resolve_tag_ids(cursor, parse_tag_names(tag_names_value))
-    replace_movie_tags(cursor, movie_title, tag_ids)
-    replace_movie_ratings(cursor, movie_title, ratings_value)
+    return movie_metadata.sync_movie_metadata(cursor, movie_title, tag_names_value, ratings_value)
+
 
 def hydrate_movie_rows(cursor, movies):
-    if not movies:
-        return movies
+    return movie_metadata.hydrate_movie_rows(cursor, movies)
 
-    titles = [movie['title'] for movie in movies]
-    placeholders = ','.join(['%s'] * len(titles))
-
-    cursor.execute(f"""
-        SELECT mt.movie_title, t.name
-        FROM movie_tags mt
-        JOIN tags t ON t.id = mt.tag_id
-        WHERE mt.movie_title IN ({placeholders})
-        ORDER BY t.name
-    """, titles)
-    tags_by_title = {}
-    for row in cursor.fetchall():
-        tags_by_title.setdefault(row['movie_title'], []).append(row['name'])
-
-    cursor.execute(f"""
-        SELECT mr.movie_title, rd.id AS dimension_id, rd.name AS dimension_name, mr.rating
-        FROM movie_ratings mr
-        JOIN ratings_dimensions rd ON rd.id = mr.dimension_id
-        WHERE mr.movie_title IN ({placeholders})
-        ORDER BY rd.id
-    """, titles)
-    ratings_by_title = {}
-    ratings_display_by_title = {}
-    for row in cursor.fetchall():
-        title = row['movie_title']
-        dimension_id = int(row['dimension_id'])
-        rating = int(row['rating'])
-        ratings_by_title.setdefault(title, []).append((dimension_id, rating))
-        ratings_display_by_title.setdefault(title, {})[row['dimension_name']] = rating
-
-    cursor.execute(f"""
-        SELECT movie_title, filename
-        FROM movie_images
-        WHERE movie_title IN ({placeholders})
-        ORDER BY movie_title, sort_order, filename
-    """, titles)
-    images_by_title = {}
-    for row in cursor.fetchall():
-        images_by_title.setdefault(row['movie_title'], []).append(row['filename'])
-
-    for movie in movies:
-        title = movie['title']
-        movie['image_filename'] = ','.join(images_by_title.get(title, []))
-        movie['tag_names'] = ', '.join(tags_by_title.get(title, []))
-
-        ratings = ratings_by_title.get(title, [])
-        movie['ratings'] = ','.join(f"{dimension_id}:{rating}" for dimension_id, rating in ratings)
-        movie['ratings_display'] = ratings_display_by_title.get(title, {})
-
-        added_date = movie.get('added_date')
-        if hasattr(added_date, 'strftime'):
-            movie['formatted_added_date'] = added_date.strftime('%Y-%m-%d %H:%M:%S')
-        else:
-            movie['formatted_added_date'] = str(added_date or '')
-
-    return movies
 
 def resolve_rating_dimension_id(cursor, value):
-    value = str(value or '').strip()
-    if not value:
-        return None
+    return movie_metadata.resolve_rating_dimension_id(cursor, value)
 
-    if value.isdigit():
-        cursor.execute("SELECT id FROM ratings_dimensions WHERE id = %s", (int(value),))
-    else:
-        cursor.execute("SELECT id FROM ratings_dimensions WHERE name = %s", (value,))
-    result = cursor.fetchone()
-    return row_value(result) if result else None
 
 def migrate_movie_metadata_schema(conn, cursor):
-    has_legacy_tags = column_exists(cursor, 'movies', 'tags')
-    has_legacy_ratings = column_exists(cursor, 'movies', 'ratings')
+    return movie_metadata.migrate_movie_metadata_schema(conn, cursor, logger)
 
-    if not has_legacy_tags and not has_legacy_ratings:
-        if not migration_recorded(cursor, MOVIE_METADATA_MIGRATION):
-            record_schema_migration(cursor, MOVIE_METADATA_MIGRATION)
-        return
-
-    logger.info("Migrating legacy movies tags/ratings columns to relation tables")
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS movies_legacy_backup (
-            title VARCHAR(255) PRIMARY KEY,
-            tags VARCHAR(255),
-            ratings VARCHAR(255),
-            backed_up_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        )
-    """)
-
-    tags_expr = 'tags' if has_legacy_tags else 'NULL'
-    ratings_expr = 'ratings' if has_legacy_ratings else 'NULL'
-    cursor.execute(f"""
-        INSERT INTO movies_legacy_backup (title, tags, ratings)
-        SELECT title, {tags_expr}, {ratings_expr}
-        FROM movies
-        ON DUPLICATE KEY UPDATE
-            tags = VALUES(tags),
-            ratings = VALUES(ratings),
-            backed_up_at = CURRENT_TIMESTAMP
-    """)
-
-    cursor.execute("SELECT id FROM tags")
-    valid_tag_ids = {row[0] for row in cursor.fetchall()}
-    cursor.execute("SELECT id FROM ratings_dimensions")
-    valid_dimension_ids = {row[0] for row in cursor.fetchall()}
-
-    cursor.execute("DELETE mt FROM movie_tags mt JOIN movies m ON m.title = mt.movie_title")
-    cursor.execute("DELETE mr FROM movie_ratings mr JOIN movies m ON m.title = mr.movie_title")
-
-    cursor.execute(f"SELECT title, {tags_expr} AS tags, {ratings_expr} AS ratings FROM movies")
-    legacy_movies = cursor.fetchall()
-
-    expected_tag_rows = 0
-    expected_rating_rows = 0
-    for title, legacy_tags, legacy_ratings in legacy_movies:
-        tag_ids = [tag_id for tag_id in parse_legacy_id_list(legacy_tags) if tag_id in valid_tag_ids]
-        for tag_id in tag_ids:
-            cursor.execute("""
-                INSERT IGNORE INTO movie_tags (movie_title, tag_id)
-                VALUES (%s, %s)
-            """, (title, tag_id))
-        expected_tag_rows += len(tag_ids)
-
-        ratings = [
-            (dimension_id, rating)
-            for dimension_id, rating in parse_ratings_string(legacy_ratings)
-            if dimension_id in valid_dimension_ids
-        ]
-        for dimension_id, rating in ratings:
-            cursor.execute("""
-                INSERT INTO movie_ratings (movie_title, dimension_id, rating)
-                VALUES (%s, %s, %s)
-                ON DUPLICATE KEY UPDATE rating = VALUES(rating)
-            """, (title, dimension_id, rating))
-        expected_rating_rows += len(ratings)
-
-    cursor.execute("SELECT COUNT(*) FROM movie_tags mt JOIN movies m ON m.title = mt.movie_title")
-    actual_tag_rows = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM movie_ratings mr JOIN movies m ON m.title = mr.movie_title")
-    actual_rating_rows = cursor.fetchone()[0]
-
-    if actual_tag_rows != expected_tag_rows or actual_rating_rows != expected_rating_rows:
-        conn.rollback()
-        raise RuntimeError(
-            "Movie metadata migration validation failed: "
-            f"tags {actual_tag_rows}/{expected_tag_rows}, "
-            f"ratings {actual_rating_rows}/{expected_rating_rows}"
-        )
-
-    conn.commit()
-
-    if has_legacy_tags:
-        cursor.execute("ALTER TABLE movies DROP COLUMN tags")
-    if has_legacy_ratings:
-        cursor.execute("ALTER TABLE movies DROP COLUMN ratings")
-    record_schema_migration(cursor, MOVIE_METADATA_MIGRATION)
 
 def migrate_movie_images_schema(conn, cursor):
-    has_legacy_image_filename = column_exists(cursor, 'movies', 'image_filename')
+    return movie_metadata.migrate_movie_images_schema(conn, cursor, logger, normalize_upload_filename)
 
-    if not has_legacy_image_filename:
-        if not migration_recorded(cursor, MOVIE_IMAGES_MIGRATION):
-            record_schema_migration(cursor, MOVIE_IMAGES_MIGRATION)
-        return
 
-    logger.info("Migrating legacy movies image_filename column to movie_images")
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS movies_image_legacy_backup (
-            title VARCHAR(255) PRIMARY KEY,
-            image_filename TEXT,
-            backed_up_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        )
-    """)
-
-    cursor.execute("""
-        INSERT INTO movies_image_legacy_backup (title, image_filename)
-        SELECT title, image_filename
-        FROM movies
-        ON DUPLICATE KEY UPDATE
-            image_filename = VALUES(image_filename),
-            backed_up_at = CURRENT_TIMESTAMP
-    """)
-
-    cursor.execute("DELETE mi FROM movie_images mi JOIN movies m ON m.title = mi.movie_title")
-    cursor.execute("SELECT title, image_filename FROM movies")
-    legacy_movies = cursor.fetchall()
-
-    expected_image_rows = 0
-    for title, legacy_image_filename in legacy_movies:
-        filenames = parse_image_filenames(legacy_image_filename)
-        for sort_order, filename in enumerate(filenames):
-            cursor.execute("""
-                INSERT INTO movie_images (movie_title, filename, sort_order)
-                VALUES (%s, %s, %s)
-                ON DUPLICATE KEY UPDATE sort_order = VALUES(sort_order)
-            """, (title, filename, sort_order))
-        expected_image_rows += len(filenames)
-
-    cursor.execute("SELECT COUNT(*) FROM movie_images mi JOIN movies m ON m.title = mi.movie_title")
-    actual_image_rows = cursor.fetchone()[0]
-
-    if actual_image_rows != expected_image_rows:
-        conn.rollback()
-        raise RuntimeError(
-            "Movie images migration validation failed: "
-            f"images {actual_image_rows}/{expected_image_rows}"
-        )
-
-    conn.commit()
-
-    cursor.execute("ALTER TABLE movies DROP COLUMN image_filename")
-    record_schema_migration(cursor, MOVIE_IMAGES_MIGRATION)
-
-# 初始化数据库
+# Database initialization
 def init_db():
     try:
         with get_db_connection() as conn:
