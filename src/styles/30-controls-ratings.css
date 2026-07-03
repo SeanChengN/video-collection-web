@@ -424,8 +424,8 @@ tr.is-duplicate:hover {
     min-width: 100%;
     max-width: 300px;
     padding: 5px;
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--vc-panel-bg, white);
+    border: 1px solid var(--vc-panel-border, #ddd);
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     white-space: normal;
@@ -455,7 +455,7 @@ tr.is-duplicate:hover {
     padding: 0.8rem 0.5rem 0.3rem;
     height: auto;
     opacity: 1;
-    border-top: 1px solid #dbdbdb;
+    border-top: 1px solid var(--vc-panel-border, #dbdbdb);
     transition: opacity 0.35s ease, padding 0.35s ease;
 }
 
@@ -467,10 +467,10 @@ tr.is-duplicate:hover {
 .ratings-box-title {
     font-size: 1rem;
     font-weight: bold;
-    color: #363636;
+    color: var(--vc-color-text, #363636);
     padding-bottom: 0.3rem;
     margin-bottom: 0.2rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--vc-color-border, #eee);
 }
 
 /*----------------------------------------
@@ -517,7 +517,7 @@ tr.is-duplicate:hover {
     left: 0;
     top: 0;
     padding: 0.5rem;
-    background: white;
+    background: var(--vc-panel-bg, white);
     z-index: 1;
     border-radius: 4px;
     margin: 0;

@@ -31,9 +31,12 @@
 ## Themes
 
 - Theme selection is CSS-driven with `html[data-theme="light"]` or `html[data-theme="dark"]`.
+- The browser storage key is `vc-theme`; valid values are `light` and `dark`.
+- The theme toggle lives in the settings modal and does not call the backend.
 - Themes override tokens; components consume tokens.
 - Keep light theme behavior compatible with the existing UI.
 - Add theme-specific fixes in the bridge layer only when legacy Bulma/custom styles need scoped support.
+- When migrating legacy CSS, keep the existing selector if it is part of the current UI contract, but move hard-coded colors, borders, shadows, and control colors to `--vc-*` tokens.
 
 ## AI Editing Rules
 

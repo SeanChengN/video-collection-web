@@ -3,6 +3,7 @@ const path = require('path');
 
 const projectRoot = path.resolve(__dirname, '..');
 const sourceFiles = [
+  'src/main/00-theme.js',
   'src/main/00-foundation.js',
   'src/main/10-modal-and-delegates.js',
   'src/main/20-tools/00-duplicate-check.js',

@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Collection - Access</title>
+    <script>
+        (function() {
+            var theme = 'light';
+            try {
+                var storedTheme = window.localStorage.getItem('vc-theme');
+                theme = storedTheme === 'dark' || storedTheme === 'light' ? storedTheme : theme;
+            } catch (error) {}
+            document.documentElement.dataset.theme = theme;
+        }());
+    </script>
     <style>
         :root {
             color-scheme: light;
@@ -16,6 +26,19 @@
             --primary-dark: #1d4ed8;
             --danger: #b42318;
             --danger-bg: #fff1f0;
+        }
+
+        html[data-theme="dark"] {
+            color-scheme: dark;
+            --bg: #111827;
+            --panel: #1f2937;
+            --text: #f3f4f6;
+            --muted: #cbd5e1;
+            --border: #36445a;
+            --primary: #70a5ff;
+            --primary-dark: #8bb6ff;
+            --danger: #fb7185;
+            --danger-bg: rgba(251, 113, 133, 0.18);
         }
 
         * {

@@ -1,3 +1,57 @@
+const VC_THEME_STORAGE_KEY = 'vc-theme';
+const VC_THEME_VALUES = ['light', 'dark'];
+
+function normalizeVcTheme(theme) {
+    return VC_THEME_VALUES.includes(theme) ? theme : 'light';
+}
+
+function readStoredVcTheme() {
+    try {
+        return normalizeVcTheme(window.localStorage.getItem(VC_THEME_STORAGE_KEY));
+    } catch (error) {
+        return 'light';
+    }
+}
+
+function syncVcThemeControls(theme) {
+    document.querySelectorAll('[data-theme-choice]').forEach(button => {
+        const isActive = button.dataset.themeChoice === theme;
+        button.classList.toggle('is-info', isActive);
+        button.classList.toggle('is-light', !isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+}
+
+function applyVcTheme(theme) {
+    const normalizedTheme = normalizeVcTheme(theme);
+    document.documentElement.dataset.theme = normalizedTheme;
+    syncVcThemeControls(normalizedTheme);
+    return normalizedTheme;
+}
+
+function setVcTheme(theme) {
+    const normalizedTheme = applyVcTheme(theme);
+    try {
+        window.localStorage.setItem(VC_THEME_STORAGE_KEY, normalizedTheme);
+    } catch (error) {
+        // Ignore storage failures; the current document still gets the theme.
+    }
+    return normalizedTheme;
+}
+
+function initializeVcTheme() {
+    applyVcTheme(document.documentElement.dataset.theme || readStoredVcTheme());
+
+    document.addEventListener('click', event => {
+        const button = event.target.closest('[data-theme-choice]');
+        if (!button) return;
+        event.preventDefault();
+        setVcTheme(button.dataset.themeChoice);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initializeVcTheme);
+window.setVcTheme = setVcTheme;
 // 全局错误处理
 window.onerror = function(msg, url, lineNo, columnNo, error) {
     console.error('Error: ', msg, '\nURL: ', url, '\nLine: ', lineNo, '\nColumn: ', columnNo, '\nError object: ', error);

@@ -6,6 +6,16 @@
     <meta name="description" content="电影收藏管理系统">
     <meta name="keywords" content="电影,收藏,管理">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>
+        (function() {
+            var theme = 'light';
+            try {
+                var storedTheme = window.localStorage.getItem('vc-theme');
+                theme = storedTheme === 'dark' || storedTheme === 'light' ? storedTheme : theme;
+            } catch (error) {}
+            document.documentElement.dataset.theme = theme;
+        }());
+    </script>
     <link rel="preload" href="../static/vendor/bulma.min.css" as="style">
     <title>电影收藏</title>
     <link rel="stylesheet" href="../static/vendor/bulma.min.css">
@@ -17,7 +27,7 @@
         ----------------------------------------*/
         /* 整体样式 */
         .collapsible-box {
-            border: 1px solid #dbdbdb;
+            border: 1px solid var(--vc-panel-border, #dbdbdb);
             border-radius: 10px;
             margin: 0.5rem 0;
         }
@@ -29,7 +39,7 @@
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            background-color: white;
+            background-color: var(--vc-panel-header-bg, white);
             border-radius: 10px;
         }
         .box-title {
@@ -41,7 +51,7 @@
             height: 0;
             border-left: 6px solid transparent;
             border-right: 6px solid transparent;
-            border-top: 6px solid #666;
+            border-top: 6px solid var(--vc-color-text-muted, #666);
             transition: transform 0.3s ease;
             transform: rotate(-90deg); /* 默认为折叠状态 */
         }
@@ -93,11 +103,11 @@
           功能区样式 - 必要样式
         ----------------------------------------*/
         .function-tools {
-            background: white;
+            background: var(--vc-toolbar-bg, white);
             padding: 1rem;
             border-radius: 10px;
             margin-bottom: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: var(--vc-toolbar-shadow, 0 2px 4px rgba(0,0,0,0.1));
         }
         .function-tools .buttons {
             display: flex;
@@ -159,11 +169,12 @@
         .tags-box,
         .image-box,
         .ratings-box {
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--vc-panel-border, #e0e0e0);
             border-radius: 10px;
             padding: 0.5rem;
-            background: #fff;
-            box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+            background: var(--vc-panel-bg, #fff);
+            color: var(--vc-color-text, #363636);
+            box-shadow: var(--vc-panel-shadow-compact, 0 2px 3px rgba(10, 10, 10, 0.1));
         }
         /* 标签框特有样式 */
         .tags-box .tag-group {
@@ -215,12 +226,12 @@
         评分星星通用样式 - 必要样式
         ----------------------------------------*/
         .rating {
-            --star-1: #ff774d;
-            --star-2: #ff9d33;
-            --star-3: #f9d71e;
-            --star-4: #a0d234;
-            --star-5: #20ca20;
-            --star-default: #d3d3d3;
+            --star-1: var(--vc-star-1, #ff774d);
+            --star-2: var(--vc-star-2, #ff9d33);
+            --star-3: var(--vc-star-3, #f9d71e);
+            --star-4: var(--vc-star-4, #a0d234);
+            --star-5: var(--vc-star-5, #20ca20);
+            --star-default: var(--vc-star-default, #d3d3d3);
         }
         .rating input {
             display: none;
@@ -238,10 +249,10 @@
         .filter-options {
             --filter-label-width: 4.5rem;
             --filter-control-gap: 0.75rem;
-            background-color: #fafafa;
+            background-color: var(--vc-filter-bg, #fafafa);
             padding: 0.8rem;
             border-radius: 10px;
-            border: 1px solid #dbdbdb;
+            border: 1px solid var(--vc-filter-border, #dbdbdb);
         }
         .filter-options .label {
             font-size: 1rem;
@@ -271,7 +282,7 @@
             padding: 0.3rem;
             border: 1px solid #dbdbdb;
             border-radius: 10px;
-            background-color: white;
+            background-color: var(--vc-panel-header-bg, white);
             width: 100%;
         }
         .tags-filter .tag {
@@ -1318,6 +1329,16 @@
             </button>
         </header>
         <section class="modal-card-body">
+            <div class="settings-theme-row vc-panel">
+                <div class="settings-theme-copy">
+                    <span class="settings-theme-title">主题</span>
+                    <span class="vc-muted">仅保存在当前浏览器</span>
+                </div>
+                <div class="buttons has-addons settings-theme-toggle" role="group" aria-label="主题切换">
+                    <button type="button" class="button is-small is-info" data-theme-choice="light" aria-pressed="true">浅色</button>
+                    <button type="button" class="button is-small is-light" data-theme-choice="dark" aria-pressed="false">深色</button>
+                </div>
+            </div>
             <div class="tabs settings-tabs">
                 <li class="is-active" data-tab="tags">
                     标签管理 <span class="tag is-info tag-counter">0</span>

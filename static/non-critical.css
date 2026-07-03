@@ -15,6 +15,7 @@
     --vc-color-border: #d8dee9;
     --vc-color-border-strong: #b8c2d3;
     --vc-color-overlay: rgba(10, 10, 10, 0.72);
+    --vc-page-bg: #ffffff;
 
     /* Action roles */
     --vc-color-primary: #3273dc;
@@ -69,6 +70,32 @@
     --vc-shadow-md: 0 4px 12px rgba(16, 24, 40, 0.12);
     --vc-shadow-lg: 0 12px 28px rgba(16, 24, 40, 0.18);
     --vc-focus-ring: 0 0 0 3px rgba(50, 115, 220, 0.32);
+    --vc-panel-bg: var(--vc-color-surface);
+    --vc-panel-header-bg: #ffffff;
+    --vc-panel-border: #dbdbdb;
+    --vc-panel-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.02);
+    --vc-panel-shadow-compact: 0 2px 3px rgba(10, 10, 10, 0.1);
+    --vc-toolbar-bg: #ffffff;
+    --vc-toolbar-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --vc-filter-bg: #fafafa;
+    --vc-filter-border: #dbdbdb;
+    --vc-control-bg: #ffffff;
+    --vc-control-border: #dbdbdb;
+    --vc-control-text: var(--vc-color-text);
+    --vc-control-placeholder: #7a7a7a;
+    --vc-control-focus-border: #4a9dec;
+    --vc-control-focus-shadow: 0 0 0 5px rgba(74, 157, 236, 0.2);
+    --vc-table-bg: #ffffff;
+    --vc-table-head-bg: #ffffff;
+    --vc-table-striped-bg: #fafafa;
+    --vc-table-hover-bg: #f5faff;
+    --vc-modal-bg: rgba(255, 255, 255, 0.3);
+    --vc-modal-border: rgba(255, 255, 255, 0.4);
+    --vc-modal-header-bg: rgba(255, 255, 255, 0.4);
+    --vc-modal-header-border: rgba(255, 255, 255, 0.5);
+    --vc-modal-control-bg: rgba(255, 255, 255, 0.2);
+    --vc-modal-control-icon: #4a4a4a;
+    --vc-modal-shadow: 0 20px 50px 0 rgba(31, 38, 135, 0.25), 0 10px 24px 0 rgba(31, 38, 135, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.4), inset 0 0 60px rgba(255, 255, 255, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.3);
 
     /* Layout */
     --vc-control-height-sm: 2rem;
@@ -104,6 +131,7 @@ html[data-theme="dark"],
     --vc-color-border: #36445a;
     --vc-color-border-strong: #52617a;
     --vc-color-overlay: rgba(0, 0, 0, 0.78);
+    --vc-page-bg: #111827;
     --vc-color-primary: #70a5ff;
     --vc-color-primary-hover: #8bb6ff;
     --vc-color-primary-soft: rgba(112, 165, 255, 0.18);
@@ -120,6 +148,30 @@ html[data-theme="dark"],
     --vc-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.34);
     --vc-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.42);
     --vc-focus-ring: 0 0 0 3px rgba(112, 165, 255, 0.38);
+    --vc-panel-header-bg: #243247;
+    --vc-panel-border: #36445a;
+    --vc-panel-shadow: 0 0.5em 1em -0.125em rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04);
+    --vc-panel-shadow-compact: 0 2px 6px rgba(0, 0, 0, 0.28);
+    --vc-toolbar-bg: #1f2937;
+    --vc-toolbar-shadow: 0 2px 8px rgba(0, 0, 0, 0.34);
+    --vc-filter-bg: #182235;
+    --vc-filter-border: #36445a;
+    --vc-control-bg: #273449;
+    --vc-control-border: #52617a;
+    --vc-control-placeholder: #94a3b8;
+    --vc-control-focus-border: #70a5ff;
+    --vc-control-focus-shadow: 0 0 0 5px rgba(112, 165, 255, 0.22);
+    --vc-table-bg: #1f2937;
+    --vc-table-head-bg: #243247;
+    --vc-table-striped-bg: rgba(255, 255, 255, 0.035);
+    --vc-table-hover-bg: rgba(112, 165, 255, 0.12);
+    --vc-modal-bg: rgba(31, 41, 55, 0.88);
+    --vc-modal-border: rgba(82, 97, 122, 0.78);
+    --vc-modal-header-bg: rgba(36, 50, 71, 0.92);
+    --vc-modal-header-border: rgba(82, 97, 122, 0.78);
+    --vc-modal-control-bg: rgba(255, 255, 255, 0.08);
+    --vc-modal-control-icon: #e5e7eb;
+    --vc-modal-shadow: 0 22px 54px rgba(0, 0, 0, 0.46), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 0 40px rgba(255, 255, 255, 0.04);
 }
 /*----------------------------------------
   Bulma bridge
@@ -132,6 +184,93 @@ html[data-theme="dark"],
     --bulma-success: var(--vc-color-success);
     --bulma-warning: var(--vc-color-warning);
     --bulma-danger: var(--vc-color-danger);
+}
+
+html,
+body {
+    background: var(--vc-page-bg);
+    color: var(--vc-color-text);
+}
+
+.navbar.is-light {
+    background: var(--vc-panel-bg);
+    color: var(--vc-color-text);
+}
+
+.navbar.is-light .title,
+.navbar.is-light .navbar-item {
+    color: var(--vc-color-text);
+}
+
+.box,
+.function-tools,
+.collapsible-box,
+.tags-box,
+.image-box,
+.ratings-box {
+    background: var(--vc-panel-bg);
+    color: var(--vc-color-text);
+}
+
+.box {
+    box-shadow: var(--vc-panel-shadow);
+}
+
+.collapsible-box,
+.tags-box,
+.image-box,
+.ratings-box,
+.filter-options {
+    border-color: var(--vc-panel-border);
+}
+
+.box-header {
+    background: var(--vc-panel-header-bg);
+    color: var(--vc-color-text);
+}
+
+.input,
+.textarea,
+.select select {
+    background: var(--vc-control-bg);
+    border-color: var(--vc-control-border);
+    color: var(--vc-control-text);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+    color: var(--vc-control-placeholder);
+}
+
+.table {
+    background: var(--vc-table-bg);
+    color: var(--vc-color-text);
+}
+
+.table thead th,
+.table th,
+.table td {
+    border-color: var(--vc-color-border);
+    color: var(--vc-color-text);
+}
+
+.table.is-striped tbody tr:not(.is-selected):nth-child(even) {
+    background-color: var(--vc-table-striped-bg);
+}
+
+.table.is-hoverable tbody tr:not(.is-selected):hover {
+    background-color: var(--vc-table-hover-bg);
+}
+
+.label,
+.title,
+.subtitle {
+    color: var(--vc-color-text);
+}
+
+.filter-options {
+    background: var(--vc-filter-bg);
+    border-color: var(--vc-filter-border);
 }
 
 html[data-theme="dark"] body,
@@ -307,6 +446,16 @@ html[data-theme="dark"] .has-text-grey,
     display: flex;
     flex-direction: column;
     gap: var(--vc-space-3);
+}
+
+.vc-segmented {
+    align-items: center;
+    display: inline-flex;
+    gap: var(--vc-space-1);
+}
+
+.vc-segmented .button {
+    min-width: 4rem;
 }
 /*----------------------------------------
   Small stable app utilities
@@ -1892,8 +2041,8 @@ tr.is-duplicate:hover {
     min-width: 100%;
     max-width: 300px;
     padding: 5px;
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--vc-panel-bg, white);
+    border: 1px solid var(--vc-panel-border, #ddd);
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     white-space: normal;
@@ -1923,7 +2072,7 @@ tr.is-duplicate:hover {
     padding: 0.8rem 0.5rem 0.3rem;
     height: auto;
     opacity: 1;
-    border-top: 1px solid #dbdbdb;
+    border-top: 1px solid var(--vc-panel-border, #dbdbdb);
     transition: opacity 0.35s ease, padding 0.35s ease;
 }
 
@@ -1935,10 +2084,10 @@ tr.is-duplicate:hover {
 .ratings-box-title {
     font-size: 1rem;
     font-weight: bold;
-    color: #363636;
+    color: var(--vc-color-text, #363636);
     padding-bottom: 0.3rem;
     margin-bottom: 0.2rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--vc-color-border, #eee);
 }
 
 /*----------------------------------------
@@ -1985,7 +2134,7 @@ tr.is-duplicate:hover {
     left: 0;
     top: 0;
     padding: 0.5rem;
-    background: white;
+    background: var(--vc-panel-bg, white);
     z-index: 1;
     border-radius: 4px;
     margin: 0;
@@ -2631,11 +2780,11 @@ tr.is-duplicate:hover {
     --modal-border-radius: 12px;
     padding: var(--modal-padding);
     border-radius: var(--modal-border-radius);
-    border: 1px solid rgba(255, 255, 255, 0.4); /* 半透明边框 */
+    border: 1px solid var(--vc-modal-border, rgba(255, 255, 255, 0.4)); /* 半透明边框 */
 
     /* 毛玻璃效果 */
     backdrop-filter: blur(12px) saturate(180%) !important; /* 背景模糊 */
-    background: rgba(255, 255, 255, 0.3) !important; /* 半透明背景 */
+    background: var(--vc-modal-bg, rgba(255, 255, 255, 0.3)) !important; /* 半透明背景 */
 
     /* 动画相关 */
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), /* 窗口最小化动画 */
@@ -2646,12 +2795,7 @@ tr.is-duplicate:hover {
     perspective: 1000px; /* 3D空间深度 */
 
     /* 阴影效果 */
-    box-shadow: 
-        0 20px 50px 0 rgba(31, 38, 135, 0.25),  /* 主阴影 */
-        0 10px 24px 0 rgba(31, 38, 135, 0.2),   /* 中层阴影 */
-        0 0 0 1px rgba(255, 255, 255, 0.4),      /* 边缘描边 */
-        inset 0 0 60px rgba(255, 255, 255, 0.2), /* 内发光 */
-        inset 0 2px 4px rgba(255, 255, 255, 0.3);/* 顶部高光 */
+    box-shadow: var(--vc-modal-shadow, 0 20px 50px 0 rgba(31, 38, 135, 0.25), 0 10px 24px 0 rgba(31, 38, 135, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.4), inset 0 0 60px rgba(255, 255, 255, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.3));/* 顶部高光 */
 }
 
 /* 模态框背景 */
@@ -2668,8 +2812,8 @@ tr.is-duplicate:hover {
     justify-content: space-between !important;
     padding: 15px 20px !important;
     /* 毛玻璃效果 */
-    background: rgba(255, 255, 255, 0.4) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+    background: var(--vc-modal-header-bg, rgba(255, 255, 255, 0.4)) !important;
+    border-bottom: 1px solid var(--vc-modal-header-border, rgba(255, 255, 255, 0.5)) !important;
     border-radius: 12px 12px 0 0;
 }
 .modal-card-head:active {
@@ -2714,7 +2858,7 @@ tr.is-duplicate:hover {
     border: none;
     border-radius: 50%;
     padding: 0;
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--vc-modal-control-bg, rgba(255, 255, 255, 0.2));
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.2s ease;
     display: flex;
@@ -2723,7 +2867,7 @@ tr.is-duplicate:hover {
     flex-shrink: 0; /* 防止按钮被压缩 */
 }
 .modal-control-button svg {
-    fill: #4a4a4a;
+    fill: var(--vc-modal-control-icon, #4a4a4a);
     width: 10px;
     height: 10px;
     transition: fill 0.2s ease;
@@ -2772,8 +2916,8 @@ tr.is-duplicate:hover {
     gap: 0.75rem;
     padding: 15px 20px !important;
     /* 毛玻璃效果 */
-    background: rgba(255, 255, 255, 0.4) !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.5) !important;
+    background: var(--vc-modal-header-bg, rgba(255, 255, 255, 0.4)) !important;
+    border-top: 1px solid var(--vc-modal-header-border, rgba(255, 255, 255, 0.5)) !important;
     border-radius: 0 0 12px 12px;   
 }
 
@@ -3627,6 +3771,33 @@ tr.is-duplicate:hover {
 .settings-tabs {
     margin-bottom: 1.0rem !important;
 }
+
+.settings-theme-row {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem 0.85rem;
+}
+
+.settings-theme-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.settings-theme-title {
+    color: var(--vc-color-text);
+    font-weight: 700;
+}
+
+.settings-theme-toggle {
+    flex: 0 0 auto;
+    margin-bottom: 0 !important;
+}
+
 .settings-tabs li {
     flex: 1;
     text-align: center;
@@ -4147,6 +4318,20 @@ tr.is-duplicate:hover {
         width: calc(100vw - 20px) !important;
         max-width: calc(100vw - 20px);
     }
+    .settings-theme-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .settings-theme-toggle,
+    .settings-theme-toggle .button {
+        width: 100%;
+    }
+    .settings-theme-toggle .button {
+        height: 2.5rem !important;
+        min-height: 2.5rem !important;
+        padding: 0 0.75rem !important;
+        font-size: 1rem !important;
+    }
     .settings-tabs {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
@@ -4377,9 +4562,9 @@ tr.is-duplicate:hover {
 .input:focus,
 .textarea:hover,
 .textarea:focus {
-    border: 1px solid #4A9DEC !important;
-    box-shadow: 0px 0px 0px 5px rgb(74, 157, 236, 20%) !important;
-    background-color: white !important;
+    border: 1px solid var(--vc-control-focus-border, #4A9DEC) !important;
+    box-shadow: var(--vc-control-focus-shadow, 0px 0px 0px 5px rgb(74, 157, 236, 20%)) !important;
+    background-color: var(--vc-control-bg, white) !important;
 }
 
 /* 推荐按钮样式 */

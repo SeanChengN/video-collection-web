@@ -22,6 +22,7 @@ html[data-theme="dark"],
     --vc-color-border: #36445a;
     --vc-color-border-strong: #52617a;
     --vc-color-overlay: rgba(0, 0, 0, 0.78);
+    --vc-page-bg: #111827;
     --vc-color-primary: #70a5ff;
     --vc-color-primary-hover: #8bb6ff;
     --vc-color-primary-soft: rgba(112, 165, 255, 0.18);
@@ -38,4 +39,28 @@ html[data-theme="dark"],
     --vc-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.34);
     --vc-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.42);
     --vc-focus-ring: 0 0 0 3px rgba(112, 165, 255, 0.38);
+    --vc-panel-header-bg: #243247;
+    --vc-panel-border: #36445a;
+    --vc-panel-shadow: 0 0.5em 1em -0.125em rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04);
+    --vc-panel-shadow-compact: 0 2px 6px rgba(0, 0, 0, 0.28);
+    --vc-toolbar-bg: #1f2937;
+    --vc-toolbar-shadow: 0 2px 8px rgba(0, 0, 0, 0.34);
+    --vc-filter-bg: #182235;
+    --vc-filter-border: #36445a;
+    --vc-control-bg: #273449;
+    --vc-control-border: #52617a;
+    --vc-control-placeholder: #94a3b8;
+    --vc-control-focus-border: #70a5ff;
+    --vc-control-focus-shadow: 0 0 0 5px rgba(112, 165, 255, 0.22);
+    --vc-table-bg: #1f2937;
+    --vc-table-head-bg: #243247;
+    --vc-table-striped-bg: rgba(255, 255, 255, 0.035);
+    --vc-table-hover-bg: rgba(112, 165, 255, 0.12);
+    --vc-modal-bg: rgba(31, 41, 55, 0.88);
+    --vc-modal-border: rgba(82, 97, 122, 0.78);
+    --vc-modal-header-bg: rgba(36, 50, 71, 0.92);
+    --vc-modal-header-border: rgba(82, 97, 122, 0.78);
+    --vc-modal-control-bg: rgba(255, 255, 255, 0.08);
+    --vc-modal-control-icon: #e5e7eb;
+    --vc-modal-shadow: 0 22px 54px rgba(0, 0, 0, 0.46), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 0 40px rgba(255, 255, 255, 0.04);
 }

@@ -54,9 +54,9 @@
 .input:focus,
 .textarea:hover,
 .textarea:focus {
-    border: 1px solid #4A9DEC !important;
-    box-shadow: 0px 0px 0px 5px rgb(74, 157, 236, 20%) !important;
-    background-color: white !important;
+    border: 1px solid var(--vc-control-focus-border, #4A9DEC) !important;
+    box-shadow: var(--vc-control-focus-shadow, 0px 0px 0px 5px rgb(74, 157, 236, 20%)) !important;
+    background-color: var(--vc-control-bg, white) !important;
 }
 
 /* 推荐按钮样式 */

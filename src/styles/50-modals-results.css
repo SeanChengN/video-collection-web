@@ -19,11 +19,11 @@
     --modal-border-radius: 12px;
     padding: var(--modal-padding);
     border-radius: var(--modal-border-radius);
-    border: 1px solid rgba(255, 255, 255, 0.4); /* 半透明边框 */
+    border: 1px solid var(--vc-modal-border, rgba(255, 255, 255, 0.4)); /* 半透明边框 */
 
     /* 毛玻璃效果 */
     backdrop-filter: blur(12px) saturate(180%) !important; /* 背景模糊 */
-    background: rgba(255, 255, 255, 0.3) !important; /* 半透明背景 */
+    background: var(--vc-modal-bg, rgba(255, 255, 255, 0.3)) !important; /* 半透明背景 */
 
     /* 动画相关 */
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), /* 窗口最小化动画 */
@@ -34,12 +34,7 @@
     perspective: 1000px; /* 3D空间深度 */
 
     /* 阴影效果 */
-    box-shadow: 
-        0 20px 50px 0 rgba(31, 38, 135, 0.25),  /* 主阴影 */
-        0 10px 24px 0 rgba(31, 38, 135, 0.2),   /* 中层阴影 */
-        0 0 0 1px rgba(255, 255, 255, 0.4),      /* 边缘描边 */
-        inset 0 0 60px rgba(255, 255, 255, 0.2), /* 内发光 */
-        inset 0 2px 4px rgba(255, 255, 255, 0.3);/* 顶部高光 */
+    box-shadow: var(--vc-modal-shadow, 0 20px 50px 0 rgba(31, 38, 135, 0.25), 0 10px 24px 0 rgba(31, 38, 135, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.4), inset 0 0 60px rgba(255, 255, 255, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.3));/* 顶部高光 */
 }
 
 /* 模态框背景 */
@@ -56,8 +51,8 @@
     justify-content: space-between !important;
     padding: 15px 20px !important;
     /* 毛玻璃效果 */
-    background: rgba(255, 255, 255, 0.4) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+    background: var(--vc-modal-header-bg, rgba(255, 255, 255, 0.4)) !important;
+    border-bottom: 1px solid var(--vc-modal-header-border, rgba(255, 255, 255, 0.5)) !important;
     border-radius: 12px 12px 0 0;
 }
 .modal-card-head:active {
@@ -102,7 +97,7 @@
     border: none;
     border-radius: 50%;
     padding: 0;
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--vc-modal-control-bg, rgba(255, 255, 255, 0.2));
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.2s ease;
     display: flex;
@@ -111,7 +106,7 @@
     flex-shrink: 0; /* 防止按钮被压缩 */
 }
 .modal-control-button svg {
-    fill: #4a4a4a;
+    fill: var(--vc-modal-control-icon, #4a4a4a);
     width: 10px;
     height: 10px;
     transition: fill 0.2s ease;
@@ -160,8 +155,8 @@
     gap: 0.75rem;
     padding: 15px 20px !important;
     /* 毛玻璃效果 */
-    background: rgba(255, 255, 255, 0.4) !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.5) !important;
+    background: var(--vc-modal-header-bg, rgba(255, 255, 255, 0.4)) !important;
+    border-top: 1px solid var(--vc-modal-header-border, rgba(255, 255, 255, 0.5)) !important;
     border-radius: 0 0 12px 12px;   
 }
 

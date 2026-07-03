@@ -101,3 +101,13 @@
     flex-direction: column;
     gap: var(--vc-space-3);
 }
+
+.vc-segmented {
+    align-items: center;
+    display: inline-flex;
+    gap: var(--vc-space-1);
+}
+
+.vc-segmented .button {
+    min-width: 4rem;
+}

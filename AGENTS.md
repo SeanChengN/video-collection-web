@@ -68,6 +68,7 @@
 - Render user/API/service data with DOM/text APIs (`textContent`, safe attributes, `createEl`) instead of assigning HTML strings.
 - Add new styles to the matching `src/styles/` section instead of editing generated `static/non-critical.css` directly.
 - Prefer `--vc-*` tokens and `vc-*` component classes for new styles; avoid new hard-coded colors, spacing, shadows, and long descendant selectors.
+- Legacy CSS may keep existing selectors during migration, but values should move toward `--vc-*` tokens so light/dark themes stay coherent.
 - See `STYLE_GUIDE.md` before larger style changes or theme work.
 - Preserve UTF-8 when moving Chinese constants, labels, or messages; prefer small `apply_patch` edits over whole-file rewrites for text-bearing files.
 - Do not commit local secrets, media, database files, backups, or generated cache directories.

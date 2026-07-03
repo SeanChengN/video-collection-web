@@ -19,6 +19,33 @@
 .settings-tabs {
     margin-bottom: 1.0rem !important;
 }
+
+.settings-theme-row {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem 0.85rem;
+}
+
+.settings-theme-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.settings-theme-title {
+    color: var(--vc-color-text);
+    font-weight: 700;
+}
+
+.settings-theme-toggle {
+    flex: 0 0 auto;
+    margin-bottom: 0 !important;
+}
+
 .settings-tabs li {
     flex: 1;
     text-align: center;
@@ -538,6 +565,20 @@
     .settings-modal .modal-card {
         width: calc(100vw - 20px) !important;
         max-width: calc(100vw - 20px);
+    }
+    .settings-theme-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .settings-theme-toggle,
+    .settings-theme-toggle .button {
+        width: 100%;
+    }
+    .settings-theme-toggle .button {
+        height: 2.5rem !important;
+        min-height: 2.5rem !important;
+        padding: 0 0.75rem !important;
+        font-size: 1rem !important;
     }
     .settings-tabs {
         overflow-x: auto;

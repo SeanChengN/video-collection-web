@@ -11,6 +11,93 @@
     --bulma-danger: var(--vc-color-danger);
 }
 
+html,
+body {
+    background: var(--vc-page-bg);
+    color: var(--vc-color-text);
+}
+
+.navbar.is-light {
+    background: var(--vc-panel-bg);
+    color: var(--vc-color-text);
+}
+
+.navbar.is-light .title,
+.navbar.is-light .navbar-item {
+    color: var(--vc-color-text);
+}
+
+.box,
+.function-tools,
+.collapsible-box,
+.tags-box,
+.image-box,
+.ratings-box {
+    background: var(--vc-panel-bg);
+    color: var(--vc-color-text);
+}
+
+.box {
+    box-shadow: var(--vc-panel-shadow);
+}
+
+.collapsible-box,
+.tags-box,
+.image-box,
+.ratings-box,
+.filter-options {
+    border-color: var(--vc-panel-border);
+}
+
+.box-header {
+    background: var(--vc-panel-header-bg);
+    color: var(--vc-color-text);
+}
+
+.input,
+.textarea,
+.select select {
+    background: var(--vc-control-bg);
+    border-color: var(--vc-control-border);
+    color: var(--vc-control-text);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+    color: var(--vc-control-placeholder);
+}
+
+.table {
+    background: var(--vc-table-bg);
+    color: var(--vc-color-text);
+}
+
+.table thead th,
+.table th,
+.table td {
+    border-color: var(--vc-color-border);
+    color: var(--vc-color-text);
+}
+
+.table.is-striped tbody tr:not(.is-selected):nth-child(even) {
+    background-color: var(--vc-table-striped-bg);
+}
+
+.table.is-hoverable tbody tr:not(.is-selected):hover {
+    background-color: var(--vc-table-hover-bg);
+}
+
+.label,
+.title,
+.subtitle {
+    color: var(--vc-color-text);
+}
+
+.filter-options {
+    background: var(--vc-filter-bg);
+    border-color: var(--vc-filter-border);
+}
+
 html[data-theme="dark"] body,
 .theme-dark body {
     background: var(--vc-color-bg);

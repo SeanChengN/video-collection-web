@@ -15,6 +15,7 @@
     --vc-color-border: #d8dee9;
     --vc-color-border-strong: #b8c2d3;
     --vc-color-overlay: rgba(10, 10, 10, 0.72);
+    --vc-page-bg: #ffffff;
 
     /* Action roles */
     --vc-color-primary: #3273dc;
@@ -69,6 +70,32 @@
     --vc-shadow-md: 0 4px 12px rgba(16, 24, 40, 0.12);
     --vc-shadow-lg: 0 12px 28px rgba(16, 24, 40, 0.18);
     --vc-focus-ring: 0 0 0 3px rgba(50, 115, 220, 0.32);
+    --vc-panel-bg: var(--vc-color-surface);
+    --vc-panel-header-bg: #ffffff;
+    --vc-panel-border: #dbdbdb;
+    --vc-panel-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.02);
+    --vc-panel-shadow-compact: 0 2px 3px rgba(10, 10, 10, 0.1);
+    --vc-toolbar-bg: #ffffff;
+    --vc-toolbar-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --vc-filter-bg: #fafafa;
+    --vc-filter-border: #dbdbdb;
+    --vc-control-bg: #ffffff;
+    --vc-control-border: #dbdbdb;
+    --vc-control-text: var(--vc-color-text);
+    --vc-control-placeholder: #7a7a7a;
+    --vc-control-focus-border: #4a9dec;
+    --vc-control-focus-shadow: 0 0 0 5px rgba(74, 157, 236, 0.2);
+    --vc-table-bg: #ffffff;
+    --vc-table-head-bg: #ffffff;
+    --vc-table-striped-bg: #fafafa;
+    --vc-table-hover-bg: #f5faff;
+    --vc-modal-bg: rgba(255, 255, 255, 0.3);
+    --vc-modal-border: rgba(255, 255, 255, 0.4);
+    --vc-modal-header-bg: rgba(255, 255, 255, 0.4);
+    --vc-modal-header-border: rgba(255, 255, 255, 0.5);
+    --vc-modal-control-bg: rgba(255, 255, 255, 0.2);
+    --vc-modal-control-icon: #4a4a4a;
+    --vc-modal-shadow: 0 20px 50px 0 rgba(31, 38, 135, 0.25), 0 10px 24px 0 rgba(31, 38, 135, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.4), inset 0 0 60px rgba(255, 255, 255, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.3);
 
     /* Layout */
     --vc-control-height-sm: 2rem;
