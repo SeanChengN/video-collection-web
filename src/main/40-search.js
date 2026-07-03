@@ -407,5 +407,3 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDropdownPositioning();
     initImageUpload();
 });
-
-// 全局变量

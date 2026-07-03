@@ -1353,9 +1353,6 @@ function formatTime(seconds) {
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
-
-
-// 设置功能相关代码
 let settingsNeedsMainRefresh = false;
 
 function markSettingsChanged() {
@@ -1419,7 +1416,6 @@ function loadSettings() {
         loadDatabaseBackups()
     ]);
 }
-
 // 开始编辑
 function startEdit(button) {
     const tr = button.closest('tr');  // 现在是找最近的 tr 元素
@@ -1684,6 +1680,103 @@ function loadSettingsRatingDimensions() {
         });
 }
 
+
+function deleteTag(button) {
+    const tr = button.closest('tr');
+    const name = tr?.dataset.name || '';
+    if (!name) return;
+
+    callApi(event_map.delete_tag, { name, preview: true }, 'DELETE')
+        .then(result => {
+            if (!result.success) {
+                showAlert({
+                    title: '删除失败',
+                    message: result.message || '标签不存在',
+                    type: 'error',
+                    showCancel: false
+                });
+                return;
+            }
+
+            const usageCount = result.usage_count || 0;
+            showAlert({
+                title: '删除标签',
+                message: usageCount > 0
+                    ? `标签“${name}”正在被 ${usageCount} 部电影使用。确认删除并清除这些关联吗？`
+                    : `确认删除标签“${name}”吗？`,
+                type: 'warning',
+                confirmText: '删除',
+                cancelText: '取消',
+                onConfirm: () => confirmDeleteTag(name)
+            });
+        });
+}
+
+function confirmDeleteTag(name) {
+    callApi(event_map.delete_tag, { name, confirm: true }, 'DELETE')
+        .then(result => {
+            if (result.success) {
+                markSettingsChanged();
+                loadSettings();
+            } else {
+                showAlert({
+                    title: '删除失败',
+                    message: result.message || '标签删除失败',
+                    type: 'error',
+                    showCancel: false
+                });
+            }
+        });
+}
+
+function deleteRatingDimension(button) {
+    const tr = button.closest('tr');
+    const dimensionId = tr?.dataset.id || '';
+    const name = tr?.dataset.name || '';
+    if (!dimensionId) return;
+
+    callApi(event_map.delete_rating_dimension, { id: dimensionId, preview: true }, 'DELETE')
+        .then(result => {
+            if (!result.success) {
+                showAlert({
+                    title: '删除失败',
+                    message: result.message || '评分维度不存在',
+                    type: 'error',
+                    showCancel: false
+                });
+                return;
+            }
+
+            const usageCount = result.usage_count || 0;
+            showAlert({
+                title: '删除评分维度',
+                message: usageCount > 0
+                    ? `评分维度“${name}”正在被 ${usageCount} 部电影使用。确认删除并清除这些评分吗？`
+                    : `确认删除评分维度“${name}”吗？`,
+                type: 'warning',
+                confirmText: '删除',
+                cancelText: '取消',
+                onConfirm: () => confirmDeleteRatingDimension(dimensionId)
+            });
+        });
+}
+
+function confirmDeleteRatingDimension(dimensionId) {
+    callApi(event_map.delete_rating_dimension, { id: dimensionId, confirm: true }, 'DELETE')
+        .then(result => {
+            if (result.success) {
+                markSettingsChanged();
+                loadSettings();
+            } else {
+                showAlert({
+                    title: '删除失败',
+                    message: result.message || '评分维度删除失败',
+                    type: 'error',
+                    showCancel: false
+                });
+            }
+        });
+}
 function formatBackupSize(sizeBytes) {
     const size = Number(sizeBytes) || 0;
     if (size < 1024) return `${size} B`;
@@ -1833,7 +1926,6 @@ function renderDatabaseBackups(result) {
         ]));
     });
 }
-
 function loadDatabaseBackups() {
     const list = document.getElementById('dbBackupsList');
     if (!list) return Promise.resolve();
@@ -2034,103 +2126,6 @@ function executeDeleteDatabaseBackup(filename) {
         })
         .finally(() => {
             setMaintenanceBusy(false);
-        });
-}
-
-function deleteTag(button) {
-    const tr = button.closest('tr');
-    const name = tr?.dataset.name || '';
-    if (!name) return;
-
-    callApi(event_map.delete_tag, { name, preview: true }, 'DELETE')
-        .then(result => {
-            if (!result.success) {
-                showAlert({
-                    title: '删除失败',
-                    message: result.message || '标签不存在',
-                    type: 'error',
-                    showCancel: false
-                });
-                return;
-            }
-
-            const usageCount = result.usage_count || 0;
-            showAlert({
-                title: '删除标签',
-                message: usageCount > 0
-                    ? `标签“${name}”正在被 ${usageCount} 部电影使用。确认删除并清除这些关联吗？`
-                    : `确认删除标签“${name}”吗？`,
-                type: 'warning',
-                confirmText: '删除',
-                cancelText: '取消',
-                onConfirm: () => confirmDeleteTag(name)
-            });
-        });
-}
-
-function confirmDeleteTag(name) {
-    callApi(event_map.delete_tag, { name, confirm: true }, 'DELETE')
-        .then(result => {
-            if (result.success) {
-                markSettingsChanged();
-                loadSettings();
-            } else {
-                showAlert({
-                    title: '删除失败',
-                    message: result.message || '标签删除失败',
-                    type: 'error',
-                    showCancel: false
-                });
-            }
-        });
-}
-
-function deleteRatingDimension(button) {
-    const tr = button.closest('tr');
-    const dimensionId = tr?.dataset.id || '';
-    const name = tr?.dataset.name || '';
-    if (!dimensionId) return;
-
-    callApi(event_map.delete_rating_dimension, { id: dimensionId, preview: true }, 'DELETE')
-        .then(result => {
-            if (!result.success) {
-                showAlert({
-                    title: '删除失败',
-                    message: result.message || '评分维度不存在',
-                    type: 'error',
-                    showCancel: false
-                });
-                return;
-            }
-
-            const usageCount = result.usage_count || 0;
-            showAlert({
-                title: '删除评分维度',
-                message: usageCount > 0
-                    ? `评分维度“${name}”正在被 ${usageCount} 部电影使用。确认删除并清除这些评分吗？`
-                    : `确认删除评分维度“${name}”吗？`,
-                type: 'warning',
-                confirmText: '删除',
-                cancelText: '取消',
-                onConfirm: () => confirmDeleteRatingDimension(dimensionId)
-            });
-        });
-}
-
-function confirmDeleteRatingDimension(dimensionId) {
-    callApi(event_map.delete_rating_dimension, { id: dimensionId, confirm: true }, 'DELETE')
-        .then(result => {
-            if (result.success) {
-                markSettingsChanged();
-                loadSettings();
-            } else {
-                showAlert({
-                    title: '删除失败',
-                    message: result.message || '评分维度删除失败',
-                    type: 'error',
-                    showCancel: false
-                });
-            }
         });
 }
 function loadTags() {
@@ -2542,8 +2537,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDropdownPositioning();
     initImageUpload();
 });
-
-// 全局变量
 let ratingsDimensions = [];
 const DEFAULT_RATING_VALUE = 3;
 
