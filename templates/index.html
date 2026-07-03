@@ -425,7 +425,7 @@
         .settings-btn:hover,
         .settings-btn:active,
         .settings-btn.is-active {
-            color: var(--vc-color-on-action, #ffffff) !important;
+            color: var(--vc-color-on-action-hover, #ffffff) !important;
         }
         .settings-btn:hover::before,
         .settings-btn:active::before,
@@ -460,6 +460,16 @@
             linear-gradient(0deg, var(--vc-action-success, #17a84c), var(--vc-action-success, #17a84c));
             transition: filter 0.3s;
         }
+        .search-btn:hover,
+        .search-btn:active,
+        .save-btn:hover,
+        .save-btn:active,
+        .save-btn-small:hover,
+        .save-btn-small:active,
+        .add-btn:hover,
+        .add-btn:active {
+            color: var(--vc-color-on-action-hover, #ffffff) !important;
+        }
         .settings-btn span,
         .search-btn span,
         .save-btn span,
@@ -477,6 +487,29 @@
             display: block;
             transform-origin: center center;
             transition: transform 0.3s ease-in-out;
+        }
+        .settings-theme-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .settings-theme-toggle.buttons.has-addons .button,
+        .settings-theme-toggle .button {
+            margin: 0 !important;
+            border-radius: 7px !important;
+        }
+        .settings-theme-toggle .button[aria-pressed="true"] {
+            border: none !important;
+            background: radial-gradient(
+                65.28% 65.28% at 50% 100%,
+                var(--vc-action-primary-glow, rgba(142, 161, 255, 0.8)) 0%,
+                transparent 100%
+            ),
+            linear-gradient(0deg, var(--vc-action-primary, #4169e1), var(--vc-action-primary, #4169e1)) !important;
+            color: var(--vc-color-on-action, #ffffff) !important;
+        }
+        .settings-theme-toggle .button[aria-pressed="true"]:hover,
+        .settings-theme-toggle .button[aria-pressed="true"]:active {
+            color: var(--vc-color-on-action-hover, #ffffff) !important;
         }
 
         /* 工具栏按钮特效 */

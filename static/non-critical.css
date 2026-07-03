@@ -30,6 +30,7 @@
     --vc-color-info: #3e8ed0;
     --vc-color-info-soft: #e9f4ff;
     --vc-color-on-action: #ffffff;
+    --vc-color-on-action-hover: #ffffff;
 
     /* Existing domain roles */
     --vc-star-1: #ff774d;
@@ -103,6 +104,9 @@
     --vc-action-danger: #ff3950;
     --vc-action-danger-glow: rgba(255, 134, 134, 0.8);
     --vc-action-danger-shadow: rgba(241, 70, 104, 0.4);
+    --vc-action-warning: #f59e0b;
+    --vc-action-warning-glow: rgba(253, 230, 138, 0.85);
+    --vc-action-warning-shadow: rgba(245, 158, 11, 0.42);
     --vc-action-settings: #8034ff;
     --vc-action-settings-glow: rgba(223, 113, 255, 0.8);
     --vc-action-settings-shadow: rgba(151, 71, 255, 0.4);
@@ -296,6 +300,7 @@ html[data-theme="dark"],
     --vc-color-info: #7dd3fc;
     --vc-color-info-soft: rgba(125, 211, 252, 0.16);
     --vc-color-on-action: #0b1220;
+    --vc-color-on-action-hover: #ffffff;
     --vc-star-default: #64748b;
     --vc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
     --vc-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.34);
@@ -364,9 +369,9 @@ html[data-theme="dark"],
     --vc-table-bg: #1f2937;
     --vc-table-head-bg: #243247;
     --vc-table-striped-bg: rgba(255, 255, 255, 0.035);
-    --vc-table-hover-bg: rgba(112, 165, 255, 0.12);
+    --vc-table-hover-bg: #243247;
     --vc-list-bg: #1f2937;
-    --vc-list-hover-bg: rgba(112, 165, 255, 0.12);
+    --vc-list-hover-bg: #243247;
     --vc-list-selected-bg: rgba(112, 165, 255, 0.18);
     --vc-list-border: #36445a;
     --vc-list-text: #f3f4f6;
@@ -788,7 +793,8 @@ body {
 
 .table.is-hoverable tbody tr:not(.is-selected):hover,
 #search-results .movie-results-table tbody tr:hover,
-.settings-modal .table tbody tr:hover {
+.settings-modal .table tbody tr:hover,
+#duplicate-table .table tbody tr:hover {
     background-color: var(--vc-table-hover-bg);
 }
 
@@ -2234,7 +2240,7 @@ tr.is-duplicate {
 }
 
 tr.is-duplicate:hover {
-    background-color: var(--vc-list-hover-bg, #ffeaca) !important;
+    background-color: var(--vc-table-hover-bg, #f5faff) !important;
 }
 
 /* 复制按钮样式 */
@@ -4399,8 +4405,9 @@ tr.is-duplicate:hover {
 }
 
 .settings-modal .table-container {
-    max-height: 400px;
-    overflow-y: auto;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: visible;
     position: relative;
 }
 
@@ -4430,8 +4437,48 @@ tr.is-duplicate:hover {
 }
 
 .settings-theme-toggle {
+    display: flex;
     flex: 0 0 auto;
+    gap: 0.5rem;
     margin-bottom: 0 !important;
+}
+
+.settings-theme-toggle.buttons.has-addons .button,
+.settings-theme-toggle .button {
+    margin: 0 !important;
+    border-radius: 7px !important;
+}
+
+.settings-theme-toggle .button {
+    border-color: var(--vc-button-border, #dbdbdb) !important;
+    background: var(--vc-button-bg, #f5f5f5) !important;
+    color: var(--vc-button-text, #363636) !important;
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
+}
+
+.settings-theme-toggle .button:not([aria-pressed="true"]):hover {
+    background:
+        linear-gradient(177.95deg, color-mix(in srgb, var(--vc-action-primary, #4169e1) 18%, transparent), transparent),
+        var(--vc-button-hover-bg, #eeeeee) !important;
+    border-color: var(--vc-control-focus-border, #4a9dec) !important;
+}
+
+.settings-theme-toggle .button[aria-pressed="true"] {
+    border: none !important;
+    background:
+        radial-gradient(
+            65.28% 65.28% at 50% 100%,
+            var(--vc-action-primary-glow, rgba(142, 161, 255, 0.8)) 0%,
+            transparent 100%
+        ),
+        linear-gradient(0deg, var(--vc-action-primary, #4169e1), var(--vc-action-primary, #4169e1)) !important;
+    color: var(--vc-color-on-action, #ffffff) !important;
+}
+
+.settings-theme-toggle .button[aria-pressed="true"]:hover,
+.settings-theme-toggle .button[aria-pressed="true"]:active {
+    color: var(--vc-color-on-action-hover, #ffffff) !important;
+    filter: brightness(92%);
 }
 
 .settings-tabs li {
@@ -4484,7 +4531,10 @@ tr.is-duplicate:hover {
 .maintenance-settings {
     display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
     gap: 0.85rem;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .maintenance-notice {
@@ -4534,7 +4584,6 @@ tr.is-duplicate:hover {
 
 .maintenance-panel {
     position: relative;
-    overflow: hidden;
     border: none;
     border-radius: 8px;
     background: linear-gradient(120deg, #2563eb, #06b6d4, #2563eb);
@@ -4638,7 +4687,7 @@ tr.is-duplicate:hover {
     border: none !important;
     overflow: hidden;
     background: transparent !important;
-    color: #fff !important;
+    color: var(--vc-color-on-action, #ffffff) !important;
     transition: transform 0.3s, box-shadow 0.3s, opacity 0.3s, filter 0.3s;
 }
 
@@ -4649,10 +4698,10 @@ tr.is-duplicate:hover {
     z-index: 1;
     background: radial-gradient(
         70% 70% at 50% 100%,
-        rgba(253, 230, 138, 0.85) 0%,
-        rgba(253, 230, 138, 0) 100%
+        var(--vc-action-warning-glow, rgba(253, 230, 138, 0.85)) 0%,
+        transparent 100%
     ),
-    linear-gradient(0deg, var(--vc-color-warning, #f59e0b), var(--vc-color-warning, #f59e0b));
+    linear-gradient(0deg, var(--vc-action-warning, #f59e0b), var(--vc-action-warning, #f59e0b));
     transition: filter 0.3s;
 }
 
@@ -4669,7 +4718,8 @@ tr.is-duplicate:hover {
 }
 
 .maintenance-create-btn:hover {
-    box-shadow: 0 6px 16px color-mix(in srgb, var(--vc-color-warning, #f59e0b) 42%, transparent) !important;
+    color: var(--vc-color-on-action-hover, #ffffff) !important;
+    box-shadow: 0 6px 16px var(--vc-action-warning-shadow, rgba(245, 158, 11, 0.42)) !important;
 }
 
 .maintenance-create-btn:hover::before {
@@ -4690,7 +4740,8 @@ tr.is-duplicate:hover {
 
 .maintenance-create-btn:active {
     transform: scale(0.95);
-    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.26) !important;
+    color: var(--vc-color-on-action-hover, #ffffff) !important;
+    box-shadow: 0 2px 8px var(--vc-action-warning-shadow, rgba(245, 158, 11, 0.42)) !important;
 }
 
 .maintenance-create-btn:active::before {
@@ -4721,7 +4772,9 @@ tr.is-duplicate:hover {
 }
 
 .maintenance-backups-table {
+    flex: 1 1 auto;
     max-height: min(420px, 45vh) !important;
+    min-height: 0;
     overflow-x: auto;
     overflow-y: auto;
 }
@@ -4976,7 +5029,12 @@ tr.is-duplicate:hover {
     .settings-theme-toggle .button {
         width: 100%;
     }
+    .settings-theme-toggle {
+        display: flex;
+    }
     .settings-theme-toggle .button {
+        flex: 1 1 0;
+        width: auto;
         height: 2.5rem !important;
         min-height: 2.5rem !important;
         padding: 0 0.75rem !important;
@@ -5115,7 +5173,7 @@ tr.is-duplicate:hover {
 
 /* 表格行悬停效果 */
 .settings-modal .table tbody tr:hover {
-    background-color: var(--vc-table-hover-bg, #f5f5f5);
+    background-color: var(--vc-table-hover-bg, #f5faff);
 }
 
 /* 设置按钮特效 */
@@ -5133,7 +5191,7 @@ tr.is-duplicate:hover {
 .settings-btn:hover svg,
 .settings-btn.is-active svg {
     transform: scale(1.3);
-    fill: var(--vc-color-on-action, #fff);
+    fill: var(--vc-color-on-action-hover, #ffffff);
 }
 .settings-btn:active {
     transform: scale(0.95) translateY(1px);
@@ -5269,6 +5327,7 @@ tr.is-duplicate:hover {
 .settings-modal .button.settings-delete-btn,
 .settings-modal .button.maintenance-backup-delete-btn,
 .settings-modal .button.maintenance-backup-restore-btn,
+.settings-modal .button.maintenance-create-btn,
 .button.dupStart-btn {
     position: relative;
     isolation: isolate;
@@ -5296,6 +5355,7 @@ tr.is-duplicate:hover {
 .settings-modal .button.settings-delete-btn::before,
 .settings-modal .button.maintenance-backup-delete-btn::before,
 .settings-modal .button.maintenance-backup-restore-btn::before,
+.settings-modal .button.maintenance-create-btn::before,
 .button.settings-btn::before {
     content: '';
     inset: 0;
@@ -5318,7 +5378,7 @@ tr.is-duplicate:hover {
 .button.settings-btn:hover,
 .button.settings-btn:active,
 .button.settings-btn.is-active {
-    color: var(--vc-color-on-action, #ffffff) !important;
+    color: var(--vc-color-on-action-hover, #ffffff) !important;
 }
 
 .button.settings-btn:hover::before,
@@ -5360,6 +5420,40 @@ tr.is-duplicate:hover {
     linear-gradient(0deg, var(--vc-action-danger, #ff3950), var(--vc-action-danger, #ff3950));
 }
 
+.settings-modal .button.maintenance-create-btn::before {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        var(--vc-action-warning-glow, rgba(253, 230, 138, 0.85)) 0%,
+        transparent 100%
+    ),
+    linear-gradient(0deg, var(--vc-action-warning, #f59e0b), var(--vc-action-warning, #f59e0b));
+}
+
+.button.search-btn:hover,
+.button.search-btn:active,
+.button.save-btn:hover,
+.button.save-btn:active,
+.button.save-btn-small:hover,
+.button.save-btn-small:active,
+.button.add-btn:hover,
+.button.add-btn:active,
+.button.edit-btn:hover,
+.button.edit-btn:active,
+.button.delete-btn:hover,
+.button.delete-btn:active,
+.settings-modal .button.settings-delete-btn:hover,
+.settings-modal .button.settings-delete-btn:active,
+.settings-modal .button.maintenance-backup-delete-btn:hover,
+.settings-modal .button.maintenance-backup-delete-btn:active,
+.settings-modal .button.maintenance-backup-restore-btn:hover,
+.settings-modal .button.maintenance-backup-restore-btn:active,
+.settings-modal .button.maintenance-create-btn:hover,
+.settings-modal .button.maintenance-create-btn:active,
+.button.dupStart-btn:hover,
+.button.dupStart-btn:active {
+    color: var(--vc-color-on-action-hover, #ffffff) !important;
+}
+
 .button.settings-btn span,
 .button.search-btn span,
 .button.save-btn span,
@@ -5370,6 +5464,7 @@ tr.is-duplicate:hover {
 .settings-modal .button.settings-delete-btn span,
 .settings-modal .button.maintenance-backup-delete-btn span,
 .settings-modal .button.maintenance-backup-restore-btn span,
+.settings-modal .button.maintenance-create-btn span,
 .button.dupStart-btn span {
     position: relative;
     z-index: 2;
@@ -5385,6 +5480,7 @@ tr.is-duplicate:hover {
 .settings-modal .button.settings-delete-btn svg,
 .settings-modal .button.maintenance-backup-delete-btn svg,
 .settings-modal .button.maintenance-backup-restore-btn svg,
+.settings-modal .button.maintenance-create-btn svg,
 .button.dupStart-btn svg {
     color: currentColor;
     fill: currentColor;
@@ -5550,7 +5646,7 @@ tr.is-duplicate:hover {
     to {stroke-dasharray: 68 68 0 0;}
 }
 @keyframes filled {
-    to {fill: var(--vc-color-on-action, #ffffff);}
+    to {fill: var(--vc-color-on-action-hover, #ffffff);}
 }
 
 

@@ -60,7 +60,7 @@ tr.is-duplicate {
 }
 
 tr.is-duplicate:hover {
-    background-color: var(--vc-list-hover-bg, #ffeaca) !important;
+    background-color: var(--vc-table-hover-bg, #f5faff) !important;
 }
 
 /* 复制按钮样式 */

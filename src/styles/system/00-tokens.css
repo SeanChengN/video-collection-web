@@ -30,6 +30,7 @@
     --vc-color-info: #3e8ed0;
     --vc-color-info-soft: #e9f4ff;
     --vc-color-on-action: #ffffff;
+    --vc-color-on-action-hover: #ffffff;
 
     /* Existing domain roles */
     --vc-star-1: #ff774d;
@@ -103,6 +104,9 @@
     --vc-action-danger: #ff3950;
     --vc-action-danger-glow: rgba(255, 134, 134, 0.8);
     --vc-action-danger-shadow: rgba(241, 70, 104, 0.4);
+    --vc-action-warning: #f59e0b;
+    --vc-action-warning-glow: rgba(253, 230, 138, 0.85);
+    --vc-action-warning-shadow: rgba(245, 158, 11, 0.42);
     --vc-action-settings: #8034ff;
     --vc-action-settings-glow: rgba(223, 113, 255, 0.8);
     --vc-action-settings-shadow: rgba(151, 71, 255, 0.4);

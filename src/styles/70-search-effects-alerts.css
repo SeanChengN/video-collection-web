@@ -111,6 +111,7 @@
 .settings-modal .button.settings-delete-btn,
 .settings-modal .button.maintenance-backup-delete-btn,
 .settings-modal .button.maintenance-backup-restore-btn,
+.settings-modal .button.maintenance-create-btn,
 .button.dupStart-btn {
     position: relative;
     isolation: isolate;
@@ -138,6 +139,7 @@
 .settings-modal .button.settings-delete-btn::before,
 .settings-modal .button.maintenance-backup-delete-btn::before,
 .settings-modal .button.maintenance-backup-restore-btn::before,
+.settings-modal .button.maintenance-create-btn::before,
 .button.settings-btn::before {
     content: '';
     inset: 0;
@@ -160,7 +162,7 @@
 .button.settings-btn:hover,
 .button.settings-btn:active,
 .button.settings-btn.is-active {
-    color: var(--vc-color-on-action, #ffffff) !important;
+    color: var(--vc-color-on-action-hover, #ffffff) !important;
 }
 
 .button.settings-btn:hover::before,
@@ -202,6 +204,40 @@
     linear-gradient(0deg, var(--vc-action-danger, #ff3950), var(--vc-action-danger, #ff3950));
 }
 
+.settings-modal .button.maintenance-create-btn::before {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        var(--vc-action-warning-glow, rgba(253, 230, 138, 0.85)) 0%,
+        transparent 100%
+    ),
+    linear-gradient(0deg, var(--vc-action-warning, #f59e0b), var(--vc-action-warning, #f59e0b));
+}
+
+.button.search-btn:hover,
+.button.search-btn:active,
+.button.save-btn:hover,
+.button.save-btn:active,
+.button.save-btn-small:hover,
+.button.save-btn-small:active,
+.button.add-btn:hover,
+.button.add-btn:active,
+.button.edit-btn:hover,
+.button.edit-btn:active,
+.button.delete-btn:hover,
+.button.delete-btn:active,
+.settings-modal .button.settings-delete-btn:hover,
+.settings-modal .button.settings-delete-btn:active,
+.settings-modal .button.maintenance-backup-delete-btn:hover,
+.settings-modal .button.maintenance-backup-delete-btn:active,
+.settings-modal .button.maintenance-backup-restore-btn:hover,
+.settings-modal .button.maintenance-backup-restore-btn:active,
+.settings-modal .button.maintenance-create-btn:hover,
+.settings-modal .button.maintenance-create-btn:active,
+.button.dupStart-btn:hover,
+.button.dupStart-btn:active {
+    color: var(--vc-color-on-action-hover, #ffffff) !important;
+}
+
 .button.settings-btn span,
 .button.search-btn span,
 .button.save-btn span,
@@ -212,6 +248,7 @@
 .settings-modal .button.settings-delete-btn span,
 .settings-modal .button.maintenance-backup-delete-btn span,
 .settings-modal .button.maintenance-backup-restore-btn span,
+.settings-modal .button.maintenance-create-btn span,
 .button.dupStart-btn span {
     position: relative;
     z-index: 2;
@@ -227,6 +264,7 @@
 .settings-modal .button.settings-delete-btn svg,
 .settings-modal .button.maintenance-backup-delete-btn svg,
 .settings-modal .button.maintenance-backup-restore-btn svg,
+.settings-modal .button.maintenance-create-btn svg,
 .button.dupStart-btn svg {
     color: currentColor;
     fill: currentColor;
@@ -392,7 +430,7 @@
     to {stroke-dasharray: 68 68 0 0;}
 }
 @keyframes filled {
-    to {fill: var(--vc-color-on-action, #ffffff);}
+    to {fill: var(--vc-color-on-action-hover, #ffffff);}
 }
 
 

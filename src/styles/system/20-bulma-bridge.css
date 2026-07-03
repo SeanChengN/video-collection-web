@@ -328,7 +328,8 @@ body {
 
 .table.is-hoverable tbody tr:not(.is-selected):hover,
 #search-results .movie-results-table tbody tr:hover,
-.settings-modal .table tbody tr:hover {
+.settings-modal .table tbody tr:hover,
+#duplicate-table .table tbody tr:hover {
     background-color: var(--vc-table-hover-bg);
 }
 

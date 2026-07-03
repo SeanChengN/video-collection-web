@@ -33,6 +33,9 @@ THEME_CRITICAL_SELECTORS = (
     ".settings-modal .button.settings-delete-btn",
     ".settings-modal .button.maintenance-backup-delete-btn",
     ".settings-modal .button.maintenance-backup-restore-btn",
+    ".settings-modal .button.maintenance-create-btn",
+    ".maintenance-create-btn",
+    ".settings-theme-toggle .button",
     ".runtime-badge",
     ".movie-card",
     ".emby-playable-card",
@@ -43,6 +46,8 @@ THEME_CRITICAL_SELECTORS = (
     "#edit-tags .tag",
     "#search-results .movie-results-table",
     ".settings-modal .table",
+    "#duplicate-table .table",
+    "tr.is-duplicate",
     ".settings-tabs li",
     ".settings-tabs a",
     ".settings-list-item",
@@ -67,6 +72,9 @@ FIXED_ACTION_TOKENS = (
     "--vc-action-danger",
     "--vc-action-danger-glow",
     "--vc-action-danger-shadow",
+    "--vc-action-warning",
+    "--vc-action-warning-glow",
+    "--vc-action-warning-shadow",
     "--vc-action-settings",
     "--vc-action-settings-glow",
     "--vc-action-settings-shadow",
@@ -143,3 +151,9 @@ def test_dark_theme_does_not_override_fixed_action_gradients():
             offenders.append(f"{THEME_OVERRIDE_FILE.relative_to(Path(__file__).resolve().parents[1])}:{line_number}: {stripped}")
 
     assert offenders == []
+
+
+def test_dark_theme_declares_action_text_state_tokens():
+    content = THEME_OVERRIDE_FILE.read_text(encoding="utf-8")
+    assert "--vc-color-on-action:" in content
+    assert "--vc-color-on-action-hover:" in content

@@ -35,6 +35,7 @@ html[data-theme="dark"],
     --vc-color-info: #7dd3fc;
     --vc-color-info-soft: rgba(125, 211, 252, 0.16);
     --vc-color-on-action: #0b1220;
+    --vc-color-on-action-hover: #ffffff;
     --vc-star-default: #64748b;
     --vc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
     --vc-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.34);
@@ -103,9 +104,9 @@ html[data-theme="dark"],
     --vc-table-bg: #1f2937;
     --vc-table-head-bg: #243247;
     --vc-table-striped-bg: rgba(255, 255, 255, 0.035);
-    --vc-table-hover-bg: rgba(112, 165, 255, 0.12);
+    --vc-table-hover-bg: #243247;
     --vc-list-bg: #1f2937;
-    --vc-list-hover-bg: rgba(112, 165, 255, 0.12);
+    --vc-list-hover-bg: #243247;
     --vc-list-selected-bg: rgba(112, 165, 255, 0.18);
     --vc-list-border: #36445a;
     --vc-list-text: #f3f4f6;
