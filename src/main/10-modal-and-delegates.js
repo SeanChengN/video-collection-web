@@ -290,5 +290,3 @@ document.addEventListener('DOMContentLoaded', () => {
         makeDraggable(modal);
     });
 });
-
-// 查重核对相关代码

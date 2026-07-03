@@ -5,7 +5,10 @@ const projectRoot = path.resolve(__dirname, '..');
 const sourceFiles = [
   'src/main/00-foundation.js',
   'src/main/10-modal-and-delegates.js',
-  'src/main/20-tools-and-services.js',
+  'src/main/20-tools/00-duplicate-check.js',
+  'src/main/20-tools/10-emby-search-player.js',
+  'src/main/20-tools/20-service-modals.js',
+  'src/main/20-tools/30-wtl-search-results.js',
   'src/main/30-settings/00-state-lifecycle.js',
   'src/main/30-settings/10-tags-ratings.js',
   'src/main/30-settings/20-maintenance-render.js',
@@ -23,7 +26,9 @@ const sourceFiles = [
   'src/main/60-thumbnail/50-capture-batch.js',
   'src/main/60-thumbnail/60-capture-grid.js',
   'src/main/60-thumbnail/70-export-utils.js',
-  'src/main/70-image-upload-viewer.js'
+  'src/main/70-images/00-upload.js',
+  'src/main/70-images/10-viewer-layout.js',
+  'src/main/70-images/20-viewer-navigation.js'
 ];
 const outputFile = 'static/main.js';
 

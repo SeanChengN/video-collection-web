@@ -715,8 +715,6 @@ document.addEventListener('DOMContentLoaded', () => {
         makeDraggable(modal);
     });
 });
-
-// 查重核对相关代码
 function openDuplicateModal() {
     if (ModalManager.minimizedModals.has('duplicateModal')) {
         ModalManager.restoreModal('duplicateModal');
@@ -1169,7 +1167,6 @@ function formatRuntime(ticks) {
         `${hours}时${remainingMinutes}分` : 
         `${remainingMinutes}分钟`;
 }
-
 function openJackettModal() {
     if (ModalManager.minimizedModals.has('jackettModal')) {
         ModalManager.restoreModal('jackettModal');
@@ -1213,7 +1210,6 @@ function openWtlModal() {
 function closeWtlModal() {
     ModalManager.close('wtlModal');
 }
-
 const WTL_MODAL_DEFAULT_HEIGHT_RATIO = 0.3;
 const WTL_MODAL_MAX_HEIGHT_RATIO = 0.9;
 
@@ -5096,7 +5092,6 @@ function addImagePreview(imageData, uploadArea, index) {
 
     previewContainer.appendChild(previewItem);
 }
-
 // 添加图片查看器相关函数
 let currentImageIndex = 0;
 let currentImages = [];
@@ -5186,7 +5181,6 @@ function scheduleImageViewerResize() {
         requestAnimationFrame(resizeImageViewerImage);
     });
 }
-
 function openImageViewer(imageFilenames, movieTitle) {
     currentImageIndex = 0;
     currentImages = [];
