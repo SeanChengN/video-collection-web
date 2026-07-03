@@ -1,0 +1,47 @@
+/*----------------------------------------
+  Small stable app utilities
+----------------------------------------*/
+.vc-muted {
+    color: var(--vc-color-text-muted);
+}
+
+.vc-scroll-area {
+    min-height: 0;
+    overflow: auto;
+    scrollbar-gutter: stable;
+}
+
+.vc-dense {
+    gap: var(--vc-space-2);
+}
+
+.vc-nowrap {
+    white-space: nowrap;
+}
+
+.vc-truncate {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vc-full-width {
+    width: 100%;
+}
+
+.vc-hide {
+    display: none !important;
+}
+
+@media screen and (max-width: 768px) {
+    .vc-hide-mobile {
+        display: none !important;
+    }
+}
+
+@media screen and (min-width: 769px) {
+    .vc-hide-desktop {
+        display: none !important;
+    }
+}

@@ -1,0 +1,82 @@
+/*----------------------------------------
+  Video Collection Design Tokens
+  Stable semantic values for new app-owned styles.
+----------------------------------------*/
+:root {
+    /* Color roles */
+    --vc-color-bg: #f5f7fb;
+    --vc-color-bg-muted: #eef2f7;
+    --vc-color-surface: #ffffff;
+    --vc-color-surface-muted: #f8fafc;
+    --vc-color-surface-elevated: #ffffff;
+    --vc-color-text: #1f2937;
+    --vc-color-text-muted: #667085;
+    --vc-color-text-subtle: #8a94a6;
+    --vc-color-border: #d8dee9;
+    --vc-color-border-strong: #b8c2d3;
+    --vc-color-overlay: rgba(10, 10, 10, 0.72);
+
+    /* Action roles */
+    --vc-color-primary: #3273dc;
+    --vc-color-primary-hover: #2366d1;
+    --vc-color-primary-soft: #e7f0ff;
+    --vc-color-success: #22a06b;
+    --vc-color-success-soft: #e7f7ef;
+    --vc-color-warning: #f59e0b;
+    --vc-color-warning-soft: #fff3d6;
+    --vc-color-danger: #e5484d;
+    --vc-color-danger-soft: #fff0f0;
+    --vc-color-info: #3e8ed0;
+    --vc-color-info-soft: #e9f4ff;
+
+    /* Existing domain roles */
+    --vc-star-1: #ff774d;
+    --vc-star-2: #ff9d33;
+    --vc-star-3: #f9d71e;
+    --vc-star-4: #a0d234;
+    --vc-star-5: #20ca20;
+    --vc-star-default: #d3d3d3;
+
+    /* Typography */
+    --vc-font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --vc-font-size-xs: 0.75rem;
+    --vc-font-size-sm: 0.875rem;
+    --vc-font-size-md: 1rem;
+    --vc-font-size-lg: 1.125rem;
+    --vc-font-weight-regular: 400;
+    --vc-font-weight-medium: 500;
+    --vc-font-weight-bold: 700;
+    --vc-line-height-tight: 1.25;
+    --vc-line-height-base: 1.5;
+
+    /* Spacing */
+    --vc-space-0: 0;
+    --vc-space-1: 0.25rem;
+    --vc-space-2: 0.5rem;
+    --vc-space-3: 0.75rem;
+    --vc-space-4: 1rem;
+    --vc-space-5: 1.25rem;
+    --vc-space-6: 1.5rem;
+    --vc-space-8: 2rem;
+
+    /* Shape and elevation */
+    --vc-radius-xs: 4px;
+    --vc-radius-sm: 6px;
+    --vc-radius-md: 8px;
+    --vc-radius-lg: 10px;
+    --vc-radius-xl: 12px;
+    --vc-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.08);
+    --vc-shadow-md: 0 4px 12px rgba(16, 24, 40, 0.12);
+    --vc-shadow-lg: 0 12px 28px rgba(16, 24, 40, 0.18);
+    --vc-focus-ring: 0 0 0 3px rgba(50, 115, 220, 0.32);
+
+    /* Layout */
+    --vc-control-height-sm: 2rem;
+    --vc-control-height-md: 2.5rem;
+    --vc-control-height-lg: 3rem;
+    --vc-z-dropdown: 30;
+    --vc-z-sticky: 40;
+    --vc-z-modal: 1000;
+    --vc-breakpoint-mobile: 768px;
+    --vc-breakpoint-desktop: 1024px;
+}

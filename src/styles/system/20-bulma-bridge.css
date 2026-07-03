@@ -1,0 +1,84 @@
+/*----------------------------------------
+  Bulma bridge
+  Keep Bulma as the base library and expose app tokens where new styles can consume them.
+----------------------------------------*/
+:root {
+    --bulma-primary: var(--vc-color-primary);
+    --bulma-link: var(--vc-color-primary);
+    --bulma-info: var(--vc-color-info);
+    --bulma-success: var(--vc-color-success);
+    --bulma-warning: var(--vc-color-warning);
+    --bulma-danger: var(--vc-color-danger);
+}
+
+html[data-theme="dark"] body,
+.theme-dark body {
+    background: var(--vc-color-bg);
+    color: var(--vc-color-text);
+}
+
+html[data-theme="dark"] .box,
+html[data-theme="dark"] .function-tools,
+html[data-theme="dark"] .tags-box,
+html[data-theme="dark"] .image-box,
+html[data-theme="dark"] .ratings-box,
+html[data-theme="dark"] .modal-card,
+.theme-dark .box,
+.theme-dark .function-tools,
+.theme-dark .tags-box,
+.theme-dark .image-box,
+.theme-dark .ratings-box,
+.theme-dark .modal-card {
+    background: var(--vc-color-surface);
+    color: var(--vc-color-text);
+    border-color: var(--vc-color-border);
+}
+
+html[data-theme="dark"] .modal-card-head,
+html[data-theme="dark"] .modal-card-foot,
+.theme-dark .modal-card-head,
+.theme-dark .modal-card-foot {
+    background: var(--vc-color-surface-muted);
+    border-color: var(--vc-color-border);
+}
+
+html[data-theme="dark"] .input,
+html[data-theme="dark"] .textarea,
+html[data-theme="dark"] .select select,
+.theme-dark .input,
+.theme-dark .textarea,
+.theme-dark .select select {
+    background: var(--vc-color-surface-elevated);
+    color: var(--vc-color-text);
+    border-color: var(--vc-color-border);
+}
+
+html[data-theme="dark"] .table,
+.theme-dark .table {
+    background: var(--vc-color-surface);
+    color: var(--vc-color-text);
+}
+
+html[data-theme="dark"] .table th,
+html[data-theme="dark"] .table td,
+.theme-dark .table th,
+.theme-dark .table td {
+    border-color: var(--vc-color-border);
+    color: var(--vc-color-text);
+}
+
+html[data-theme="dark"] .label,
+html[data-theme="dark"] .title,
+html[data-theme="dark"] .subtitle,
+.theme-dark .label,
+.theme-dark .title,
+.theme-dark .subtitle {
+    color: var(--vc-color-text);
+}
+
+html[data-theme="dark"] .help,
+html[data-theme="dark"] .has-text-grey,
+.theme-dark .help,
+.theme-dark .has-text-grey {
+    color: var(--vc-color-text-muted) !important;
+}

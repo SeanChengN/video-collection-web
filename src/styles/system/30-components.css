@@ -1,0 +1,103 @@
+/*----------------------------------------
+  App component layer
+  New UI should prefer vc-* classes plus Bulma primitives.
+----------------------------------------*/
+.vc-panel {
+    background: var(--vc-color-surface);
+    border: 1px solid var(--vc-color-border);
+    border-radius: var(--vc-radius-lg);
+    box-shadow: var(--vc-shadow-sm);
+    color: var(--vc-color-text);
+    padding: var(--vc-space-4);
+}
+
+.vc-panel-header {
+    align-items: center;
+    display: flex;
+    gap: var(--vc-space-3);
+    justify-content: space-between;
+    margin-bottom: var(--vc-space-3);
+}
+
+.vc-toolbar {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--vc-space-2);
+}
+
+.vc-button {
+    align-items: center;
+    background: var(--vc-color-surface);
+    border: 1px solid var(--vc-color-border);
+    border-radius: var(--vc-radius-md);
+    color: var(--vc-color-text);
+    cursor: pointer;
+    display: inline-flex;
+    font: inherit;
+    gap: var(--vc-space-2);
+    min-height: var(--vc-control-height-md);
+    padding: 0 var(--vc-space-4);
+}
+
+.vc-button:hover {
+    border-color: var(--vc-color-primary);
+    color: var(--vc-color-primary);
+}
+
+.vc-button:focus-visible {
+    box-shadow: var(--vc-focus-ring);
+    outline: none;
+}
+
+.vc-button.is-primary,
+.vc-button[data-variant="primary"] {
+    background: var(--vc-color-primary);
+    border-color: var(--vc-color-primary);
+    color: #ffffff;
+}
+
+.vc-button.is-danger,
+.vc-button[data-variant="danger"] {
+    background: var(--vc-color-danger);
+    border-color: var(--vc-color-danger);
+    color: #ffffff;
+}
+
+.vc-icon-button {
+    align-items: center;
+    aspect-ratio: 1;
+    display: inline-flex;
+    justify-content: center;
+    min-height: var(--vc-control-height-md);
+    padding: 0;
+    width: var(--vc-control-height-md);
+}
+
+.vc-modal {
+    background: var(--vc-color-surface);
+    border: 1px solid var(--vc-color-border);
+    border-radius: var(--vc-radius-xl);
+    box-shadow: var(--vc-shadow-lg);
+    color: var(--vc-color-text);
+}
+
+.vc-table {
+    background: var(--vc-color-surface);
+    border: 1px solid var(--vc-color-border);
+    border-radius: var(--vc-radius-md);
+    overflow: hidden;
+    width: 100%;
+}
+
+.vc-form-grid {
+    display: grid;
+    gap: var(--vc-space-3);
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.vc-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vc-space-3);
+}

@@ -1,0 +1,41 @@
+/*----------------------------------------
+  Theme scopes
+  Themes override only tokens. Existing CSS keeps its current behavior unless it opts into tokens.
+----------------------------------------*/
+:root,
+html[data-theme="light"],
+.theme-light {
+    color-scheme: light;
+}
+
+html[data-theme="dark"],
+.theme-dark {
+    color-scheme: dark;
+    --vc-color-bg: #111827;
+    --vc-color-bg-muted: #182235;
+    --vc-color-surface: #1f2937;
+    --vc-color-surface-muted: #243247;
+    --vc-color-surface-elevated: #273449;
+    --vc-color-text: #f3f4f6;
+    --vc-color-text-muted: #cbd5e1;
+    --vc-color-text-subtle: #94a3b8;
+    --vc-color-border: #36445a;
+    --vc-color-border-strong: #52617a;
+    --vc-color-overlay: rgba(0, 0, 0, 0.78);
+    --vc-color-primary: #70a5ff;
+    --vc-color-primary-hover: #8bb6ff;
+    --vc-color-primary-soft: rgba(112, 165, 255, 0.18);
+    --vc-color-success: #4ade80;
+    --vc-color-success-soft: rgba(74, 222, 128, 0.16);
+    --vc-color-warning: #fbbf24;
+    --vc-color-warning-soft: rgba(251, 191, 36, 0.18);
+    --vc-color-danger: #fb7185;
+    --vc-color-danger-soft: rgba(251, 113, 133, 0.18);
+    --vc-color-info: #7dd3fc;
+    --vc-color-info-soft: rgba(125, 211, 252, 0.16);
+    --vc-star-default: #64748b;
+    --vc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
+    --vc-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.34);
+    --vc-shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.42);
+    --vc-focus-ring: 0 0 0 3px rgba(112, 165, 255, 0.38);
+}

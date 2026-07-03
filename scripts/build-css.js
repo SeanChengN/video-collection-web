@@ -3,6 +3,11 @@ const path = require('path');
 
 const projectRoot = path.resolve(__dirname, '..');
 const sourceFiles = [
+  'src/styles/system/00-tokens.css',
+  'src/styles/system/10-themes.css',
+  'src/styles/system/20-bulma-bridge.css',
+  'src/styles/system/30-components.css',
+  'src/styles/system/40-utilities.css',
   'src/styles/00-mobile-base.css',
   'src/styles/10-services-tools.css',
   'src/styles/20-thumbnail.css',

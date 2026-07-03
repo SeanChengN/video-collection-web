@@ -2867,8 +2867,6 @@ function openModal(movie) {
     ModalManager.open('editModal');
     updateThumbnailSelectionControls();
 }
-
-// 加载编辑标签
 async function loadEditTags() {
     try {
         const result = await callApi(event_map.get_tags);
@@ -2948,8 +2946,6 @@ async function loadEditRatings() {
         });
     }
 }
-
-// 删除电影相关代码
 function deleteMovie() {
     showAlert({
         title: '确认删除',
@@ -3006,8 +3002,6 @@ function saveSearchState() {
 function restoreSearchState() {
     applySearchControlsState(searchState);
 }
-
-// 更新电影信息
 async function updateMovie() {
     try {
         const form = document.getElementById('edit-movie-form');
