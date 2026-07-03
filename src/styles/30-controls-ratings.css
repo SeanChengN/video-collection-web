@@ -192,6 +192,48 @@ tr.is-duplicate:hover {
     box-shadow: 0 4px 8px rgba(74, 157, 236, 0.3);
 }
 
+.tags-filter .tag {
+    background: linear-gradient(
+        177.95deg,
+        var(--vc-button-shine, rgba(255, 255, 255, 0.19)) 0%,
+        transparent 100%
+    ),
+    var(--vc-filter-tag-bg, #f0f0f0);
+    border-color: var(--vc-filter-tag-border, rgba(0, 0, 0, 0.05));
+    color: var(--vc-filter-tag-text, #515151);
+}
+
+.tags-filter .tag:hover {
+    background: linear-gradient(
+        177.95deg,
+        var(--vc-button-shine, rgba(255, 255, 255, 0.25)) 0%,
+        transparent 100%
+    ),
+    var(--vc-filter-tag-hover-bg, #e0e0e0);
+    color: var(--vc-filter-tag-hover-text, #363636);
+}
+
+.tags-filter .tag.is-selected {
+    background: linear-gradient(
+        177.95deg,
+        var(--vc-button-shine, rgba(255, 255, 255, 0.25)) 0%,
+        transparent 100%
+    ),
+    var(--vc-filter-tag-selected-bg, #4a9dec);
+    border-color: var(--vc-filter-tag-selected-bg, #4a9dec);
+    color: var(--vc-filter-tag-selected-text, #ffffff);
+}
+
+.tags-filter .tag.is-selected:hover {
+    background: linear-gradient(
+        177.95deg,
+        var(--vc-button-shine, rgba(255, 255, 255, 0.3)) 0%,
+        transparent 100%
+    ),
+    var(--vc-filter-tag-selected-hover-bg, #3b8ed8);
+    color: var(--vc-filter-tag-selected-text, #ffffff);
+}
+
 
 
 /*----------------------------------------

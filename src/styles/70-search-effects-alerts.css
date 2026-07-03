@@ -102,6 +102,72 @@
     min-width: 77px;
 }
 
+.button.settings-btn,
+.button.search-btn,
+.button.save-btn,
+.button.save-btn-small,
+.button.add-btn,
+.button.dupStart-btn {
+    position: relative;
+    isolation: isolate;
+    border: none !important;
+    overflow: hidden;
+    background: transparent !important;
+    color: var(--vc-color-on-action, #ffffff) !important;
+}
+
+.button.settings-btn::before,
+.button.search-btn::before,
+.button.save-btn::before,
+.button.save-btn-small::before,
+.button.add-btn::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    z-index: 1;
+    opacity: 1;
+    transition: filter 0.3s, opacity 0.3s;
+}
+
+.button.settings-btn::before {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        var(--vc-action-settings-glow, rgba(223, 113, 255, 0.8)) 0%,
+        transparent 100%
+    ),
+    linear-gradient(0deg, var(--vc-action-settings, #8034ff), var(--vc-action-settings, #8034ff));
+}
+
+.button.search-btn::before {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        var(--vc-action-primary-glow, rgba(142, 161, 255, 0.8)) 0%,
+        transparent 100%
+    ),
+    linear-gradient(0deg, var(--vc-action-primary, #4169e1), var(--vc-action-primary, #4169e1));
+}
+
+.button.save-btn::before,
+.button.save-btn-small::before,
+.button.add-btn::before {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        var(--vc-action-success-glow, rgba(110, 231, 183, 0.8)) 0%,
+        transparent 100%
+    ),
+    linear-gradient(0deg, var(--vc-action-success, #17a84c), var(--vc-action-success, #17a84c));
+}
+
+.button.settings-btn span,
+.button.search-btn span,
+.button.save-btn span,
+.button.save-btn-small span,
+.button.add-btn span,
+.button.dupStart-btn span {
+    position: relative;
+    z-index: 2;
+}
+
 /* 设置按钮样式 */
 @keyframes rotate {
     from {transform: rotate(0deg);}
@@ -110,7 +176,7 @@
 
 
 /* 开始核对按钮样式 */
-.dupStart-btn {
+.button.dupStart-btn {
     min-width: 120px;
     width: 100%;
     overflow: hidden;
@@ -119,7 +185,7 @@
         var(--vc-duplicate-start-glow, rgba(223, 113, 255, 0.8)) 0%,
         transparent 100%
         ),
-        linear-gradient(0deg, var(--vc-duplicate-start-bg, #7a5af8), var(--vc-duplicate-start-bg, #7a5af8));
+        linear-gradient(0deg, var(--vc-duplicate-start-bg, #7a5af8), var(--vc-duplicate-start-bg, #7a5af8)) !important;
     border: none !important;
     outline: none;
     transition: background-color 0.3s ease, transform 0.3s, box-shadow 0.3s, position 0.3s, opacity 0.3s;

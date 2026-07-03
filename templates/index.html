@@ -292,6 +292,42 @@
             margin: 0.3rem;
             cursor: pointer;
             font-size: 0.9rem;
+            background: linear-gradient(
+                177.95deg,
+                var(--vc-button-shine, rgba(255, 255, 255, 0.19)) 0%,
+                transparent 100%
+            ),
+            var(--vc-filter-tag-bg, #f0f0f0);
+            border-color: var(--vc-filter-tag-border, rgba(0, 0, 0, 0.05));
+            color: var(--vc-filter-tag-text, #515151);
+        }
+        .tags-filter .tag:hover {
+            background: linear-gradient(
+                177.95deg,
+                var(--vc-button-shine, rgba(255, 255, 255, 0.25)) 0%,
+                transparent 100%
+            ),
+            var(--vc-filter-tag-hover-bg, #e0e0e0);
+            color: var(--vc-filter-tag-hover-text, #363636);
+        }
+        .tags-filter .tag.is-selected {
+            background: linear-gradient(
+                177.95deg,
+                var(--vc-button-shine, rgba(255, 255, 255, 0.25)) 0%,
+                transparent 100%
+            ),
+            var(--vc-filter-tag-selected-bg, #4a9dec);
+            border-color: var(--vc-filter-tag-selected-bg, #4a9dec);
+            color: var(--vc-filter-tag-selected-text, #ffffff);
+        }
+        .tags-filter .tag.is-selected:hover {
+            background: linear-gradient(
+                177.95deg,
+                var(--vc-button-shine, rgba(255, 255, 255, 0.3)) 0%,
+                transparent 100%
+            ),
+            var(--vc-filter-tag-selected-hover-bg, #3b8ed8);
+            color: var(--vc-filter-tag-selected-text, #ffffff);
         }
         .tag { 
             cursor: pointer; 
@@ -333,11 +369,11 @@
             position: absolute;
             inset: 0;
             z-index: 1;
-            opacity: 0;
+            opacity: 1;
             transition: opacity 0.3s;
             background: radial-gradient(
                 65.28% 65.28% at 50% 100%,
-                var(--vc-action-settings-shadow, rgba(223, 113, 255, 0.8)) 0%,
+                var(--vc-action-settings-glow, rgba(223, 113, 255, 0.8)) 0%,
                 transparent 100%
             ),
             linear-gradient(0deg, var(--vc-action-settings, #8034FF), var(--vc-action-settings, #8034FF));
@@ -364,10 +400,13 @@
         .save-btn,
         .save-btn-small,
         .add-btn {
+            position: relative;
+            isolation: isolate;
             display: flex;
             border: none !important;
             overflow: hidden;
-            background: transparent;
+            background: transparent !important;
+            color: var(--vc-color-on-action, #ffffff) !important;
             transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s, opacity 0.3s, fillter 0.3s;;
         }
         .search-btn::before {
@@ -377,7 +416,7 @@
             z-index: 1;
             background: radial-gradient(
                 65.28% 65.28% at 50% 100%,
-                var(--vc-action-primary-shadow, rgba(142, 161, 255, 0.8)) 0%,
+                var(--vc-action-primary-glow, rgba(142, 161, 255, 0.8)) 0%,
                 transparent 100%
             ),
             linear-gradient(0deg, var(--vc-action-primary, #4169e1), var(--vc-action-primary, #4169e1));
@@ -392,7 +431,7 @@
             z-index: 1;
             background: radial-gradient(
                 65.28% 65.28% at 50% 100%,
-                var(--vc-action-success-shadow, rgba(110, 231, 183, 0.8)) 0%,
+                var(--vc-action-success-glow, rgba(110, 231, 183, 0.8)) 0%,
                 transparent 100%
             ),
             linear-gradient(0deg, var(--vc-action-success, #17a84c), var(--vc-action-success, #17a84c));

@@ -591,6 +591,10 @@
     pointer-events: none;
 }
 
+#search-results .movie-results-table tbody tr:hover {
+    background-color: var(--vc-table-hover-bg, #f5faff);
+}
+
 .search-skeleton .movie-title-with-image {
     display: flex;
     align-items: center;
@@ -773,6 +777,10 @@
         border-radius: 8px;
         background: var(--vc-result-card-bg, #fff);
         box-shadow: var(--vc-panel-shadow-compact, 0 2px 8px rgba(10, 10, 10, 0.08));
+    }
+    #search-results .movie-results-table tr:hover {
+        border-color: var(--vc-control-focus-border, #4a9dec);
+        background: var(--vc-list-hover-bg, #f5faff);
     }
     #search-results .movie-results-table td {
         min-width: 0;

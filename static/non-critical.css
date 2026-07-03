@@ -95,13 +95,17 @@
     --vc-button-disabled-bg: #f5f5f5;
     --vc-button-disabled-text: #8a94a6;
     --vc-action-primary: #4169e1;
+    --vc-action-primary-glow: rgba(142, 161, 255, 0.8);
     --vc-action-primary-shadow: rgba(67, 97, 238, 0.4);
     --vc-action-success: #17a84c;
+    --vc-action-success-glow: rgba(110, 231, 183, 0.8);
     --vc-action-success-shadow: rgba(34, 197, 94, 0.4);
     --vc-action-danger: #ff3950;
     --vc-action-danger-shadow: rgba(241, 70, 104, 0.4);
     --vc-action-settings: #8034ff;
+    --vc-action-settings-glow: rgba(223, 113, 255, 0.8);
     --vc-action-settings-shadow: rgba(151, 71, 255, 0.4);
+    --vc-action-button-shine: rgba(255, 255, 255, 0.19);
     --vc-tag-bg: #f0f0f0;
     --vc-tag-text: #515151;
     --vc-tag-border: rgba(0, 0, 0, 0.05);
@@ -129,6 +133,14 @@
     --vc-recommend-hover-shadow: rgba(255, 152, 0, 0.3);
     --vc-recommend-active-bg: #fffde7;
     --vc-recommend-active-shadow: rgba(255, 152, 0, 0.2);
+    --vc-filter-tag-bg: #f0f0f0;
+    --vc-filter-tag-text: #515151;
+    --vc-filter-tag-border: rgba(0, 0, 0, 0.05);
+    --vc-filter-tag-hover-bg: #e0e0e0;
+    --vc-filter-tag-hover-text: #363636;
+    --vc-filter-tag-selected-bg: #4a9dec;
+    --vc-filter-tag-selected-hover-bg: #3b8ed8;
+    --vc-filter-tag-selected-text: #ffffff;
     --vc-select-arrow: #4a9dec;
     --vc-select-option-bg: #ffffff;
     --vc-select-option-selected-bg: #cee6ff;
@@ -190,6 +202,18 @@
     --vc-thumbnail-item-hover-shadow: 0 6px 12px rgba(50, 115, 220, 0.3);
     --vc-thumbnail-item-selected-shadow: 0 0 0 3px rgba(50, 115, 220, 0.35), 0 6px 14px rgba(50, 115, 220, 0.32);
     --vc-thumbnail-meta: #7a7a7a;
+    --vc-thumbnail-time-bg: rgba(0, 0, 0, 0.68);
+    --vc-thumbnail-time-text: #ffffff;
+    --vc-thumbnail-source-bg: #f5f5f5;
+    --vc-thumbnail-source-text: #515151;
+    --vc-thumbnail-source-border: #dbdbdb;
+    --vc-thumbnail-source-hover-bg: #eeeeee;
+    --vc-thumbnail-source-active-bg: #3273dc;
+    --vc-thumbnail-source-active-text: #ffffff;
+    --vc-thumbnail-action-shine: rgba(255, 255, 255, 0.28);
+    --vc-thumbnail-action-bg: rgba(255, 255, 255, 0.82);
+    --vc-thumbnail-action-text: #363636;
+    --vc-thumbnail-action-border: rgba(0, 0, 0, 0.08);
     --vc-modal-bg: rgba(255, 255, 255, 0.3);
     --vc-modal-border: rgba(255, 255, 255, 0.4);
     --vc-modal-header-bg: rgba(255, 255, 255, 0.4);
@@ -298,13 +322,17 @@ html[data-theme="dark"],
     --vc-button-disabled-bg: #1b2433;
     --vc-button-disabled-text: #64748b;
     --vc-action-primary: #70a5ff;
+    --vc-action-primary-glow: rgba(112, 165, 255, 0.56);
     --vc-action-primary-shadow: rgba(112, 165, 255, 0.34);
     --vc-action-success: #4ade80;
+    --vc-action-success-glow: rgba(74, 222, 128, 0.5);
     --vc-action-success-shadow: rgba(74, 222, 128, 0.32);
     --vc-action-danger: #fb7185;
     --vc-action-danger-shadow: rgba(251, 113, 133, 0.34);
     --vc-action-settings: #c084fc;
+    --vc-action-settings-glow: rgba(192, 132, 252, 0.62);
     --vc-action-settings-shadow: rgba(192, 132, 252, 0.34);
+    --vc-action-button-shine: rgba(255, 255, 255, 0.14);
     --vc-tag-bg: #273449;
     --vc-tag-text: #dbe4f0;
     --vc-tag-border: #52617a;
@@ -332,6 +360,14 @@ html[data-theme="dark"],
     --vc-recommend-hover-shadow: rgba(251, 191, 36, 0.24);
     --vc-recommend-active-bg: rgba(251, 191, 36, 0.2);
     --vc-recommend-active-shadow: rgba(251, 191, 36, 0.18);
+    --vc-filter-tag-bg: #273449;
+    --vc-filter-tag-text: #dbe4f0;
+    --vc-filter-tag-border: #52617a;
+    --vc-filter-tag-hover-bg: #334155;
+    --vc-filter-tag-hover-text: #f3f4f6;
+    --vc-filter-tag-selected-bg: #70a5ff;
+    --vc-filter-tag-selected-hover-bg: #8bb6ff;
+    --vc-filter-tag-selected-text: #0b1220;
     --vc-select-arrow: #70a5ff;
     --vc-select-option-bg: #273449;
     --vc-select-option-selected-bg: rgba(112, 165, 255, 0.28);
@@ -393,6 +429,18 @@ html[data-theme="dark"],
     --vc-thumbnail-item-hover-shadow: 0 7px 14px rgba(112, 165, 255, 0.22);
     --vc-thumbnail-item-selected-shadow: 0 0 0 3px rgba(112, 165, 255, 0.35), 0 7px 16px rgba(0, 0, 0, 0.32);
     --vc-thumbnail-meta: #94a3b8;
+    --vc-thumbnail-time-bg: rgba(3, 7, 18, 0.76);
+    --vc-thumbnail-time-text: #f3f4f6;
+    --vc-thumbnail-source-bg: #273449;
+    --vc-thumbnail-source-text: #f3f4f6;
+    --vc-thumbnail-source-border: #52617a;
+    --vc-thumbnail-source-hover-bg: #334155;
+    --vc-thumbnail-source-active-bg: #70a5ff;
+    --vc-thumbnail-source-active-text: #0b1220;
+    --vc-thumbnail-action-shine: rgba(255, 255, 255, 0.16);
+    --vc-thumbnail-action-bg: #273449;
+    --vc-thumbnail-action-text: #f3f4f6;
+    --vc-thumbnail-action-border: #52617a;
     --vc-modal-bg: rgba(31, 41, 55, 0.88);
     --vc-modal-border: rgba(82, 97, 122, 0.78);
     --vc-modal-header-bg: rgba(36, 50, 71, 0.92);
@@ -1459,6 +1507,19 @@ html[data-theme="dark"] .has-text-grey,
 }
 .thumbnail-source-tabs .button.is-small {
     width: 100%;
+    background: var(--vc-thumbnail-source-bg, #f5f5f5) !important;
+    border-color: var(--vc-thumbnail-source-border, #dbdbdb) !important;
+    color: var(--vc-thumbnail-source-text, #515151) !important;
+}
+.thumbnail-source-tabs .button.is-small:hover {
+    background: var(--vc-thumbnail-source-hover-bg, #eeeeee) !important;
+    border-color: var(--vc-control-focus-border, #4a9dec) !important;
+}
+.thumbnail-source-tabs .button.is-small.is-info,
+.thumbnail-source-tabs .button.is-small[aria-pressed="true"] {
+    background: var(--vc-thumbnail-source-active-bg, #3273dc) !important;
+    border-color: var(--vc-thumbnail-source-active-bg, #3273dc) !important;
+    color: var(--vc-thumbnail-source-active-text, #ffffff) !important;
 }
 .thumbnail-emby-search {
     display: flex;
@@ -1771,9 +1832,12 @@ html[data-theme="dark"] .has-text-grey,
     isolation: isolate;
     overflow: hidden;
     border-color: color-mix(in srgb, var(--thumbnail-action-color) 22%, rgba(0, 0, 0, 0.08));
+    background-color: var(--vc-thumbnail-action-bg, rgba(255, 255, 255, 0.82)) !important;
     background-image:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0)),
-        radial-gradient(80% 100% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 10%, transparent), transparent 72%);
+        linear-gradient(180deg, var(--vc-thumbnail-action-shine, rgba(255, 255, 255, 0.22)), transparent),
+        radial-gradient(80% 100% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 18%, transparent), transparent 72%),
+        linear-gradient(0deg, color-mix(in srgb, var(--thumbnail-action-color) 10%, var(--vc-thumbnail-action-bg, #ffffff)), color-mix(in srgb, var(--thumbnail-action-color) 10%, var(--vc-thumbnail-action-bg, #ffffff)));
+    color: var(--vc-thumbnail-action-text, #363636) !important;
     box-shadow: 0 2px 6px color-mix(in srgb, var(--thumbnail-action-color) 18%, transparent);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, filter 0.2s ease, background-color 0.2s ease;
 }
@@ -1787,7 +1851,7 @@ html[data-theme="dark"] .has-text-grey,
     opacity: 0;
     pointer-events: none;
     background:
-        radial-gradient(70% 70% at 50% 100%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 70%),
+        radial-gradient(70% 70% at 50% 100%, var(--vc-thumbnail-action-shine, rgba(255, 255, 255, 0.35)), transparent 70%),
         linear-gradient(0deg, var(--thumbnail-action-color), var(--thumbnail-action-color));
     transition: opacity 0.2s ease;
 }
@@ -1797,7 +1861,7 @@ html[data-theme="dark"] .has-text-grey,
     transform: translateY(-2px);
     border-color: color-mix(in srgb, var(--thumbnail-action-color) 62%, transparent);
     background-image:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0)),
+        linear-gradient(180deg, var(--vc-thumbnail-action-shine, rgba(255, 255, 255, 0.28)), transparent),
         radial-gradient(85% 110% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 24%, transparent), transparent 70%);
     box-shadow: 0 7px 15px color-mix(in srgb, var(--thumbnail-action-color) 38%, transparent);
 }
@@ -2019,8 +2083,8 @@ html[data-theme="dark"] .has-text-grey,
     z-index: 2;
     max-width: calc(100% - 1rem);
     border-radius: 999px;
-    background: rgba(0, 0, 0, 0.68);
-    color: var(--vc-color-on-action, #fff);
+    background: var(--vc-thumbnail-time-bg, rgba(0, 0, 0, 0.68));
+    color: var(--vc-thumbnail-time-text, #ffffff);
     font-size: 0.78rem;
     line-height: 1;
     padding: 0.28rem 0.45rem;
@@ -2280,6 +2344,48 @@ tr.is-duplicate:hover {
     var(--vc-tag-selected-hover-bg, #3b8ed8);
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(74, 157, 236, 0.3);
+}
+
+.tags-filter .tag {
+    background: linear-gradient(
+        177.95deg,
+        var(--vc-button-shine, rgba(255, 255, 255, 0.19)) 0%,
+        transparent 100%
+    ),
+    var(--vc-filter-tag-bg, #f0f0f0);
+    border-color: var(--vc-filter-tag-border, rgba(0, 0, 0, 0.05));
+    color: var(--vc-filter-tag-text, #515151);
+}
+
+.tags-filter .tag:hover {
+    background: linear-gradient(
+        177.95deg,
+        var(--vc-button-shine, rgba(255, 255, 255, 0.25)) 0%,
+        transparent 100%
+    ),
+    var(--vc-filter-tag-hover-bg, #e0e0e0);
+    color: var(--vc-filter-tag-hover-text, #363636);
+}
+
+.tags-filter .tag.is-selected {
+    background: linear-gradient(
+        177.95deg,
+        var(--vc-button-shine, rgba(255, 255, 255, 0.25)) 0%,
+        transparent 100%
+    ),
+    var(--vc-filter-tag-selected-bg, #4a9dec);
+    border-color: var(--vc-filter-tag-selected-bg, #4a9dec);
+    color: var(--vc-filter-tag-selected-text, #ffffff);
+}
+
+.tags-filter .tag.is-selected:hover {
+    background: linear-gradient(
+        177.95deg,
+        var(--vc-button-shine, rgba(255, 255, 255, 0.3)) 0%,
+        transparent 100%
+    ),
+    var(--vc-filter-tag-selected-hover-bg, #3b8ed8);
+    color: var(--vc-filter-tag-selected-text, #ffffff);
 }
 
 
@@ -3833,6 +3939,10 @@ tr.is-duplicate:hover {
     pointer-events: none;
 }
 
+#search-results .movie-results-table tbody tr:hover {
+    background-color: var(--vc-table-hover-bg, #f5faff);
+}
+
 .search-skeleton .movie-title-with-image {
     display: flex;
     align-items: center;
@@ -4015,6 +4125,10 @@ tr.is-duplicate:hover {
         border-radius: 8px;
         background: var(--vc-result-card-bg, #fff);
         box-shadow: var(--vc-panel-shadow-compact, 0 2px 8px rgba(10, 10, 10, 0.08));
+    }
+    #search-results .movie-results-table tr:hover {
+        border-color: var(--vc-control-focus-border, #4a9dec);
+        background: var(--vc-list-hover-bg, #f5faff);
     }
     #search-results .movie-results-table td {
         min-width: 0;
@@ -5097,6 +5211,72 @@ tr.is-duplicate:hover {
     min-width: 77px;
 }
 
+.button.settings-btn,
+.button.search-btn,
+.button.save-btn,
+.button.save-btn-small,
+.button.add-btn,
+.button.dupStart-btn {
+    position: relative;
+    isolation: isolate;
+    border: none !important;
+    overflow: hidden;
+    background: transparent !important;
+    color: var(--vc-color-on-action, #ffffff) !important;
+}
+
+.button.settings-btn::before,
+.button.search-btn::before,
+.button.save-btn::before,
+.button.save-btn-small::before,
+.button.add-btn::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    z-index: 1;
+    opacity: 1;
+    transition: filter 0.3s, opacity 0.3s;
+}
+
+.button.settings-btn::before {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        var(--vc-action-settings-glow, rgba(223, 113, 255, 0.8)) 0%,
+        transparent 100%
+    ),
+    linear-gradient(0deg, var(--vc-action-settings, #8034ff), var(--vc-action-settings, #8034ff));
+}
+
+.button.search-btn::before {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        var(--vc-action-primary-glow, rgba(142, 161, 255, 0.8)) 0%,
+        transparent 100%
+    ),
+    linear-gradient(0deg, var(--vc-action-primary, #4169e1), var(--vc-action-primary, #4169e1));
+}
+
+.button.save-btn::before,
+.button.save-btn-small::before,
+.button.add-btn::before {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        var(--vc-action-success-glow, rgba(110, 231, 183, 0.8)) 0%,
+        transparent 100%
+    ),
+    linear-gradient(0deg, var(--vc-action-success, #17a84c), var(--vc-action-success, #17a84c));
+}
+
+.button.settings-btn span,
+.button.search-btn span,
+.button.save-btn span,
+.button.save-btn-small span,
+.button.add-btn span,
+.button.dupStart-btn span {
+    position: relative;
+    z-index: 2;
+}
+
 /* 设置按钮样式 */
 @keyframes rotate {
     from {transform: rotate(0deg);}
@@ -5105,7 +5285,7 @@ tr.is-duplicate:hover {
 
 
 /* 开始核对按钮样式 */
-.dupStart-btn {
+.button.dupStart-btn {
     min-width: 120px;
     width: 100%;
     overflow: hidden;
@@ -5114,7 +5294,7 @@ tr.is-duplicate:hover {
         var(--vc-duplicate-start-glow, rgba(223, 113, 255, 0.8)) 0%,
         transparent 100%
         ),
-        linear-gradient(0deg, var(--vc-duplicate-start-bg, #7a5af8), var(--vc-duplicate-start-bg, #7a5af8));
+        linear-gradient(0deg, var(--vc-duplicate-start-bg, #7a5af8), var(--vc-duplicate-start-bg, #7a5af8)) !important;
     border: none !important;
     outline: none;
     transition: background-color 0.3s ease, transform 0.3s, box-shadow 0.3s, position 0.3s, opacity 0.3s;
