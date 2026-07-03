@@ -798,6 +798,17 @@ body {
     background-color: var(--vc-table-hover-bg);
 }
 
+.table.is-hoverable tbody tr:not(.is-selected):hover > th,
+.table.is-hoverable tbody tr:not(.is-selected):hover > td,
+#search-results .movie-results-table tbody tr:hover > th,
+#search-results .movie-results-table tbody tr:hover > td,
+.settings-modal .table tbody tr:hover > th,
+.settings-modal .table tbody tr:hover > td,
+#duplicate-table .table tbody tr:hover > th,
+#duplicate-table .table tbody tr:hover > td {
+    background-color: var(--vc-table-hover-bg);
+}
+
 .settings-list-item:hover,
 .thumbnail-file-row:hover,
 .list-item:hover {
@@ -1532,20 +1543,42 @@ html[data-theme="dark"] .has-text-grey,
     margin-bottom: 0.75rem;
 }
 .thumbnail-source-tabs .button.is-small {
+    position: relative;
     width: 100%;
     background: var(--vc-thumbnail-source-bg, #f5f5f5) !important;
     border-color: var(--vc-thumbnail-source-border, #dbdbdb) !important;
     color: var(--vc-thumbnail-source-text, #515151) !important;
+    overflow: hidden;
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, filter 0.25s ease, transform 0.2s ease, box-shadow 0.3s ease;
 }
-.thumbnail-source-tabs .button.is-small:hover {
-    background: var(--vc-thumbnail-source-hover-bg, #eeeeee) !important;
+.thumbnail-source-tabs .button.is-small:not([aria-pressed="true"]):hover {
+    background:
+        linear-gradient(177.95deg, color-mix(in srgb, var(--vc-action-primary, #4169e1) 18%, transparent), transparent),
+        var(--vc-thumbnail-source-hover-bg, #eeeeee) !important;
     border-color: var(--vc-control-focus-border, #4a9dec) !important;
 }
 .thumbnail-source-tabs .button.is-small.is-info,
 .thumbnail-source-tabs .button.is-small[aria-pressed="true"] {
-    background: var(--vc-thumbnail-source-active-bg, #3273dc) !important;
-    border-color: var(--vc-thumbnail-source-active-bg, #3273dc) !important;
-    color: var(--vc-thumbnail-source-active-text, #ffffff) !important;
+    background:
+        radial-gradient(
+            65.28% 65.28% at 50% 100%,
+            var(--vc-action-primary-glow, rgba(142, 161, 255, 0.8)) 0%,
+            transparent 100%
+        ),
+        linear-gradient(0deg, var(--vc-action-primary, #4169e1), var(--vc-action-primary, #4169e1)) !important;
+    border-color: transparent !important;
+    box-shadow: 0 6px 16px var(--vc-action-primary-shadow, rgba(65, 105, 225, 0.42)) !important;
+    color: var(--vc-color-on-action, #ffffff) !important;
+}
+.thumbnail-source-tabs .button.is-small.is-info:hover,
+.thumbnail-source-tabs .button.is-small.is-info:active,
+.thumbnail-source-tabs .button.is-small[aria-pressed="true"]:hover,
+.thumbnail-source-tabs .button.is-small[aria-pressed="true"]:active {
+    color: var(--vc-color-on-action-hover, #ffffff) !important;
+    filter: brightness(92%);
+}
+.thumbnail-source-tabs .button.is-small[aria-pressed="true"]:active {
+    transform: translateY(1px) scale(0.98);
 }
 .thumbnail-emby-search {
     display: flex;
@@ -1857,14 +1890,14 @@ html[data-theme="dark"] .has-text-grey,
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    border-color: color-mix(in srgb, var(--thumbnail-action-color) 22%, rgba(0, 0, 0, 0.08));
+    border-color: color-mix(in srgb, var(--thumbnail-action-color) 42%, var(--vc-thumbnail-action-border, rgba(0, 0, 0, 0.08)));
     background-color: var(--vc-thumbnail-action-bg, rgba(255, 255, 255, 0.82)) !important;
     background-image:
         linear-gradient(180deg, var(--vc-thumbnail-action-shine, rgba(255, 255, 255, 0.22)), transparent),
-        radial-gradient(80% 100% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 18%, transparent), transparent 72%),
-        linear-gradient(0deg, color-mix(in srgb, var(--thumbnail-action-color) 10%, var(--vc-thumbnail-action-bg, #ffffff)), color-mix(in srgb, var(--thumbnail-action-color) 10%, var(--vc-thumbnail-action-bg, #ffffff)));
+        radial-gradient(80% 100% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 36%, transparent), transparent 72%),
+        linear-gradient(0deg, color-mix(in srgb, var(--thumbnail-action-color) 24%, var(--vc-thumbnail-action-bg, #ffffff)), color-mix(in srgb, var(--thumbnail-action-color) 18%, var(--vc-thumbnail-action-bg, #ffffff)));
     color: var(--vc-thumbnail-action-text, #363636) !important;
-    box-shadow: 0 2px 6px color-mix(in srgb, var(--thumbnail-action-color) 18%, transparent);
+    box-shadow: 0 3px 9px color-mix(in srgb, var(--thumbnail-action-color) 28%, transparent);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, filter 0.2s ease, background-color 0.2s ease;
 }
 #thumbnailModal .thumbnail-manual-grid .button.is-small::before,
@@ -1885,16 +1918,17 @@ html[data-theme="dark"] .has-text-grey,
 #thumbnailModal .thumbnail-manual-capture .button.is-small:not(:disabled):not([disabled]):hover,
 #thumbnailModal .thumbnail-batch-section .button.is-small:not(:disabled):not([disabled]):hover {
     transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--thumbnail-action-color) 62%, transparent);
+    border-color: color-mix(in srgb, var(--thumbnail-action-color) 78%, transparent);
     background-image:
         linear-gradient(180deg, var(--vc-thumbnail-action-shine, rgba(255, 255, 255, 0.28)), transparent),
-        radial-gradient(85% 110% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 24%, transparent), transparent 70%);
-    box-shadow: 0 7px 15px color-mix(in srgb, var(--thumbnail-action-color) 38%, transparent);
+        radial-gradient(85% 110% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 42%, transparent), transparent 70%),
+        linear-gradient(0deg, color-mix(in srgb, var(--thumbnail-action-color) 28%, var(--vc-thumbnail-action-bg, #ffffff)), color-mix(in srgb, var(--thumbnail-action-color) 20%, var(--vc-thumbnail-action-bg, #ffffff)));
+    box-shadow: 0 8px 18px color-mix(in srgb, var(--thumbnail-action-color) 48%, transparent);
 }
 #thumbnailModal .thumbnail-manual-grid .button.is-small:not(:disabled):not([disabled]):hover::before,
 #thumbnailModal .thumbnail-manual-capture .button.is-small:not(:disabled):not([disabled]):hover::before,
 #thumbnailModal .thumbnail-batch-section .button.is-small:not(:disabled):not([disabled]):hover::before {
-    opacity: 0.28;
+    opacity: 0.38;
 }
 #thumbnailModal .thumbnail-manual-grid .button.is-small:not(:disabled):not([disabled]):active,
 #thumbnailModal .thumbnail-manual-capture .button.is-small:not(:disabled):not([disabled]):active,
@@ -1917,6 +1951,7 @@ html[data-theme="dark"] .has-text-grey,
     transform: none;
     box-shadow: none;
     cursor: not-allowed;
+    filter: saturate(0.65);
 }
 #thumbnailModal .thumbnail-manual-grid .button.is-small {
     --thumbnail-action-color: var(--vc-control-focus-border, #4a9dec);
@@ -4492,11 +4527,11 @@ tr.is-duplicate:hover {
 }
 .settings-tabs li:hover,
 .settings-tabs li.is-active {
-    background: var(--vc-table-hover-bg, #f5faff);
+    background: var(--vc-table-hover-bg, #f5faff) !important;
     color: var(--vc-list-text, #1f2937);
 }
 .settings-tabs li:active {
-    background: var(--vc-list-selected-bg, #eef6ff);
+    background: var(--vc-list-selected-bg, #eef6ff) !important;
 }
 .settings-tabs li.is-active {
     border-bottom: 1px solid var(--vc-control-focus-border, #4a9dec);
@@ -5043,17 +5078,33 @@ tr.is-duplicate:hover {
     .settings-tabs {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        min-height: 3rem;
     }
     .settings-tabs ul {
-        min-width: 0;
+        display: flex;
+        align-items: stretch;
+        flex-wrap: nowrap;
+        min-width: max-content;
+        width: 100%;
     }
     .settings-tabs li {
-        min-width: 0;
-        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1 0 auto;
+        min-width: max-content;
+        min-height: 2.9rem;
+        height: auto;
     }
     .settings-tabs a {
-        padding: 0 0.45rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        min-height: 2.9rem;
+        padding: 0.45rem 0.65rem;
         font-size: 0.95rem !important;
+        line-height: 1.2;
         white-space: nowrap;
     }
     .settings-modal .add-item-form,
@@ -5172,8 +5223,33 @@ tr.is-duplicate:hover {
 }
 
 /* 表格行悬停效果 */
-.settings-modal .table tbody tr:hover {
-    background-color: var(--vc-table-hover-bg, #f5faff);
+.settings-modal .table tbody tr:hover,
+.settings-modal .table tbody tr:hover > th,
+.settings-modal .table tbody tr:hover > td,
+#tagsList tr:hover,
+#tagsList tr:hover > th,
+#tagsList tr:hover > td,
+#ratingsList tr:hover,
+#ratingsList tr:hover > th,
+#ratingsList tr:hover > td,
+#dbBackupsList tr:hover,
+#dbBackupsList tr:hover > th,
+#dbBackupsList tr:hover > td {
+    background-color: var(--vc-table-hover-bg, #f5faff) !important;
+    color: var(--vc-color-text, #363636);
+}
+
+#tagsList tr:active,
+#tagsList tr:active > th,
+#tagsList tr:active > td,
+#ratingsList tr:active,
+#ratingsList tr:active > th,
+#ratingsList tr:active > td,
+#dbBackupsList tr:active,
+#dbBackupsList tr:active > th,
+#dbBackupsList tr:active > td {
+    background-color: var(--vc-list-selected-bg, #eef6ff) !important;
+    color: var(--vc-color-text, #363636);
 }
 
 /* 设置按钮特效 */

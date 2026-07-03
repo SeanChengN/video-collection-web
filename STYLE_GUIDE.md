@@ -60,5 +60,9 @@
 - Maintenance create-backup is an action gradient button; do not style it with maintenance panel-only colors.
 - Search filter tags and add/edit movie tags are the same tag-button component; style them together with `--vc-filter-tag-*` tokens.
 - Search result tables and settings modal tables are the same list/table component; style their row, hover, border, and text states with shared `--vc-table-*` / `--vc-list-*` tokens.
+- Table/list hover rules must cover both the row and its cells (`tr:hover`, `tr:hover > th`, `tr:hover > td`) because Bulma striped tables and legacy cell backgrounds can otherwise hide the themed state.
 - Filter tags and thumbnail tool controls should use their scoped tokens (`--vc-filter-tag-*`, `--vc-thumbnail-*`) instead of generic button/tag tokens when default, selected, and hover states need to differ.
+- Two-state segmented controls should style the selected state from `aria-pressed="true"` first; compatibility classes like `is-info` / `is-light` should not be the only source of visual truth.
+- Mobile tab bars should use `min-height` plus flex alignment for the tab item and link; avoid fixed-height-only rules that can clip text or counters.
+- Thumbnail capture controls should keep a visible default-state color mix from `--thumbnail-action-color`; do not make action buttons depend on hover alone for color strength.
 - Avoid naked `#fff`, `#000`, `white`, `black`, `rgb(...)`, or `rgba(...)` in theme-critical component selectors; wrap them behind a token unless the color is part of media content or a deliberate overlay.

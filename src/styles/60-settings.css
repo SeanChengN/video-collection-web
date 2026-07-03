@@ -98,11 +98,11 @@
 }
 .settings-tabs li:hover,
 .settings-tabs li.is-active {
-    background: var(--vc-table-hover-bg, #f5faff);
+    background: var(--vc-table-hover-bg, #f5faff) !important;
     color: var(--vc-list-text, #1f2937);
 }
 .settings-tabs li:active {
-    background: var(--vc-list-selected-bg, #eef6ff);
+    background: var(--vc-list-selected-bg, #eef6ff) !important;
 }
 .settings-tabs li.is-active {
     border-bottom: 1px solid var(--vc-control-focus-border, #4a9dec);
@@ -649,17 +649,33 @@
     .settings-tabs {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        min-height: 3rem;
     }
     .settings-tabs ul {
-        min-width: 0;
+        display: flex;
+        align-items: stretch;
+        flex-wrap: nowrap;
+        min-width: max-content;
+        width: 100%;
     }
     .settings-tabs li {
-        min-width: 0;
-        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1 0 auto;
+        min-width: max-content;
+        min-height: 2.9rem;
+        height: auto;
     }
     .settings-tabs a {
-        padding: 0 0.45rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        min-height: 2.9rem;
+        padding: 0.45rem 0.65rem;
         font-size: 0.95rem !important;
+        line-height: 1.2;
         white-space: nowrap;
     }
     .settings-modal .add-item-form,
@@ -778,8 +794,33 @@
 }
 
 /* 表格行悬停效果 */
-.settings-modal .table tbody tr:hover {
-    background-color: var(--vc-table-hover-bg, #f5faff);
+.settings-modal .table tbody tr:hover,
+.settings-modal .table tbody tr:hover > th,
+.settings-modal .table tbody tr:hover > td,
+#tagsList tr:hover,
+#tagsList tr:hover > th,
+#tagsList tr:hover > td,
+#ratingsList tr:hover,
+#ratingsList tr:hover > th,
+#ratingsList tr:hover > td,
+#dbBackupsList tr:hover,
+#dbBackupsList tr:hover > th,
+#dbBackupsList tr:hover > td {
+    background-color: var(--vc-table-hover-bg, #f5faff) !important;
+    color: var(--vc-color-text, #363636);
+}
+
+#tagsList tr:active,
+#tagsList tr:active > th,
+#tagsList tr:active > td,
+#ratingsList tr:active,
+#ratingsList tr:active > th,
+#ratingsList tr:active > td,
+#dbBackupsList tr:active,
+#dbBackupsList tr:active > th,
+#dbBackupsList tr:active > td {
+    background-color: var(--vc-list-selected-bg, #eef6ff) !important;
+    color: var(--vc-color-text, #363636);
 }
 
 /* 设置按钮特效 */

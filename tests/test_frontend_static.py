@@ -46,6 +46,9 @@ THEME_CRITICAL_SELECTORS = (
     "#edit-tags .tag",
     "#search-results .movie-results-table",
     ".settings-modal .table",
+    "#tagsList tr:hover",
+    "#ratingsList tr:hover",
+    "#dbBackupsList tr:hover",
     "#duplicate-table .table",
     "tr.is-duplicate",
     ".settings-tabs li",
@@ -53,6 +56,7 @@ THEME_CRITICAL_SELECTORS = (
     ".settings-list-item",
     ".thumbnail-file-row",
     ".thumbnail-source-tabs",
+    ".thumbnail-source-tabs .button.is-small[aria-pressed=\"true\"]",
     ".thumbnail-batch-section",
     ".thumbnail-manual-grid",
     ".thumbnail-item-time",
@@ -157,3 +161,39 @@ def test_dark_theme_declares_action_text_state_tokens():
     content = THEME_OVERRIDE_FILE.read_text(encoding="utf-8")
     assert "--vc-color-on-action:" in content
     assert "--vc-color-on-action-hover:" in content
+
+
+def test_settings_table_hover_rules_cover_cells():
+    content = (STYLE_SOURCE_DIR / "60-settings.css").read_text(encoding="utf-8")
+    for tbody_id in ("#tagsList", "#ratingsList", "#dbBackupsList"):
+        assert f"{tbody_id} tr:hover" in content
+        assert f"{tbody_id} tr:hover > th" in content
+        assert f"{tbody_id} tr:hover > td" in content
+        assert f"{tbody_id} tr:active > td" in content
+
+
+def test_thumbnail_source_buttons_use_gradient_action_tokens():
+    content = (STYLE_SOURCE_DIR / "20-thumbnail.css").read_text(encoding="utf-8")
+    assert '.thumbnail-source-tabs .button.is-small[aria-pressed="true"]' in content
+    assert "--vc-action-primary" in content
+    assert "--vc-color-on-action" in content
+    assert "--vc-color-on-action-hover" in content
+
+
+def test_mobile_settings_tabs_keep_readable_height():
+    content = (STYLE_SOURCE_DIR / "60-settings.css").read_text(encoding="utf-8")
+    assert "@media screen and (max-width: 768px)" in content
+    assert "min-height: 3rem" in content
+    assert "flex-wrap: nowrap" in content
+    assert "min-width: max-content" in content
+    assert "min-height: 2.9rem" in content
+    assert "line-height: 1.2" in content
+
+
+def test_thumbnail_capture_buttons_use_stronger_token_mix():
+    content = (STYLE_SOURCE_DIR / "20-thumbnail.css").read_text(encoding="utf-8")
+    assert "color-mix(in srgb, var(--thumbnail-action-color) 42%" in content
+    assert "color-mix(in srgb, var(--thumbnail-action-color) 36%" in content
+    assert "color-mix(in srgb, var(--thumbnail-action-color) 24%" in content
+    assert "--vc-thumbnail-action-bg" in content
+    assert "--vc-thumbnail-action-border" in content
