@@ -101,6 +101,7 @@
     --vc-action-success-glow: rgba(110, 231, 183, 0.8);
     --vc-action-success-shadow: rgba(34, 197, 94, 0.4);
     --vc-action-danger: #ff3950;
+    --vc-action-danger-glow: rgba(255, 134, 134, 0.8);
     --vc-action-danger-shadow: rgba(241, 70, 104, 0.4);
     --vc-action-settings: #8034ff;
     --vc-action-settings-glow: rgba(223, 113, 255, 0.8);
@@ -321,18 +322,6 @@ html[data-theme="dark"],
     --vc-button-light-text: #f3f4f6;
     --vc-button-disabled-bg: #1b2433;
     --vc-button-disabled-text: #64748b;
-    --vc-action-primary: #70a5ff;
-    --vc-action-primary-glow: rgba(112, 165, 255, 0.56);
-    --vc-action-primary-shadow: rgba(112, 165, 255, 0.34);
-    --vc-action-success: #4ade80;
-    --vc-action-success-glow: rgba(74, 222, 128, 0.5);
-    --vc-action-success-shadow: rgba(74, 222, 128, 0.32);
-    --vc-action-danger: #fb7185;
-    --vc-action-danger-shadow: rgba(251, 113, 133, 0.34);
-    --vc-action-settings: #c084fc;
-    --vc-action-settings-glow: rgba(192, 132, 252, 0.62);
-    --vc-action-settings-shadow: rgba(192, 132, 252, 0.34);
-    --vc-action-button-shine: rgba(255, 255, 255, 0.14);
     --vc-tag-bg: #273449;
     --vc-tag-text: #dbe4f0;
     --vc-tag-border: #52617a;
@@ -467,12 +456,6 @@ html[data-theme="dark"],
     --vc-overlay-control-hover-bg: rgba(3, 7, 18, 0.74);
     --vc-overlay-control-active-bg: rgba(3, 7, 18, 0.86);
     --vc-overlay-control-text: #f3f4f6;
-    --vc-duplicate-start-bg: #c084fc;
-    --vc-duplicate-start-glow: rgba(192, 132, 252, 0.72);
-    --vc-duplicate-start-shadow: rgba(192, 132, 252, 0.34);
-    --vc-duplicate-start-active-shadow: rgba(192, 132, 252, 0.22);
-    --vc-duplicate-start-shine: rgba(255, 255, 255, 0.16);
-    --vc-duplicate-start-point: #0b1220;
     --vc-button-shine: rgba(255, 255, 255, 0.18);
 }
 /*----------------------------------------
@@ -663,6 +646,41 @@ body {
     color: var(--vc-tag-selected-text);
 }
 
+.tags-filter .tag,
+.tags-box .tag,
+#add-tags .tag,
+#edit-tags .tag {
+    background: var(--vc-filter-tag-bg);
+    border-color: var(--vc-filter-tag-border);
+    color: var(--vc-filter-tag-text);
+}
+
+.tags-filter .tag:hover,
+.tags-box .tag:hover,
+#add-tags .tag:hover,
+#edit-tags .tag:hover {
+    background: var(--vc-filter-tag-hover-bg);
+    color: var(--vc-filter-tag-hover-text);
+}
+
+.tags-filter .tag.is-selected,
+.tags-box .tag.is-selected,
+#add-tags .tag.is-selected,
+#edit-tags .tag.is-selected {
+    background: var(--vc-filter-tag-selected-bg);
+    border-color: var(--vc-filter-tag-selected-bg);
+    color: var(--vc-filter-tag-selected-text);
+}
+
+.tags-filter .tag.is-selected:hover,
+.tags-box .tag.is-selected:hover,
+#add-tags .tag.is-selected:hover,
+#edit-tags .tag.is-selected:hover {
+    background: var(--vc-filter-tag-selected-hover-bg);
+    border-color: var(--vc-filter-tag-selected-hover-bg);
+    color: var(--vc-filter-tag-selected-text);
+}
+
 .notification {
     background: var(--vc-panel-bg);
     color: var(--vc-color-text);
@@ -768,14 +786,16 @@ body {
     background-color: var(--vc-table-striped-bg);
 }
 
-.table.is-hoverable tbody tr:not(.is-selected):hover {
+.table.is-hoverable tbody tr:not(.is-selected):hover,
+#search-results .movie-results-table tbody tr:hover,
+.settings-modal .table tbody tr:hover {
     background-color: var(--vc-table-hover-bg);
 }
 
 .settings-list-item:hover,
 .thumbnail-file-row:hover,
 .list-item:hover {
-    background-color: var(--vc-list-hover-bg);
+    background-color: var(--vc-table-hover-bg);
 }
 
 .label,
@@ -2346,7 +2366,10 @@ tr.is-duplicate:hover {
     box-shadow: 0 4px 8px rgba(74, 157, 236, 0.3);
 }
 
-.tags-filter .tag {
+.tags-filter .tag,
+.tags-box .tag,
+#add-tags .tag,
+#edit-tags .tag {
     background: linear-gradient(
         177.95deg,
         var(--vc-button-shine, rgba(255, 255, 255, 0.19)) 0%,
@@ -2357,7 +2380,10 @@ tr.is-duplicate:hover {
     color: var(--vc-filter-tag-text, #515151);
 }
 
-.tags-filter .tag:hover {
+.tags-filter .tag:hover,
+.tags-box .tag:hover,
+#add-tags .tag:hover,
+#edit-tags .tag:hover {
     background: linear-gradient(
         177.95deg,
         var(--vc-button-shine, rgba(255, 255, 255, 0.25)) 0%,
@@ -2367,7 +2393,10 @@ tr.is-duplicate:hover {
     color: var(--vc-filter-tag-hover-text, #363636);
 }
 
-.tags-filter .tag.is-selected {
+.tags-filter .tag.is-selected,
+.tags-box .tag.is-selected,
+#add-tags .tag.is-selected,
+#edit-tags .tag.is-selected {
     background: linear-gradient(
         177.95deg,
         var(--vc-button-shine, rgba(255, 255, 255, 0.25)) 0%,
@@ -2378,7 +2407,10 @@ tr.is-duplicate:hover {
     color: var(--vc-filter-tag-selected-text, #ffffff);
 }
 
-.tags-filter .tag.is-selected:hover {
+.tags-filter .tag.is-selected:hover,
+.tags-box .tag.is-selected:hover,
+#add-tags .tag.is-selected:hover,
+#edit-tags .tag.is-selected:hover {
     background: linear-gradient(
         177.95deg,
         var(--vc-button-shine, rgba(255, 255, 255, 0.3)) 0%,
@@ -2525,8 +2557,8 @@ tr.is-duplicate:hover {
     z-index: 1;
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
-        rgba(255, 134, 134, 0.8) 0%,  /* 浅红色光晕 */
-        rgba(255, 134, 134, 0) 100%
+        var(--vc-action-danger-glow, rgba(255, 134, 134, 0.8)) 0%,
+        transparent 100%
     ),
     linear-gradient(0deg, var(--vc-action-danger, #ff3950), var(--vc-action-danger, #ff3950));  /* 深红色底色 */
     transition: filter 0.3s;
@@ -2557,6 +2589,8 @@ tr.is-duplicate:hover {
 .edit-btn {
     border: none !important;
     background: transparent;
+    color: var(--vc-color-on-action, #ffffff) !important;
+    overflow: hidden;
     transition: box-shadow 0.3s ease, background-color 0.3s ease, transform 0.2s, filter 0.3s ease;
     position: relative;
 }
@@ -2571,9 +2605,11 @@ tr.is-duplicate:hover {
     z-index: 1;
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
-        rgba(255, 255, 255, 0.4) 0%,
-        rgba(255, 255, 255, 0) 100%
-    );
+        var(--vc-action-primary-glow, rgba(142, 161, 255, 0.8)) 0%,
+        transparent 100%
+    ),
+    linear-gradient(0deg, var(--vc-action-primary, #4169e1), var(--vc-action-primary, #4169e1));
+    transition: filter 0.3s;
 }
 /* hover效果 */
 .edit-btn:hover {
@@ -3834,7 +3870,7 @@ tr.is-duplicate:hover {
 .table {
     width: 100%;
     table-layout: fixed;
-    background: none;
+    background: var(--vc-table-bg, #ffffff);
 }
 
 .table td {
@@ -4403,28 +4439,33 @@ tr.is-duplicate:hover {
     text-align: center;
     height: 3rem;
     align-content: center;
+    background: var(--vc-table-bg, #ffffff);
+    color: var(--vc-list-text, #1f2937);
     transition: border-color 0.8s ease, background-color 0.3s ease;
 }
 .settings-tabs li:hover,
 .settings-tabs li.is-active {
-    background: linear-gradient(
-        177.95deg,
-        color-mix(in srgb, var(--vc-color-primary) 6%, transparent) 0%,
-        color-mix(in srgb, var(--vc-color-primary) 15%, transparent) 100%
-    );
+    background: var(--vc-table-hover-bg, #f5faff);
+    color: var(--vc-list-text, #1f2937);
 }
 .settings-tabs li:active {
-    background: linear-gradient(
-        177.95deg,
-        color-mix(in srgb, var(--vc-color-primary) 10%, transparent) 0%,
-        color-mix(in srgb, var(--vc-color-primary) 26%, transparent) 100%
-    );
+    background: var(--vc-list-selected-bg, #eef6ff);
 }
 .settings-tabs li.is-active {
-    border-bottom: 1px solid var(--vc-color-primary, #3273dc);
+    border-bottom: 1px solid var(--vc-control-focus-border, #4a9dec);
 }
 .settings-tabs li:not(.is-active) {
     border-bottom: 1px solid var(--vc-panel-border, #dbdbdb);
+}
+
+.settings-tabs a {
+    color: var(--vc-list-text, #1f2937);
+    border-bottom: none !important;
+}
+
+.settings-tabs li:hover a,
+.settings-tabs li.is-active a {
+    color: var(--vc-list-text, #1f2937);
 }
 
 /* 标签特定样式 */
@@ -4744,7 +4785,7 @@ tr.is-duplicate:hover {
 }
 
 .settings-list-item:hover {
-    background-color: var(--vc-list-hover-bg, #f8f8f8);
+    background-color: var(--vc-table-hover-bg, #f5faff);
 }
 
 .settings-list-item .item-content {
@@ -4836,47 +4877,55 @@ tr.is-duplicate:hover {
     z-index: 2;
 }
 
-.settings-modal .settings-delete-btn {
+.settings-modal .settings-delete-btn,
+.settings-modal .maintenance-backup-delete-btn {
     background: transparent;
+    color: var(--vc-color-on-action, #ffffff) !important;
     transition: box-shadow 0.3s ease, transform 0.2s, filter 0.3s ease;
 }
 
-.settings-modal .settings-delete-btn::before {
+.settings-modal .settings-delete-btn::before,
+.settings-modal .maintenance-backup-delete-btn::before {
     content: '';
     inset: 0;
     position: absolute;
     z-index: 1;
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
-        rgba(248, 113, 113, 0.85) 0%,
-        rgba(248, 113, 113, 0) 100%
+        var(--vc-action-danger-glow, rgba(255, 134, 134, 0.8)) 0%,
+        transparent 100%
     ),
     linear-gradient(0deg, var(--vc-action-danger, #e53935), var(--vc-action-danger, #e53935));
     transition: filter 0.3s;
 }
 
-.settings-modal .settings-delete-btn:hover {
+.settings-modal .settings-delete-btn:hover,
+.settings-modal .maintenance-backup-delete-btn:hover {
     filter: brightness(96%);
     transform: scale(1.03);
     box-shadow: 0 2px 8px var(--vc-action-danger-shadow, rgba(229, 57, 53, 0.38));
 }
 
-.settings-modal .settings-delete-btn:hover::before {
+.settings-modal .settings-delete-btn:hover::before,
+.settings-modal .maintenance-backup-delete-btn:hover::before {
     filter: brightness(92%);
 }
 
-.settings-modal .settings-delete-btn:active {
+.settings-modal .settings-delete-btn:active,
+.settings-modal .maintenance-backup-delete-btn:active {
     filter: brightness(92%);
     transform: scale(0.95);
     box-shadow: 0 2px 4px rgba(229, 57, 53, 0.32);
 }
 
-.settings-modal .settings-delete-btn:active::before {
+.settings-modal .settings-delete-btn:active::before,
+.settings-modal .maintenance-backup-delete-btn:active::before {
     filter: brightness(84%);
 }
 
 .settings-modal .maintenance-backup-restore-btn {
     background: transparent;
+    color: var(--vc-color-on-action, #ffffff) !important;
     transition: box-shadow 0.3s ease, transform 0.2s, filter 0.3s ease;
 }
 
@@ -4887,8 +4936,8 @@ tr.is-duplicate:hover {
     z-index: 1;
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
-        rgba(96, 165, 250, 0.85) 0%,
-        rgba(96, 165, 250, 0) 100%
+        var(--vc-action-primary-glow, rgba(142, 161, 255, 0.8)) 0%,
+        transparent 100%
     ),
     linear-gradient(0deg, var(--vc-action-primary, #2563eb), var(--vc-action-primary, #2563eb));
     transition: filter 0.3s;
@@ -5211,11 +5260,15 @@ tr.is-duplicate:hover {
     min-width: 77px;
 }
 
-.button.settings-btn,
 .button.search-btn,
 .button.save-btn,
 .button.save-btn-small,
 .button.add-btn,
+.button.edit-btn,
+.button.delete-btn,
+.settings-modal .button.settings-delete-btn,
+.settings-modal .button.maintenance-backup-delete-btn,
+.settings-modal .button.maintenance-backup-restore-btn,
 .button.dupStart-btn {
     position: relative;
     isolation: isolate;
@@ -5225,11 +5278,25 @@ tr.is-duplicate:hover {
     color: var(--vc-color-on-action, #ffffff) !important;
 }
 
-.button.settings-btn::before,
+.button.settings-btn {
+    position: relative;
+    isolation: isolate;
+    border: none !important;
+    overflow: hidden;
+    background: var(--vc-button-light-bg, #f5f5f5) !important;
+    color: var(--vc-button-light-text, #363636) !important;
+}
+
 .button.search-btn::before,
 .button.save-btn::before,
 .button.save-btn-small::before,
-.button.add-btn::before {
+.button.add-btn::before,
+.button.edit-btn::before,
+.button.delete-btn::before,
+.settings-modal .button.settings-delete-btn::before,
+.settings-modal .button.maintenance-backup-delete-btn::before,
+.settings-modal .button.maintenance-backup-restore-btn::before,
+.button.settings-btn::before {
     content: '';
     inset: 0;
     position: absolute;
@@ -5239,6 +5306,7 @@ tr.is-duplicate:hover {
 }
 
 .button.settings-btn::before {
+    opacity: 0;
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
         var(--vc-action-settings-glow, rgba(223, 113, 255, 0.8)) 0%,
@@ -5247,7 +5315,21 @@ tr.is-duplicate:hover {
     linear-gradient(0deg, var(--vc-action-settings, #8034ff), var(--vc-action-settings, #8034ff));
 }
 
-.button.search-btn::before {
+.button.settings-btn:hover,
+.button.settings-btn:active,
+.button.settings-btn.is-active {
+    color: var(--vc-color-on-action, #ffffff) !important;
+}
+
+.button.settings-btn:hover::before,
+.button.settings-btn:active::before,
+.button.settings-btn.is-active::before {
+    opacity: 1;
+}
+
+.button.search-btn::before,
+.button.edit-btn::before,
+.settings-modal .button.maintenance-backup-restore-btn::before {
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
         var(--vc-action-primary-glow, rgba(142, 161, 255, 0.8)) 0%,
@@ -5267,14 +5349,45 @@ tr.is-duplicate:hover {
     linear-gradient(0deg, var(--vc-action-success, #17a84c), var(--vc-action-success, #17a84c));
 }
 
+.button.delete-btn::before,
+.settings-modal .button.settings-delete-btn::before,
+.settings-modal .button.maintenance-backup-delete-btn::before {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        var(--vc-action-danger-glow, rgba(255, 134, 134, 0.8)) 0%,
+        transparent 100%
+    ),
+    linear-gradient(0deg, var(--vc-action-danger, #ff3950), var(--vc-action-danger, #ff3950));
+}
+
 .button.settings-btn span,
 .button.search-btn span,
 .button.save-btn span,
 .button.save-btn-small span,
 .button.add-btn span,
+.button.edit-btn span,
+.button.delete-btn span,
+.settings-modal .button.settings-delete-btn span,
+.settings-modal .button.maintenance-backup-delete-btn span,
+.settings-modal .button.maintenance-backup-restore-btn span,
 .button.dupStart-btn span {
     position: relative;
     z-index: 2;
+}
+
+.button.settings-btn svg,
+.button.search-btn svg,
+.button.save-btn svg,
+.button.save-btn-small svg,
+.button.add-btn svg,
+.button.edit-btn svg,
+.button.delete-btn svg,
+.settings-modal .button.settings-delete-btn svg,
+.settings-modal .button.maintenance-backup-delete-btn svg,
+.settings-modal .button.maintenance-backup-restore-btn svg,
+.button.dupStart-btn svg {
+    color: currentColor;
+    fill: currentColor;
 }
 
 /* 设置按钮样式 */

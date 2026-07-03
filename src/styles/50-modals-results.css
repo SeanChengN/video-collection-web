@@ -486,7 +486,7 @@
 .table {
     width: 100%;
     table-layout: fixed;
-    background: none;
+    background: var(--vc-table-bg, #ffffff);
 }
 
 .table td {

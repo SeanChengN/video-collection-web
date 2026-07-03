@@ -101,6 +101,7 @@
     --vc-action-success-glow: rgba(110, 231, 183, 0.8);
     --vc-action-success-shadow: rgba(34, 197, 94, 0.4);
     --vc-action-danger: #ff3950;
+    --vc-action-danger-glow: rgba(255, 134, 134, 0.8);
     --vc-action-danger-shadow: rgba(241, 70, 104, 0.4);
     --vc-action-settings: #8034ff;
     --vc-action-settings-glow: rgba(223, 113, 255, 0.8);

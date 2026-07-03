@@ -288,7 +288,8 @@
             background-color: var(--vc-panel-header-bg, white);
             width: 100%;
         }
-        .tags-filter .tag {
+        .tags-filter .tag,
+        .tags-box .tag {
             margin: 0.3rem;
             cursor: pointer;
             font-size: 0.9rem;
@@ -301,7 +302,8 @@
             border-color: var(--vc-filter-tag-border, rgba(0, 0, 0, 0.05));
             color: var(--vc-filter-tag-text, #515151);
         }
-        .tags-filter .tag:hover {
+        .tags-filter .tag:hover,
+        .tags-box .tag:hover {
             background: linear-gradient(
                 177.95deg,
                 var(--vc-button-shine, rgba(255, 255, 255, 0.25)) 0%,
@@ -310,7 +312,8 @@
             var(--vc-filter-tag-hover-bg, #e0e0e0);
             color: var(--vc-filter-tag-hover-text, #363636);
         }
-        .tags-filter .tag.is-selected {
+        .tags-filter .tag.is-selected,
+        .tags-box .tag.is-selected {
             background: linear-gradient(
                 177.95deg,
                 var(--vc-button-shine, rgba(255, 255, 255, 0.25)) 0%,
@@ -320,7 +323,8 @@
             border-color: var(--vc-filter-tag-selected-bg, #4a9dec);
             color: var(--vc-filter-tag-selected-text, #ffffff);
         }
-        .tags-filter .tag.is-selected:hover {
+        .tags-filter .tag.is-selected:hover,
+        .tags-box .tag.is-selected:hover {
             background: linear-gradient(
                 177.95deg,
                 var(--vc-button-shine, rgba(255, 255, 255, 0.3)) 0%,
@@ -369,7 +373,7 @@
             position: absolute;
             inset: 0;
             z-index: 1;
-            opacity: 1;
+            opacity: 0;
             transition: opacity 0.3s;
             background: radial-gradient(
                 65.28% 65.28% at 50% 100%,
@@ -395,7 +399,6 @@
             min-width: 83px;
         }
         /* 添加/保存/搜索按钮特效样式 */
-        .settings-btn,
         .search-btn,
         .save-btn,
         .save-btn-small,
@@ -408,6 +411,26 @@
             background: transparent !important;
             color: var(--vc-color-on-action, #ffffff) !important;
             transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s, opacity 0.3s, fillter 0.3s;;
+        }
+        .settings-btn {
+            position: relative;
+            isolation: isolate;
+            display: flex;
+            border: none !important;
+            overflow: hidden;
+            background: var(--vc-button-light-bg, #f5f5f5) !important;
+            color: var(--vc-button-light-text, #363636) !important;
+            transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s, opacity 0.3s, fillter 0.3s;;
+        }
+        .settings-btn:hover,
+        .settings-btn:active,
+        .settings-btn.is-active {
+            color: var(--vc-color-on-action, #ffffff) !important;
+        }
+        .settings-btn:hover::before,
+        .settings-btn:active::before,
+        .settings-btn.is-active::before {
+            opacity: 1;
         }
         .search-btn::before {
             content: '';
@@ -567,7 +590,8 @@
                 align-items: flex-start;
                 gap: 0.25rem;
             }
-            .tags-filter .tag {
+            .tags-filter .tag,
+            .tags-box .tag {
                 max-width: 100%;
                 height: auto !important;
                 min-height: 2.2em;

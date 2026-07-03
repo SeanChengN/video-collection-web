@@ -192,7 +192,10 @@ tr.is-duplicate:hover {
     box-shadow: 0 4px 8px rgba(74, 157, 236, 0.3);
 }
 
-.tags-filter .tag {
+.tags-filter .tag,
+.tags-box .tag,
+#add-tags .tag,
+#edit-tags .tag {
     background: linear-gradient(
         177.95deg,
         var(--vc-button-shine, rgba(255, 255, 255, 0.19)) 0%,
@@ -203,7 +206,10 @@ tr.is-duplicate:hover {
     color: var(--vc-filter-tag-text, #515151);
 }
 
-.tags-filter .tag:hover {
+.tags-filter .tag:hover,
+.tags-box .tag:hover,
+#add-tags .tag:hover,
+#edit-tags .tag:hover {
     background: linear-gradient(
         177.95deg,
         var(--vc-button-shine, rgba(255, 255, 255, 0.25)) 0%,
@@ -213,7 +219,10 @@ tr.is-duplicate:hover {
     color: var(--vc-filter-tag-hover-text, #363636);
 }
 
-.tags-filter .tag.is-selected {
+.tags-filter .tag.is-selected,
+.tags-box .tag.is-selected,
+#add-tags .tag.is-selected,
+#edit-tags .tag.is-selected {
     background: linear-gradient(
         177.95deg,
         var(--vc-button-shine, rgba(255, 255, 255, 0.25)) 0%,
@@ -224,7 +233,10 @@ tr.is-duplicate:hover {
     color: var(--vc-filter-tag-selected-text, #ffffff);
 }
 
-.tags-filter .tag.is-selected:hover {
+.tags-filter .tag.is-selected:hover,
+.tags-box .tag.is-selected:hover,
+#add-tags .tag.is-selected:hover,
+#edit-tags .tag.is-selected:hover {
     background: linear-gradient(
         177.95deg,
         var(--vc-button-shine, rgba(255, 255, 255, 0.3)) 0%,
@@ -371,8 +383,8 @@ tr.is-duplicate:hover {
     z-index: 1;
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
-        rgba(255, 134, 134, 0.8) 0%,  /* 浅红色光晕 */
-        rgba(255, 134, 134, 0) 100%
+        var(--vc-action-danger-glow, rgba(255, 134, 134, 0.8)) 0%,
+        transparent 100%
     ),
     linear-gradient(0deg, var(--vc-action-danger, #ff3950), var(--vc-action-danger, #ff3950));  /* 深红色底色 */
     transition: filter 0.3s;
@@ -403,6 +415,8 @@ tr.is-duplicate:hover {
 .edit-btn {
     border: none !important;
     background: transparent;
+    color: var(--vc-color-on-action, #ffffff) !important;
+    overflow: hidden;
     transition: box-shadow 0.3s ease, background-color 0.3s ease, transform 0.2s, filter 0.3s ease;
     position: relative;
 }
@@ -417,9 +431,11 @@ tr.is-duplicate:hover {
     z-index: 1;
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
-        rgba(255, 255, 255, 0.4) 0%,
-        rgba(255, 255, 255, 0) 100%
-    );
+        var(--vc-action-primary-glow, rgba(142, 161, 255, 0.8)) 0%,
+        transparent 100%
+    ),
+    linear-gradient(0deg, var(--vc-action-primary, #4169e1), var(--vc-action-primary, #4169e1));
+    transition: filter 0.3s;
 }
 /* hover效果 */
 .edit-btn:hover {

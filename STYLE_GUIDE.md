@@ -54,6 +54,9 @@
 - Modal titles and window controls should use `--vc-modal-*` tokens.
 - Dropdowns, pagination, list rows, result cards, and service cards should use `--vc-dropdown-*`, `--vc-list-*`, `--vc-result-*`, and `--vc-service-*` tokens.
 - Button effects should use semantic action tokens such as `--vc-action-*` or feature tokens such as `--vc-duplicate-start-*`; do not reuse unrelated button colors just because the visual effect is similar.
+- Gradient action button backgrounds are fixed across light/dark themes; themes may change only their text/icon contrast token.
 - Special action buttons that also carry Bulma state classes must use a more specific selector such as `.button.search-btn` or `.button.dupStart-btn`, otherwise `.button.is-info` / `.button.is-primary` can override the gradient.
+- Search filter tags and add/edit movie tags are the same tag-button component; style them together with `--vc-filter-tag-*` tokens.
+- Search result tables and settings modal tables are the same list/table component; style their row, hover, border, and text states with shared `--vc-table-*` / `--vc-list-*` tokens.
 - Filter tags and thumbnail tool controls should use their scoped tokens (`--vc-filter-tag-*`, `--vc-thumbnail-*`) instead of generic button/tag tokens when default, selected, and hover states need to differ.
 - Avoid naked `#fff`, `#000`, `white`, `black`, `rgb(...)`, or `rgba(...)` in theme-critical component selectors; wrap them behind a token unless the color is part of media content or a deliberate overlay.

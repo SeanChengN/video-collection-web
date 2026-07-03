@@ -102,11 +102,15 @@
     min-width: 77px;
 }
 
-.button.settings-btn,
 .button.search-btn,
 .button.save-btn,
 .button.save-btn-small,
 .button.add-btn,
+.button.edit-btn,
+.button.delete-btn,
+.settings-modal .button.settings-delete-btn,
+.settings-modal .button.maintenance-backup-delete-btn,
+.settings-modal .button.maintenance-backup-restore-btn,
 .button.dupStart-btn {
     position: relative;
     isolation: isolate;
@@ -116,11 +120,25 @@
     color: var(--vc-color-on-action, #ffffff) !important;
 }
 
-.button.settings-btn::before,
+.button.settings-btn {
+    position: relative;
+    isolation: isolate;
+    border: none !important;
+    overflow: hidden;
+    background: var(--vc-button-light-bg, #f5f5f5) !important;
+    color: var(--vc-button-light-text, #363636) !important;
+}
+
 .button.search-btn::before,
 .button.save-btn::before,
 .button.save-btn-small::before,
-.button.add-btn::before {
+.button.add-btn::before,
+.button.edit-btn::before,
+.button.delete-btn::before,
+.settings-modal .button.settings-delete-btn::before,
+.settings-modal .button.maintenance-backup-delete-btn::before,
+.settings-modal .button.maintenance-backup-restore-btn::before,
+.button.settings-btn::before {
     content: '';
     inset: 0;
     position: absolute;
@@ -130,6 +148,7 @@
 }
 
 .button.settings-btn::before {
+    opacity: 0;
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
         var(--vc-action-settings-glow, rgba(223, 113, 255, 0.8)) 0%,
@@ -138,7 +157,21 @@
     linear-gradient(0deg, var(--vc-action-settings, #8034ff), var(--vc-action-settings, #8034ff));
 }
 
-.button.search-btn::before {
+.button.settings-btn:hover,
+.button.settings-btn:active,
+.button.settings-btn.is-active {
+    color: var(--vc-color-on-action, #ffffff) !important;
+}
+
+.button.settings-btn:hover::before,
+.button.settings-btn:active::before,
+.button.settings-btn.is-active::before {
+    opacity: 1;
+}
+
+.button.search-btn::before,
+.button.edit-btn::before,
+.settings-modal .button.maintenance-backup-restore-btn::before {
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
         var(--vc-action-primary-glow, rgba(142, 161, 255, 0.8)) 0%,
@@ -158,14 +191,45 @@
     linear-gradient(0deg, var(--vc-action-success, #17a84c), var(--vc-action-success, #17a84c));
 }
 
+.button.delete-btn::before,
+.settings-modal .button.settings-delete-btn::before,
+.settings-modal .button.maintenance-backup-delete-btn::before {
+    background: radial-gradient(
+        65.28% 65.28% at 50% 100%,
+        var(--vc-action-danger-glow, rgba(255, 134, 134, 0.8)) 0%,
+        transparent 100%
+    ),
+    linear-gradient(0deg, var(--vc-action-danger, #ff3950), var(--vc-action-danger, #ff3950));
+}
+
 .button.settings-btn span,
 .button.search-btn span,
 .button.save-btn span,
 .button.save-btn-small span,
 .button.add-btn span,
+.button.edit-btn span,
+.button.delete-btn span,
+.settings-modal .button.settings-delete-btn span,
+.settings-modal .button.maintenance-backup-delete-btn span,
+.settings-modal .button.maintenance-backup-restore-btn span,
 .button.dupStart-btn span {
     position: relative;
     z-index: 2;
+}
+
+.button.settings-btn svg,
+.button.search-btn svg,
+.button.save-btn svg,
+.button.save-btn-small svg,
+.button.add-btn svg,
+.button.edit-btn svg,
+.button.delete-btn svg,
+.settings-modal .button.settings-delete-btn svg,
+.settings-modal .button.maintenance-backup-delete-btn svg,
+.settings-modal .button.maintenance-backup-restore-btn svg,
+.button.dupStart-btn svg {
+    color: currentColor;
+    fill: currentColor;
 }
 
 /* 设置按钮样式 */

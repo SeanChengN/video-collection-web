@@ -5,6 +5,7 @@ from pathlib import Path
 FRONTEND_SOURCE_DIR = Path(__file__).resolve().parents[1] / "src" / "main"
 INDEX_TEMPLATE = Path(__file__).resolve().parents[1] / "templates" / "index.html"
 STYLE_SOURCE_DIR = Path(__file__).resolve().parents[1] / "src" / "styles"
+THEME_OVERRIDE_FILE = STYLE_SOURCE_DIR / "system" / "10-themes.css"
 FORBIDDEN_DOM_HTML_PATTERN = re.compile(
     r"\.(?:innerHTML|outerHTML)\b|\.insertAdjacentHTML\b"
 )
@@ -26,12 +27,24 @@ THEME_CRITICAL_SELECTORS = (
     ".button.save-btn",
     ".button.save-btn-small",
     ".button.add-btn",
+    ".button.edit-btn",
+    ".button.delete-btn",
     ".button.dupStart-btn",
+    ".settings-modal .button.settings-delete-btn",
+    ".settings-modal .button.maintenance-backup-delete-btn",
+    ".settings-modal .button.maintenance-backup-restore-btn",
     ".runtime-badge",
     ".movie-card",
     ".emby-playable-card",
     ".dupStart-btn",
     ".tags-filter .tag",
+    ".tags-box .tag",
+    "#add-tags .tag",
+    "#edit-tags .tag",
+    "#search-results .movie-results-table",
+    ".settings-modal .table",
+    ".settings-tabs li",
+    ".settings-tabs a",
     ".settings-list-item",
     ".thumbnail-file-row",
     ".thumbnail-source-tabs",
@@ -43,6 +56,27 @@ THEME_CRITICAL_SELECTORS = (
     ".tags-box-title",
     ".rating-item",
     ".dimension-name",
+)
+FIXED_ACTION_TOKENS = (
+    "--vc-action-primary",
+    "--vc-action-primary-glow",
+    "--vc-action-primary-shadow",
+    "--vc-action-success",
+    "--vc-action-success-glow",
+    "--vc-action-success-shadow",
+    "--vc-action-danger",
+    "--vc-action-danger-glow",
+    "--vc-action-danger-shadow",
+    "--vc-action-settings",
+    "--vc-action-settings-glow",
+    "--vc-action-settings-shadow",
+    "--vc-action-button-shine",
+    "--vc-duplicate-start-bg",
+    "--vc-duplicate-start-glow",
+    "--vc-duplicate-start-shadow",
+    "--vc-duplicate-start-active-shadow",
+    "--vc-duplicate-start-shine",
+    "--vc-duplicate-start-point",
 )
 THEME_SOURCE_FILES = (
     STYLE_SOURCE_DIR / "10-services-tools.css",
@@ -96,5 +130,16 @@ def test_theme_critical_selectors_use_tokens_for_colors():
                 if HARDCODED_THEME_COLOR_PATTERN.search(stripped):
                     relative_path = path.relative_to(Path(__file__).resolve().parents[1])
                     offenders.append(f"{relative_path}:{block_start + offset}: {stripped}")
+
+    assert offenders == []
+
+
+def test_dark_theme_does_not_override_fixed_action_gradients():
+    offenders = []
+
+    for line_number, line in enumerate(THEME_OVERRIDE_FILE.read_text(encoding="utf-8").splitlines(), start=1):
+        stripped = line.strip()
+        if any(token in stripped for token in FIXED_ACTION_TOKENS):
+            offenders.append(f"{THEME_OVERRIDE_FILE.relative_to(Path(__file__).resolve().parents[1])}:{line_number}: {stripped}")
 
     assert offenders == []

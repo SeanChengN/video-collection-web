@@ -186,6 +186,41 @@ body {
     color: var(--vc-tag-selected-text);
 }
 
+.tags-filter .tag,
+.tags-box .tag,
+#add-tags .tag,
+#edit-tags .tag {
+    background: var(--vc-filter-tag-bg);
+    border-color: var(--vc-filter-tag-border);
+    color: var(--vc-filter-tag-text);
+}
+
+.tags-filter .tag:hover,
+.tags-box .tag:hover,
+#add-tags .tag:hover,
+#edit-tags .tag:hover {
+    background: var(--vc-filter-tag-hover-bg);
+    color: var(--vc-filter-tag-hover-text);
+}
+
+.tags-filter .tag.is-selected,
+.tags-box .tag.is-selected,
+#add-tags .tag.is-selected,
+#edit-tags .tag.is-selected {
+    background: var(--vc-filter-tag-selected-bg);
+    border-color: var(--vc-filter-tag-selected-bg);
+    color: var(--vc-filter-tag-selected-text);
+}
+
+.tags-filter .tag.is-selected:hover,
+.tags-box .tag.is-selected:hover,
+#add-tags .tag.is-selected:hover,
+#edit-tags .tag.is-selected:hover {
+    background: var(--vc-filter-tag-selected-hover-bg);
+    border-color: var(--vc-filter-tag-selected-hover-bg);
+    color: var(--vc-filter-tag-selected-text);
+}
+
 .notification {
     background: var(--vc-panel-bg);
     color: var(--vc-color-text);
@@ -291,14 +326,16 @@ body {
     background-color: var(--vc-table-striped-bg);
 }
 
-.table.is-hoverable tbody tr:not(.is-selected):hover {
+.table.is-hoverable tbody tr:not(.is-selected):hover,
+#search-results .movie-results-table tbody tr:hover,
+.settings-modal .table tbody tr:hover {
     background-color: var(--vc-table-hover-bg);
 }
 
 .settings-list-item:hover,
 .thumbnail-file-row:hover,
 .list-item:hover {
-    background-color: var(--vc-list-hover-bg);
+    background-color: var(--vc-table-hover-bg);
 }
 
 .label,
