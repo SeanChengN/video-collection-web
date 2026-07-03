@@ -24,9 +24,11 @@ const sourceFiles = [
 ];
 const outputFile = 'static/main.js';
 
-const chunks = sourceFiles.map((file) => fs.readFileSync(path.join(projectRoot, file)));
+const chunks = sourceFiles.map((file) => (
+  fs.readFileSync(path.join(projectRoot, file), 'utf8').replace(/(?:\r?\n)+$/, '')
+));
 const outputPath = path.join(projectRoot, outputFile);
 
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-fs.writeFileSync(outputPath, Buffer.concat(chunks));
+fs.writeFileSync(outputPath, `${chunks.join('\n')}\n`);
 console.log(`Built ${outputFile} from ${sourceFiles.length} source files`);

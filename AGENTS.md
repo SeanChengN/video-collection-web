@@ -25,7 +25,7 @@
 - Database schema initialization lives in `video_collection/schema.py`; keep initialization idempotent and covered by startup/init tests.
 - Movie metadata parsing, hydration, and schema helper functions live in `video_collection/movie_metadata.py`.
 - Media and service route implementations live in `video_collection/media_routes.py`; `app.py` keeps route decorators and thin wrappers.
-- API handler implementations live in `video_collection/api_handlers.py`; `app.py` keeps `/api`, compatibility wrappers, and event registration.
+- API handler entrypoint lives in `video_collection/api_handlers.py`; grouped implementations live in `video_collection/api_handlers_*.py`.
 - API handlers use `ApiHandlerDependencies`; add new handler dependencies there and inject them from `app.py`, instead of relying on implicit globals.
 
 ## Security Configuration

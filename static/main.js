@@ -2133,7 +2133,6 @@ function confirmDeleteRatingDimension(dimensionId) {
             }
         });
 }
-
 function loadTags() {
     return callApi(event_map.get_tags)
         .then(result => {
@@ -2664,8 +2663,6 @@ function getDragAfterElement(container, x, y) {
     
     return draggableElements[targetIndex];
 }
-
-// 打开编辑模态框
 function openModal(movie) {
     document.querySelector('.modal-card-title').textContent = `编辑电影：${movie.title}`;
     const modal = document.getElementById('editModal');
@@ -3098,8 +3095,6 @@ async function updateMovie() {
         });
     }
 }
-
-// 搜索结果显示
 function parseMovieRatings(movie) {
     return movie.ratings
         ? movie.ratings.split(',').map(ratingPair => {
@@ -3440,8 +3435,6 @@ function setupDropdownPositioning() {
         }
     });
 }
-
-// 辅助函数：日期格式
 function formatDate(dateString) {
     const date = new Date(dateString);
     return date.toLocaleDateString('zh-CN', {
@@ -3544,8 +3537,6 @@ function updatePagination() {
     nav.appendChild(pageList);
     paginationDiv.appendChild(nav);
 }
-
-// 图片上传相关代码
 const thumbnailState = {
     source: 'local',
     currentPath: '',
@@ -3645,7 +3636,6 @@ function resetThumbnailToolState() {
     updateThumbnailBatchSummary();
     updateThumbnailSelectionControls();
 }
-
 function initThumbnailTool() {
     if (thumbnailState.initialized) return;
 
@@ -3800,7 +3790,6 @@ function syncThumbnailSourceControls() {
         embyInput.value = thumbnailState.embyQuery;
     }
 }
-
 function searchThumbnailEmby() {
     const input = document.getElementById('thumbnail-emby-search-input');
     const query = (input?.value || '').trim();
@@ -3954,7 +3943,6 @@ function renderThumbnailCurrentSourceList() {
         renderThumbnailBrowser(thumbnailState.currentListing || { path: thumbnailState.currentPath, directories: [], files: [] });
     }
 }
-
 function loadThumbnailDirectory(path = '') {
     const safePath = path || '';
     thumbnailState.source = 'local';
@@ -4153,7 +4141,6 @@ async function copyThumbnailVideoFileName(fileName, button) {
         setTimeout(() => setCopyIcon('copy-btn-icon', ''), 1200);
     }
 }
-
 function selectThumbnailVideo(file) {
     const videoFile = {
         ...file,
@@ -4423,7 +4410,6 @@ function seekThumbnailVideo(time) {
         }
     });
 }
-
 function captureCurrentThumbnail(options = {}) {
     const video = document.getElementById('thumbnail-video');
     if (!isThumbnailVideoReady(video) || !video.videoWidth || !video.videoHeight) {
@@ -4539,7 +4525,6 @@ function updateThumbnailProgress(value) {
         progress.value = Math.max(0, Math.min(100, value));
     }
 }
-
 function renderThumbnailCaptures() {
     const grid = document.getElementById('thumbnail-grid');
     if (!grid) return;
@@ -4697,7 +4682,6 @@ function getSelectedThumbnailCaptures() {
 function isThumbnailEditModalOpen() {
     return document.getElementById('editModal')?.classList.contains('is-active') || false;
 }
-
 function sendSelectedThumbnailCapturesToUploadArea(areaId, label) {
     const selectedCaptures = getSelectedThumbnailCaptures();
     if (!selectedCaptures.length) {
@@ -4854,7 +4838,6 @@ function formatThumbnailTime(value) {
         : `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     return `${base}.${String(fraction).padStart(2, '0')}`;
 }
-
 function initImageUpload() {
     // 为添加和编辑表单分别初始化上传区域
     initUploadArea('image-upload-area', 'image-input');

@@ -1,8 +1,23 @@
+import ast
 import re
 from pathlib import Path
 
 import app as app_module
 from video_collection.api_handlers import ApiHandlerDependencies
+from video_collection.api_handlers_catalog import ApiCatalogHandlersMixin
+from video_collection.api_handlers_integrations import ApiIntegrationHandlersMixin
+from video_collection.api_handlers_maintenance import ApiMaintenanceHandlersMixin
+from video_collection.api_handlers_media import ApiMediaHandlersMixin
+from video_collection.api_handlers_movies import ApiMovieHandlersMixin
+
+
+API_HANDLER_MODULES = [
+    "api_handlers_movies.py",
+    "api_handlers_catalog.py",
+    "api_handlers_integrations.py",
+    "api_handlers_maintenance.py",
+    "api_handlers_media.py",
+]
 
 
 def unpack_response(result):
@@ -16,6 +31,25 @@ def test_api_handlers_use_explicit_dependencies():
     assert not hasattr(app_module._api_handlers, '_namespace')
     assert isinstance(app_module._api_handlers.dependencies, ApiHandlerDependencies)
     assert app_module._api_handlers.dependencies.jsonify is app_module.jsonify
+    assert isinstance(app_module._api_handlers, ApiMovieHandlersMixin)
+    assert isinstance(app_module._api_handlers, ApiCatalogHandlersMixin)
+    assert isinstance(app_module._api_handlers, ApiIntegrationHandlersMixin)
+    assert isinstance(app_module._api_handlers, ApiMaintenanceHandlersMixin)
+    assert isinstance(app_module._api_handlers, ApiMediaHandlersMixin)
+
+
+def test_api_handler_modules_do_not_import_app_module():
+    project_root = Path(__file__).resolve().parents[1]
+    for module_name in API_HANDLER_MODULES:
+        module_path = project_root / 'video_collection' / module_name
+        tree = ast.parse(module_path.read_text(encoding='utf-8'))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imported_names = {alias.name for alias in node.names}
+                assert 'app' not in imported_names
+            elif isinstance(node, ast.ImportFrom):
+                assert node.module != 'app'
+                assert not (node.module or '').startswith('app.')
 
 
 def test_backend_api_events_match_frontend_event_map():
