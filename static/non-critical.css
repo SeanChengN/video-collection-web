@@ -29,6 +29,7 @@
     --vc-color-danger-soft: #fff0f0;
     --vc-color-info: #3e8ed0;
     --vc-color-info-soft: #e9f4ff;
+    --vc-color-on-action: #ffffff;
 
     /* Existing domain roles */
     --vc-star-1: #ff774d;
@@ -85,17 +86,143 @@
     --vc-control-placeholder: #7a7a7a;
     --vc-control-focus-border: #4a9dec;
     --vc-control-focus-shadow: 0 0 0 5px rgba(74, 157, 236, 0.2);
+    --vc-button-bg: #f5f5f5;
+    --vc-button-text: #363636;
+    --vc-button-border: #dbdbdb;
+    --vc-button-hover-bg: #eeeeee;
+    --vc-button-light-bg: #f5f5f5;
+    --vc-button-light-text: #363636;
+    --vc-button-disabled-bg: #f5f5f5;
+    --vc-button-disabled-text: #8a94a6;
+    --vc-action-primary: #4169e1;
+    --vc-action-primary-shadow: rgba(67, 97, 238, 0.4);
+    --vc-action-success: #17a84c;
+    --vc-action-success-shadow: rgba(34, 197, 94, 0.4);
+    --vc-action-danger: #ff3950;
+    --vc-action-danger-shadow: rgba(241, 70, 104, 0.4);
+    --vc-action-settings: #8034ff;
+    --vc-action-settings-shadow: rgba(151, 71, 255, 0.4);
+    --vc-tag-bg: #f0f0f0;
+    --vc-tag-text: #515151;
+    --vc-tag-border: rgba(0, 0, 0, 0.05);
+    --vc-tag-hover-bg: #e0e0e0;
+    --vc-tag-selected-bg: #4a9dec;
+    --vc-tag-selected-hover-bg: #3b8ed8;
+    --vc-tag-selected-text: #ffffff;
+    --vc-tool-button-bg: #f5f5f5;
+    --vc-tool-hover-text: #ffffff;
+    --vc-tool-duplicate: rgb(255, 170, 31);
+    --vc-tool-jackett: rgb(89, 87, 88);
+    --vc-tool-wtl: rgb(103, 104, 255);
+    --vc-tool-thunder: rgb(52, 168, 224);
+    --vc-tool-emby: rgb(82, 172, 75);
+    --vc-tool-thumbnail: rgb(224, 82, 117);
+    --vc-recommend-bg: #fafafa;
+    --vc-recommend-text: #666666;
+    --vc-recommend-border: rgba(0, 0, 0, 0.05);
+    --vc-recommend-icon: #515151;
+    --vc-recommend-selected-bg: #fff3e0;
+    --vc-recommend-selected-border: #ffcc80;
+    --vc-recommend-selected-text: #f57c00;
+    --vc-recommend-selected-icon: #ff7b00;
+    --vc-recommend-hover-bg: #fff8e1;
+    --vc-recommend-hover-shadow: rgba(255, 152, 0, 0.3);
+    --vc-recommend-active-bg: #fffde7;
+    --vc-recommend-active-shadow: rgba(255, 152, 0, 0.2);
+    --vc-select-arrow: #4a9dec;
+    --vc-select-option-bg: #ffffff;
+    --vc-select-option-selected-bg: #cee6ff;
+    --vc-select-option-selected-text: #0874d8;
     --vc-table-bg: #ffffff;
     --vc-table-head-bg: #ffffff;
     --vc-table-striped-bg: #fafafa;
     --vc-table-hover-bg: #f5faff;
+    --vc-list-bg: #ffffff;
+    --vc-list-hover-bg: #f5faff;
+    --vc-list-selected-bg: #eef6ff;
+    --vc-list-border: #dbdbdb;
+    --vc-list-text: #1f2937;
+    --vc-list-muted: #7a7a7a;
+    --vc-dropdown-bg: #ffffff;
+    --vc-dropdown-border: #dbdbdb;
+    --vc-dropdown-text: #363636;
+    --vc-dropdown-muted: #7a7a7a;
+    --vc-dropdown-hover-bg: #f5faff;
+    --vc-dropdown-shadow: 0 2px 8px rgba(10, 10, 10, 0.1);
+    --vc-result-card-bg: #ffffff;
+    --vc-result-card-border: rgba(219, 219, 219, 0.9);
+    --vc-result-section-bg: rgba(245, 245, 245, 0.5);
+    --vc-result-section-border: rgba(219, 219, 219, 0.72);
+    --vc-result-muted: #7a7a7a;
+    --vc-result-preview-bg: #f5f5f5;
+    --vc-result-chip-bg: #f5f5f5;
+    --vc-result-chip-text: #666666;
+    --vc-result-recommended-bg: rgba(255, 123, 0, 0.12);
+    --vc-result-recommended-text: #b55300;
+    --vc-service-card-bg: #ffffff;
+    --vc-service-card-border: #dbdbdb;
+    --vc-service-card-text: #363636;
+    --vc-service-card-muted: #7a7a7a;
+    --vc-service-card-hover-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
+    --vc-service-card-active-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+    --vc-service-card-focus-shadow: 0 0 0 3px rgba(50, 115, 220, 0.38), 0 14px 28px rgba(0, 0, 0, 0.18);
+    --vc-service-runtime-bg: rgba(0, 0, 0, 0.72);
+    --vc-service-runtime-text: #ffffff;
+    --vc-service-sticky-bg: rgba(255, 255, 255, 0.76);
+    --vc-service-sticky-border: rgba(255, 255, 255, 0.55);
+    --vc-alert-bg: #ffffff;
+    --vc-alert-title: #111827;
+    --vc-alert-text: #6b7280;
+    --vc-alert-cancel-bg: #ffffff;
+    --vc-alert-cancel-text: #374151;
+    --vc-alert-cancel-border: #d1d5db;
+    --vc-upload-border: #dbdbdb;
+    --vc-upload-text: #666666;
+    --vc-upload-icon: #78c0dd;
+    --vc-thumbnail-row-bg: rgba(255, 255, 255, 0.68);
+    --vc-thumbnail-row-hover-bg: rgba(255, 255, 255, 0.92);
+    --vc-thumbnail-row-border: rgba(0, 0, 0, 0.06);
+    --vc-thumbnail-row-selected-bg: rgba(255, 246, 249, 0.9);
+    --vc-thumbnail-row-selected-border: rgba(224, 82, 117, 0.58);
+    --vc-thumbnail-row-disabled-bg: rgba(255, 255, 255, 0.68);
+    --vc-thumbnail-item-bg: rgba(255, 255, 255, 0.72);
+    --vc-thumbnail-item-shadow: 0 4px 8px rgba(50, 115, 220, 0.2);
+    --vc-thumbnail-item-hover-shadow: 0 6px 12px rgba(50, 115, 220, 0.3);
+    --vc-thumbnail-item-selected-shadow: 0 0 0 3px rgba(50, 115, 220, 0.35), 0 6px 14px rgba(50, 115, 220, 0.32);
+    --vc-thumbnail-meta: #7a7a7a;
     --vc-modal-bg: rgba(255, 255, 255, 0.3);
     --vc-modal-border: rgba(255, 255, 255, 0.4);
     --vc-modal-header-bg: rgba(255, 255, 255, 0.4);
     --vc-modal-header-border: rgba(255, 255, 255, 0.5);
+    --vc-modal-title-text: #1f2937;
     --vc-modal-control-bg: rgba(255, 255, 255, 0.2);
     --vc-modal-control-icon: #4a4a4a;
+    --vc-modal-control-hover-bg: rgba(0, 0, 0, 0.1);
+    --vc-modal-control-active-bg: rgba(0, 0, 0, 0.2);
+    --vc-modal-control-hover-icon: #2a2a2a;
+    --vc-modal-control-close-bg: #ff3860;
+    --vc-modal-control-close-active-bg: #e8324d;
+    --vc-modal-control-close-icon: #ffffff;
     --vc-modal-shadow: 0 20px 50px 0 rgba(31, 38, 135, 0.25), 0 10px 24px 0 rgba(31, 38, 135, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.4), inset 0 0 60px rgba(255, 255, 255, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    --vc-section-title-text: #363636;
+    --vc-section-title-border: #eeeeee;
+    --vc-skeleton-gradient: linear-gradient(90deg, #eef1f5 25%, #e2e7ee 37%, #eef1f5 63%);
+    --vc-image-card-bg: #ffffff;
+    --vc-image-card-shadow: 0 4px 8px rgba(50, 115, 220, 0.2);
+    --vc-image-card-hover-shadow: 0 6px 12px rgba(50, 115, 220, 0.3);
+    --vc-image-existing-hover-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --vc-image-drag-bg: rgba(50, 115, 220, 0.05);
+    --vc-overlay-control-bg: rgba(0, 0, 0, 0.3);
+    --vc-overlay-control-hover-bg: rgba(0, 0, 0, 0.5);
+    --vc-overlay-control-active-bg: rgba(0, 0, 0, 0.7);
+    --vc-overlay-control-text: #ffffff;
+    --vc-duplicate-start-bg: #7a5af8;
+    --vc-duplicate-start-glow: rgba(223, 113, 255, 0.8);
+    --vc-duplicate-start-shadow: rgba(151, 71, 255, 0.4);
+    --vc-duplicate-start-active-shadow: rgba(113, 42, 136, 0.2);
+    --vc-duplicate-start-shine: rgba(255, 255, 255, 0.19);
+    --vc-duplicate-start-point: #ffffff;
+    --vc-button-shine: rgba(255, 255, 255, 0.28);
 
     /* Layout */
     --vc-control-height-sm: 2rem;
@@ -143,6 +270,7 @@ html[data-theme="dark"],
     --vc-color-danger-soft: rgba(251, 113, 133, 0.18);
     --vc-color-info: #7dd3fc;
     --vc-color-info-soft: rgba(125, 211, 252, 0.16);
+    --vc-color-on-action: #0b1220;
     --vc-star-default: #64748b;
     --vc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
     --vc-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.34);
@@ -161,17 +289,143 @@ html[data-theme="dark"],
     --vc-control-placeholder: #94a3b8;
     --vc-control-focus-border: #70a5ff;
     --vc-control-focus-shadow: 0 0 0 5px rgba(112, 165, 255, 0.22);
+    --vc-button-bg: #273449;
+    --vc-button-text: #f3f4f6;
+    --vc-button-border: #52617a;
+    --vc-button-hover-bg: #334155;
+    --vc-button-light-bg: #334155;
+    --vc-button-light-text: #f3f4f6;
+    --vc-button-disabled-bg: #1b2433;
+    --vc-button-disabled-text: #64748b;
+    --vc-action-primary: #70a5ff;
+    --vc-action-primary-shadow: rgba(112, 165, 255, 0.34);
+    --vc-action-success: #4ade80;
+    --vc-action-success-shadow: rgba(74, 222, 128, 0.32);
+    --vc-action-danger: #fb7185;
+    --vc-action-danger-shadow: rgba(251, 113, 133, 0.34);
+    --vc-action-settings: #c084fc;
+    --vc-action-settings-shadow: rgba(192, 132, 252, 0.34);
+    --vc-tag-bg: #273449;
+    --vc-tag-text: #dbe4f0;
+    --vc-tag-border: #52617a;
+    --vc-tag-hover-bg: #334155;
+    --vc-tag-selected-bg: #70a5ff;
+    --vc-tag-selected-hover-bg: #8bb6ff;
+    --vc-tag-selected-text: #0b1220;
+    --vc-tool-button-bg: #243247;
+    --vc-tool-hover-text: #0b1220;
+    --vc-tool-duplicate: #fbbf24;
+    --vc-tool-jackett: #cbd5e1;
+    --vc-tool-wtl: #a5b4fc;
+    --vc-tool-thunder: #7dd3fc;
+    --vc-tool-emby: #86efac;
+    --vc-tool-thumbnail: #fb7185;
+    --vc-recommend-bg: #243247;
+    --vc-recommend-text: #cbd5e1;
+    --vc-recommend-border: #52617a;
+    --vc-recommend-icon: #cbd5e1;
+    --vc-recommend-selected-bg: rgba(251, 191, 36, 0.18);
+    --vc-recommend-selected-border: rgba(251, 191, 36, 0.42);
+    --vc-recommend-selected-text: #fbbf24;
+    --vc-recommend-selected-icon: #fbbf24;
+    --vc-recommend-hover-bg: rgba(251, 191, 36, 0.12);
+    --vc-recommend-hover-shadow: rgba(251, 191, 36, 0.24);
+    --vc-recommend-active-bg: rgba(251, 191, 36, 0.2);
+    --vc-recommend-active-shadow: rgba(251, 191, 36, 0.18);
+    --vc-select-arrow: #70a5ff;
+    --vc-select-option-bg: #273449;
+    --vc-select-option-selected-bg: rgba(112, 165, 255, 0.28);
+    --vc-select-option-selected-text: #f3f4f6;
     --vc-table-bg: #1f2937;
     --vc-table-head-bg: #243247;
     --vc-table-striped-bg: rgba(255, 255, 255, 0.035);
     --vc-table-hover-bg: rgba(112, 165, 255, 0.12);
+    --vc-list-bg: #1f2937;
+    --vc-list-hover-bg: rgba(112, 165, 255, 0.12);
+    --vc-list-selected-bg: rgba(112, 165, 255, 0.18);
+    --vc-list-border: #36445a;
+    --vc-list-text: #f3f4f6;
+    --vc-list-muted: #94a3b8;
+    --vc-dropdown-bg: #273449;
+    --vc-dropdown-border: #52617a;
+    --vc-dropdown-text: #f3f4f6;
+    --vc-dropdown-muted: #94a3b8;
+    --vc-dropdown-hover-bg: rgba(112, 165, 255, 0.14);
+    --vc-dropdown-shadow: 0 12px 26px rgba(0, 0, 0, 0.36);
+    --vc-result-card-bg: #1f2937;
+    --vc-result-card-border: #36445a;
+    --vc-result-section-bg: rgba(255, 255, 255, 0.045);
+    --vc-result-section-border: rgba(82, 97, 122, 0.62);
+    --vc-result-muted: #94a3b8;
+    --vc-result-preview-bg: #273449;
+    --vc-result-chip-bg: #273449;
+    --vc-result-chip-text: #cbd5e1;
+    --vc-result-recommended-bg: rgba(251, 191, 36, 0.16);
+    --vc-result-recommended-text: #fbbf24;
+    --vc-service-card-bg: #243247;
+    --vc-service-card-border: #36445a;
+    --vc-service-card-text: #f3f4f6;
+    --vc-service-card-muted: #94a3b8;
+    --vc-service-card-hover-shadow: 0 16px 30px rgba(0, 0, 0, 0.38);
+    --vc-service-card-active-shadow: 0 8px 18px rgba(0, 0, 0, 0.32);
+    --vc-service-card-focus-shadow: 0 0 0 3px rgba(112, 165, 255, 0.4), 0 16px 30px rgba(0, 0, 0, 0.38);
+    --vc-service-runtime-bg: rgba(3, 7, 18, 0.78);
+    --vc-service-runtime-text: #f3f4f6;
+    --vc-service-sticky-bg: rgba(36, 50, 71, 0.92);
+    --vc-service-sticky-border: rgba(82, 97, 122, 0.78);
+    --vc-alert-bg: #1f2937;
+    --vc-alert-title: #f3f4f6;
+    --vc-alert-text: #cbd5e1;
+    --vc-alert-cancel-bg: #273449;
+    --vc-alert-cancel-text: #f3f4f6;
+    --vc-alert-cancel-border: #52617a;
+    --vc-upload-border: #52617a;
+    --vc-upload-text: #cbd5e1;
+    --vc-upload-icon: #7dd3fc;
+    --vc-thumbnail-row-bg: rgba(36, 50, 71, 0.82);
+    --vc-thumbnail-row-hover-bg: rgba(39, 52, 73, 0.95);
+    --vc-thumbnail-row-border: #36445a;
+    --vc-thumbnail-row-selected-bg: rgba(251, 113, 133, 0.14);
+    --vc-thumbnail-row-selected-border: rgba(251, 113, 133, 0.48);
+    --vc-thumbnail-row-disabled-bg: rgba(36, 50, 71, 0.52);
+    --vc-thumbnail-item-bg: rgba(36, 50, 71, 0.9);
+    --vc-thumbnail-item-shadow: 0 4px 10px rgba(0, 0, 0, 0.28);
+    --vc-thumbnail-item-hover-shadow: 0 7px 14px rgba(112, 165, 255, 0.22);
+    --vc-thumbnail-item-selected-shadow: 0 0 0 3px rgba(112, 165, 255, 0.35), 0 7px 16px rgba(0, 0, 0, 0.32);
+    --vc-thumbnail-meta: #94a3b8;
     --vc-modal-bg: rgba(31, 41, 55, 0.88);
     --vc-modal-border: rgba(82, 97, 122, 0.78);
     --vc-modal-header-bg: rgba(36, 50, 71, 0.92);
     --vc-modal-header-border: rgba(82, 97, 122, 0.78);
+    --vc-modal-title-text: #f3f4f6;
     --vc-modal-control-bg: rgba(255, 255, 255, 0.08);
     --vc-modal-control-icon: #e5e7eb;
+    --vc-modal-control-hover-bg: rgba(255, 255, 255, 0.14);
+    --vc-modal-control-active-bg: rgba(255, 255, 255, 0.2);
+    --vc-modal-control-hover-icon: #ffffff;
+    --vc-modal-control-close-bg: #fb7185;
+    --vc-modal-control-close-active-bg: #f43f5e;
+    --vc-modal-control-close-icon: #0b1220;
     --vc-modal-shadow: 0 22px 54px rgba(0, 0, 0, 0.46), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 0 40px rgba(255, 255, 255, 0.04);
+    --vc-section-title-text: #f3f4f6;
+    --vc-section-title-border: #36445a;
+    --vc-skeleton-gradient: linear-gradient(90deg, #243247 25%, #334155 37%, #243247 63%);
+    --vc-image-card-bg: #243247;
+    --vc-image-card-shadow: 0 4px 10px rgba(0, 0, 0, 0.28);
+    --vc-image-card-hover-shadow: 0 7px 14px rgba(112, 165, 255, 0.22);
+    --vc-image-existing-hover-shadow: 0 4px 10px rgba(0, 0, 0, 0.34);
+    --vc-image-drag-bg: rgba(112, 165, 255, 0.12);
+    --vc-overlay-control-bg: rgba(3, 7, 18, 0.58);
+    --vc-overlay-control-hover-bg: rgba(3, 7, 18, 0.74);
+    --vc-overlay-control-active-bg: rgba(3, 7, 18, 0.86);
+    --vc-overlay-control-text: #f3f4f6;
+    --vc-duplicate-start-bg: #c084fc;
+    --vc-duplicate-start-glow: rgba(192, 132, 252, 0.72);
+    --vc-duplicate-start-shadow: rgba(192, 132, 252, 0.34);
+    --vc-duplicate-start-active-shadow: rgba(192, 132, 252, 0.22);
+    --vc-duplicate-start-shine: rgba(255, 255, 255, 0.16);
+    --vc-duplicate-start-point: #0b1220;
+    --vc-button-shine: rgba(255, 255, 255, 0.18);
 }
 /*----------------------------------------
   Bulma bridge
@@ -202,6 +456,15 @@ body {
     color: var(--vc-color-text);
 }
 
+.navbar.is-light .navbar-brand .title,
+.navbar.is-light .navbar-brand .navbar-item {
+    color: var(--vc-color-text) !important;
+}
+
+.navbar.is-light svg {
+    color: var(--vc-color-text);
+}
+
 .box,
 .function-tools,
 .collapsible-box,
@@ -214,6 +477,28 @@ body {
 
 .box {
     box-shadow: var(--vc-panel-shadow);
+}
+
+.card {
+    background: var(--vc-service-card-bg);
+    border: 1px solid var(--vc-service-card-border);
+    color: var(--vc-service-card-text);
+    box-shadow: var(--vc-panel-shadow-compact);
+}
+
+.card .title,
+.card .subtitle,
+.card .content,
+.card-content {
+    color: var(--vc-service-card-text);
+}
+
+.content {
+    color: var(--vc-color-text);
+}
+
+.content strong {
+    color: var(--vc-color-text);
 }
 
 .collapsible-box,
@@ -242,6 +527,183 @@ body {
     color: var(--vc-control-placeholder);
 }
 
+.button {
+    background: var(--vc-button-bg);
+    border-color: var(--vc-button-border);
+    color: var(--vc-button-text);
+}
+
+.button:hover,
+.button:focus {
+    background: var(--vc-button-hover-bg);
+    border-color: var(--vc-control-focus-border);
+    color: var(--vc-button-text);
+}
+
+.button:focus-visible {
+    box-shadow: var(--vc-focus-ring);
+}
+
+.button.is-info,
+.button.is-primary,
+.button.is-link {
+    background: var(--vc-color-primary);
+    border-color: var(--vc-color-primary);
+    color: var(--vc-color-on-action);
+}
+
+.button.is-info:hover,
+.button.is-primary:hover,
+.button.is-link:hover {
+    background: var(--vc-color-primary-hover);
+    border-color: var(--vc-color-primary-hover);
+    color: var(--vc-color-on-action);
+}
+
+.button.is-success {
+    background: var(--vc-color-success);
+    border-color: var(--vc-color-success);
+    color: var(--vc-color-on-action);
+}
+
+.button.is-danger {
+    background: var(--vc-color-danger);
+    border-color: var(--vc-color-danger);
+    color: var(--vc-color-on-action);
+}
+
+.button.is-warning {
+    background: var(--vc-color-warning);
+    border-color: var(--vc-color-warning);
+    color: var(--vc-color-on-action);
+}
+
+.button.is-light {
+    background: var(--vc-button-light-bg);
+    border-color: var(--vc-button-border);
+    color: var(--vc-button-light-text);
+}
+
+.button[disabled],
+.button:disabled {
+    background: var(--vc-button-disabled-bg);
+    border-color: var(--vc-button-border);
+    color: var(--vc-button-disabled-text);
+}
+
+.tag {
+    background: var(--vc-tag-bg);
+    border-color: var(--vc-tag-border);
+    color: var(--vc-tag-text);
+}
+
+.tag:hover {
+    background: var(--vc-tag-hover-bg);
+    color: var(--vc-tag-text);
+}
+
+.tag.is-info,
+.tag.is-selected {
+    background: var(--vc-tag-selected-bg);
+    border-color: var(--vc-tag-selected-bg);
+    color: var(--vc-tag-selected-text);
+}
+
+.tag.is-selected:hover {
+    background: var(--vc-tag-selected-hover-bg);
+    border-color: var(--vc-tag-selected-hover-bg);
+    color: var(--vc-tag-selected-text);
+}
+
+.notification {
+    background: var(--vc-panel-bg);
+    color: var(--vc-color-text);
+}
+
+.modal-card-title {
+    color: var(--vc-modal-title-text);
+}
+
+.modal-control-button {
+    background: var(--vc-modal-control-bg);
+    color: var(--vc-modal-control-icon);
+}
+
+.modal-control-button svg {
+    fill: currentColor;
+}
+
+.modal-control-button.minimize:hover {
+    background: var(--vc-modal-control-hover-bg);
+    color: var(--vc-modal-control-hover-icon);
+}
+
+.modal-control-button.minimize:active {
+    background: var(--vc-modal-control-active-bg);
+}
+
+.modal-control-button.close:hover {
+    background: var(--vc-modal-control-close-bg);
+    color: var(--vc-modal-control-close-icon);
+}
+
+.modal-control-button.close:active {
+    background: var(--vc-modal-control-close-active-bg);
+    color: var(--vc-modal-control-close-icon);
+}
+
+.dropdown-menu {
+    color: var(--vc-dropdown-text);
+}
+
+.dropdown-content {
+    background: var(--vc-dropdown-bg);
+    border-color: var(--vc-dropdown-border);
+    color: var(--vc-dropdown-text);
+    box-shadow: var(--vc-dropdown-shadow);
+}
+
+.dropdown-item {
+    color: var(--vc-dropdown-text);
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background: var(--vc-dropdown-hover-bg);
+    color: var(--vc-dropdown-text);
+}
+
+.pagination-link,
+.pagination-previous,
+.pagination-next,
+.pagination-ellipsis {
+    background: var(--vc-button-bg);
+    border-color: var(--vc-button-border);
+    color: var(--vc-button-text);
+}
+
+.pagination-link:hover,
+.pagination-previous:hover,
+.pagination-next:hover {
+    background: var(--vc-button-hover-bg);
+    border-color: var(--vc-control-focus-border);
+    color: var(--vc-button-text);
+}
+
+.pagination-link.is-current {
+    background: var(--vc-color-primary);
+    border-color: var(--vc-color-primary);
+    color: var(--vc-color-on-action);
+}
+
+.pagination-previous[disabled],
+.pagination-next[disabled],
+.pagination-link[disabled] {
+    background: var(--vc-button-disabled-bg);
+    border-color: var(--vc-button-border);
+    color: var(--vc-button-disabled-text);
+}
+
 .table {
     background: var(--vc-table-bg);
     color: var(--vc-color-text);
@@ -260,6 +722,12 @@ body {
 
 .table.is-hoverable tbody tr:not(.is-selected):hover {
     background-color: var(--vc-table-hover-bg);
+}
+
+.settings-list-item:hover,
+.thumbnail-file-row:hover,
+.list-item:hover {
+    background-color: var(--vc-list-hover-bg);
 }
 
 .label,
@@ -814,6 +1282,9 @@ html[data-theme="dark"] .has-text-grey,
     height: 100%;
     display: flex;
     flex-direction: column;
+    background: var(--vc-service-card-bg, #ffffff);
+    border-color: var(--vc-service-card-border, #dbdbdb);
+    color: var(--vc-service-card-text, #363636);
 }
 .movie-card .card-content {
     padding: 0.8rem;
@@ -827,13 +1298,14 @@ html[data-theme="dark"] .has-text-grey,
     margin-bottom: 0 !important;
     line-height: 1.4;
     height: 4.2em;
+    color: var(--vc-service-card-text, #363636);
 }
 .runtime-badge {
     position: absolute;
     bottom: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
+    background: var(--vc-service-runtime-bg, rgba(0, 0, 0, 0.7));
+    color: var(--vc-service-runtime-text, #ffffff);
     padding: 0.3rem 0.6rem;
     font-weight: bold;
     border-top-left-radius: 4px;
@@ -851,6 +1323,7 @@ html[data-theme="dark"] .has-text-grey,
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
+    color: var(--vc-service-card-text, #363636);
 }
 #embyModal .emby-playable-card {
     cursor: pointer;
@@ -866,7 +1339,7 @@ html[data-theme="dark"] .has-text-grey,
 }
 #embyModal .emby-playable-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--vc-service-card-hover-shadow, 0 14px 28px rgba(0, 0, 0, 0.18));
 }
 #embyModal .emby-playable-card:hover img {
     transform: scale(1.035);
@@ -874,10 +1347,10 @@ html[data-theme="dark"] .has-text-grey,
 }
 #embyModal .emby-playable-card:active {
     transform: translateY(-1px) scale(0.99);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+    box-shadow: var(--vc-service-card-active-shadow, 0 8px 18px rgba(0, 0, 0, 0.16));
 }
 #embyModal .emby-playable-card:focus-visible {
-    box-shadow: 0 0 0 3px rgba(50, 115, 220, 0.38), 0 14px 28px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--vc-service-card-focus-shadow, 0 0 0 3px rgba(50, 115, 220, 0.38), 0 14px 28px rgba(0, 0, 0, 0.18));
 }
 #embyModal .emby-unplayable-card {
     cursor: default;
@@ -904,11 +1377,11 @@ html[data-theme="dark"] .has-text-grey,
     position: sticky;
     top: 0;
     z-index: 1;
-    background: inherit;
+    background: var(--vc-service-sticky-bg, inherit);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     padding: 1.5rem 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid var(--vc-service-sticky-border, rgba(255, 255, 255, 0.2));
 }
 
 /* 滚动内容区域 */
@@ -972,9 +1445,9 @@ html[data-theme="dark"] .has-text-grey,
     min-height: 0;
     max-height: 38vh;
     flex: 1 1 0;
-    border-right: 1px solid rgba(255, 255, 255, 0.45);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.45);
-    background: rgba(255, 255, 255, 0.22);
+    border-right: 1px solid var(--vc-modal-header-border, rgba(255, 255, 255, 0.45));
+    border-bottom: 1px solid var(--vc-modal-header-border, rgba(255, 255, 255, 0.45));
+    background: var(--vc-result-section-bg, rgba(255, 255, 255, 0.22));
     overflow: hidden;
     padding: 1rem;
 }
@@ -1023,8 +1496,8 @@ html[data-theme="dark"] .has-text-grey,
 .thumbnail-breadcrumbs button {
     border: none;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.7);
-    color: #3273dc;
+    background: var(--vc-button-bg, rgba(255, 255, 255, 0.7));
+    color: var(--vc-color-primary, #3273dc);
     cursor: pointer;
     padding: 0.25rem 0.45rem;
 }
@@ -1046,9 +1519,9 @@ html[data-theme="dark"] .has-text-grey,
     gap: 0.5rem;
     flex: 0 0 auto;
     min-height: 2.75rem;
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--vc-thumbnail-row-border, rgba(0, 0, 0, 0.06));
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.68);
+    background: var(--vc-thumbnail-row-bg, rgba(255, 255, 255, 0.68));
     cursor: pointer;
     padding: 0.55rem 0.65rem;
     text-align: left;
@@ -1060,7 +1533,7 @@ html[data-theme="dark"] .has-text-grey,
     position: absolute;
     inset: 0 auto 0 0;
     width: 3px;
-    background: #e05275;
+    background: var(--vc-tool-thumbnail, #e05275);
     opacity: 0;
     transition: opacity 0.2s ease;
 }
@@ -1069,17 +1542,17 @@ html[data-theme="dark"] .has-text-grey,
 }
 .thumbnail-file-row:hover {
     transform: translateY(-1px);
-    border-color: rgba(50, 115, 220, 0.35);
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow: 0 4px 10px rgba(50, 115, 220, 0.12);
+    border-color: color-mix(in srgb, var(--vc-color-primary, #3273dc) 35%, transparent);
+    background: var(--vc-thumbnail-row-hover-bg, rgba(255, 255, 255, 0.92));
+    box-shadow: var(--vc-thumbnail-item-hover-shadow, 0 4px 10px rgba(50, 115, 220, 0.12));
 }
 .thumbnail-file-row.is-selected {
     transform: translateY(-1px);
-    border-color: rgba(224, 82, 117, 0.58);
+    border-color: var(--vc-thumbnail-row-selected-border, rgba(224, 82, 117, 0.58));
     background:
-        radial-gradient(70% 120% at 0% 50%, rgba(224, 82, 117, 0.18), rgba(224, 82, 117, 0) 70%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 246, 249, 0.9));
-    box-shadow: 0 6px 14px rgba(224, 82, 117, 0.18);
+        radial-gradient(70% 120% at 0% 50%, color-mix(in srgb, var(--vc-tool-thumbnail) 18%, transparent), transparent 70%),
+        linear-gradient(180deg, var(--vc-thumbnail-row-hover-bg, rgba(255, 255, 255, 0.96)), var(--vc-thumbnail-row-selected-bg, rgba(255, 246, 249, 0.9)));
+    box-shadow: 0 6px 14px color-mix(in srgb, var(--vc-tool-thumbnail) 18%, transparent);
 }
 .thumbnail-file-row.is-selected::before {
     opacity: 1;
@@ -1090,12 +1563,12 @@ html[data-theme="dark"] .has-text-grey,
 }
 .thumbnail-file-row.is-disabled:hover {
     transform: none;
-    border-color: rgba(0, 0, 0, 0.06);
-    background: rgba(255, 255, 255, 0.68);
+    border-color: var(--vc-thumbnail-row-border, rgba(0, 0, 0, 0.06));
+    background: var(--vc-thumbnail-row-disabled-bg, rgba(255, 255, 255, 0.68));
     box-shadow: none;
 }
 .thumbnail-emby-row .thumbnail-file-meta {
-    color: #3273dc;
+    color: var(--vc-color-primary, #3273dc);
 }
 .thumbnail-file-name {
     display: block;
@@ -1130,7 +1603,7 @@ html[data-theme="dark"] .has-text-grey,
 }
 .thumbnail-file-meta {
     justify-self: end;
-    color: #7a7a7a;
+    color: var(--vc-thumbnail-meta, #7a7a7a);
     font-size: 0.78rem;
     min-width: max-content;
     white-space: nowrap;
@@ -1145,29 +1618,29 @@ html[data-theme="dark"] .has-text-grey,
     height: 1.8rem;
     border: none;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.76);
-    color: #515151;
+    background: var(--vc-button-bg, rgba(255, 255, 255, 0.76));
+    color: var(--vc-button-text, #515151);
     cursor: pointer;
     padding: 0;
     transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 .thumbnail-copy-name:hover {
     transform: translateY(-1px) scale(1.04);
-    background: #3273dc;
-    color: #fff;
+    background: var(--vc-color-primary, #3273dc);
+    color: var(--vc-color-on-action, #fff);
     box-shadow: 0 5px 12px rgba(50, 115, 220, 0.3);
 }
 .thumbnail-copy-name:active {
     transform: scale(0.92);
 }
 .thumbnail-copy-name.is-success {
-    background: #48c78e;
-    color: #fff;
+    background: var(--vc-color-success, #48c78e);
+    color: var(--vc-color-on-action, #fff);
     box-shadow: 0 5px 12px rgba(72, 199, 142, 0.28);
 }
 .thumbnail-copy-name.is-danger {
-    background: #ff3860;
-    color: #fff;
+    background: var(--vc-color-danger, #ff3860);
+    color: var(--vc-color-on-action, #fff);
     box-shadow: 0 5px 12px rgba(255, 56, 96, 0.28);
 }
 .thumbnail-copy-name svg {
@@ -1175,7 +1648,7 @@ html[data-theme="dark"] .has-text-grey,
     height: 14px;
 }
 .thumbnail-empty {
-    color: #7a7a7a;
+    color: var(--vc-thumbnail-meta, #7a7a7a);
     padding: 1rem;
     text-align: center;
 }
@@ -1191,9 +1664,9 @@ html[data-theme="dark"] .has-text-grey,
     min-width: 0;
     flex: 0 0 auto;
     padding: 0.85rem 1rem 1rem;
-    border-right: 1px solid rgba(255, 255, 255, 0.45);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.45);
-    background: rgba(255, 255, 255, 0.16);
+    border-right: 1px solid var(--vc-modal-header-border, rgba(255, 255, 255, 0.45));
+    border-bottom: 1px solid var(--vc-modal-header-border, rgba(255, 255, 255, 0.45));
+    background: var(--vc-result-section-bg, rgba(255, 255, 255, 0.16));
 }
 #thumbnail-video {
     display: block;
@@ -1206,7 +1679,7 @@ html[data-theme="dark"] .has-text-grey,
 }
 .thumbnail-status {
     min-height: 1.4rem;
-    color: #4a4a4a;
+    color: var(--vc-color-text, #4a4a4a);
     font-size: 0.9rem;
 }
 .thumbnail-control-panel {
@@ -1224,9 +1697,9 @@ html[data-theme="dark"] .has-text-grey,
     padding: 1rem;
 }
 .thumbnail-control-section {
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--vc-modal-header-border, rgba(255, 255, 255, 0.5));
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.34);
+    background: var(--vc-result-section-bg, rgba(255, 255, 255, 0.34));
     padding: 0.65rem;
 }
 .thumbnail-batch-section,
@@ -1236,7 +1709,7 @@ html[data-theme="dark"] .has-text-grey,
     max-width: 100%;
 }
 .thumbnail-section-title {
-    color: #363636;
+    color: var(--vc-color-text, #363636);
     font-size: 0.9rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
@@ -1293,7 +1766,7 @@ html[data-theme="dark"] .has-text-grey,
 #thumbnailModal .thumbnail-manual-grid .button.is-small,
 #thumbnailModal .thumbnail-manual-capture .button.is-small,
 #thumbnailModal .thumbnail-batch-section .button.is-small {
-    --thumbnail-action-color: #e05275;
+    --thumbnail-action-color: var(--vc-tool-thumbnail, #e05275);
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -1356,10 +1829,10 @@ html[data-theme="dark"] .has-text-grey,
     cursor: not-allowed;
 }
 #thumbnailModal .thumbnail-manual-grid .button.is-small {
-    --thumbnail-action-color: #4a9dec;
+    --thumbnail-action-color: var(--vc-control-focus-border, #4a9dec);
 }
 #thumbnailModal #thumbnail-capture-current {
-    --thumbnail-action-color: #3298dc;
+    --thumbnail-action-color: var(--vc-color-primary, #3298dc);
     box-shadow: 0 5px 13px rgba(50, 152, 220, 0.3);
 }
 #thumbnailModal #thumbnail-capture-current:not(:disabled):not([disabled]):hover {
@@ -1367,31 +1840,31 @@ html[data-theme="dark"] .has-text-grey,
 }
 #thumbnailModal .thumbnail-percent-preset.is-info,
 #thumbnailModal #thumbnail-select-all {
-    --thumbnail-action-color: #3298dc;
+    --thumbnail-action-color: var(--vc-color-primary, #3298dc);
 }
 #thumbnailModal #thumbnail-batch-capture.is-primary {
-    --thumbnail-action-color: #00d1b2;
+    --thumbnail-action-color: var(--vc-color-info, #00d1b2);
 }
 #thumbnailModal #thumbnail-batch-capture.is-warning {
-    --thumbnail-action-color: #ffb70f;
+    --thumbnail-action-color: var(--vc-color-warning, #ffb70f);
     box-shadow: 0 5px 14px rgba(255, 183, 15, 0.36);
 }
 #thumbnailModal #thumbnail-clear-captures {
-    --thumbnail-action-color: #ff3860;
+    --thumbnail-action-color: var(--vc-color-danger, #ff3860);
 }
 #thumbnailModal #thumbnail-send-add,
 #thumbnailModal #thumbnail-send-edit {
-    --thumbnail-action-color: #3273dc;
+    --thumbnail-action-color: var(--vc-color-primary, #3273dc);
 }
 #thumbnailModal #thumbnail-download-selected,
 #thumbnailModal .thumbnail-control-panel .button.is-light {
-    --thumbnail-action-color: #7a7a7a;
+    --thumbnail-action-color: var(--vc-color-text-muted, #7a7a7a);
 }
 .thumbnail-input-group label {
     display: flex;
     align-items: center;
     gap: 0.35rem;
-    color: #4a4a4a;
+    color: var(--vc-color-text, #4a4a4a);
     font-size: 0.85rem;
 }
 .thumbnail-input-group input {
@@ -1404,14 +1877,14 @@ html[data-theme="dark"] .has-text-grey,
     display: flex;
     align-items: center;
     gap: 0.35rem;
-    color: #4a4a4a;
+    color: var(--vc-color-text, #4a4a4a);
     font-size: 0.85rem;
 }
 .thumbnail-percent-label input {
     width: 5.5rem;
 }
 .thumbnail-batch-summary {
-    color: #4a4a4a;
+    color: var(--vc-color-text, #4a4a4a);
     font-size: 0.85rem;
     min-height: 1.4rem;
     white-space: nowrap;
@@ -1476,8 +1949,8 @@ html[data-theme="dark"] .has-text-grey,
     min-height: 0;
     aspect-ratio: 16 / 9;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.72);
-    box-shadow: 0 4px 8px rgba(50, 115, 220, 0.2);
+    background: var(--vc-thumbnail-item-bg, rgba(255, 255, 255, 0.72));
+    box-shadow: var(--vc-thumbnail-item-shadow, 0 4px 8px rgba(50, 115, 220, 0.2));
     cursor: grab;
     overflow: visible;
     touch-action: manipulation;
@@ -1489,13 +1962,13 @@ html[data-theme="dark"] .has-text-grey,
 }
 .thumbnail-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(50, 115, 220, 0.3);
+    box-shadow: var(--vc-thumbnail-item-hover-shadow, 0 6px 12px rgba(50, 115, 220, 0.3));
 }
 .thumbnail-item:active {
     transform: scale(0.98);
 }
 .thumbnail-item.is-selected {
-    box-shadow: 0 0 0 3px rgba(50, 115, 220, 0.35), 0 6px 14px rgba(50, 115, 220, 0.32);
+    box-shadow: var(--vc-thumbnail-item-selected-shadow, 0 0 0 3px rgba(50, 115, 220, 0.35), 0 6px 14px rgba(50, 115, 220, 0.32));
 }
 .thumbnail-item.dragging {
     opacity: 0.5;
@@ -1531,13 +2004,13 @@ html[data-theme="dark"] .has-text-grey,
 }
 .thumbnail-select-toggle:hover {
     transform: scale(1.15);
-    background: rgba(50, 115, 220, 0.8);
-    box-shadow: 0 4px 8px rgba(50, 115, 220, 0.34);
+    background: var(--vc-color-primary, rgba(50, 115, 220, 0.8));
+    box-shadow: 0 4px 8px var(--vc-action-primary-shadow, rgba(50, 115, 220, 0.34));
 }
 .thumbnail-select-toggle[aria-pressed="true"] {
-    background: #3273dc;
-    color: #fff;
-    box-shadow: 0 4px 8px rgba(50, 115, 220, 0.4);
+    background: var(--vc-color-primary, #3273dc);
+    color: var(--vc-color-on-action, #fff);
+    box-shadow: 0 4px 8px var(--vc-action-primary-shadow, rgba(50, 115, 220, 0.4));
 }
 .thumbnail-item-time {
     position: absolute;
@@ -1547,7 +2020,7 @@ html[data-theme="dark"] .has-text-grey,
     max-width: calc(100% - 1rem);
     border-radius: 999px;
     background: rgba(0, 0, 0, 0.68);
-    color: #fff;
+    color: var(--vc-color-on-action, #fff);
     font-size: 0.78rem;
     line-height: 1;
     padding: 0.28rem 0.45rem;
@@ -1561,26 +2034,26 @@ html[data-theme="dark"] .has-text-grey,
     z-index: 3;
     border: none;
     border-radius: 999px;
-    background: #ff3860;
-    color: #fff;
+    background: var(--vc-color-danger, #ff3860);
+    color: var(--vc-color-on-action, #fff);
     cursor: pointer;
     width: 24px;
     height: 24px;
     line-height: 24px;
     padding: 0;
-    box-shadow: 0 2px 4px rgba(255, 56, 96, 0.3);
+    box-shadow: 0 2px 4px var(--vc-action-danger-shadow, rgba(255, 56, 96, 0.3));
     transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     pointer-events: auto;
 }
 .thumbnail-delete:hover {
-    background: #eb0023;
+    background: var(--vc-action-danger, #eb0023);
     transform: scale(1.3);
-    box-shadow: 0 4px 8px rgba(255, 17, 51, 0.4);
+    box-shadow: 0 4px 8px var(--vc-action-danger-shadow, rgba(255, 17, 51, 0.4));
 }
 .thumbnail-delete:active {
-    background: #c7001e;
+    background: var(--vc-modal-control-close-active-bg, #c7001e);
     transform: scale(0.95);
-    box-shadow: 0 1px 2px rgba(230, 0, 34, 0.3);
+    box-shadow: 0 1px 2px var(--vc-action-danger-shadow, rgba(230, 0, 34, 0.3));
 }
 .thumbnail-delete svg {
     height: 100%;
@@ -1589,7 +2062,7 @@ html[data-theme="dark"] .has-text-grey,
     grid-column: 1 / -1;
 }
 .thumbnail-selected-count {
-    color: #4a4a4a;
+    color: var(--vc-color-text, #4a4a4a);
     font-size: 0.85rem;
     line-height: 2.1rem;
     white-space: nowrap;
@@ -1626,7 +2099,8 @@ html[data-theme="dark"] .has-text-grey,
     margin-top: 10px;
     padding: 10px;
     border-radius: 4px;
-    background-color: #f5f5f5;
+    background-color: var(--vc-result-section-bg, #f5f5f5);
+    color: var(--vc-color-text, #363636);
     font-size: 0.9em;
 }
 
@@ -1634,7 +2108,8 @@ html[data-theme="dark"] .has-text-grey,
     min-height: 100px;
     padding: 1rem;
     border-radius: 4px;
-    background: #f5f5f5;
+    background: var(--vc-result-section-bg, #f5f5f5);
+    color: var(--vc-color-text, #363636);
     flex-grow: 1;
     margin-bottom: 1rem;
 }
@@ -1664,24 +2139,24 @@ html[data-theme="dark"] .has-text-grey,
 
 .duplicate-separator td {
     text-align: center;
-    background-color: #f5f5f5;
+    background-color: var(--vc-result-section-bg, #f5f5f5);
     font-weight: bold;
-    color: #666;
+    color: var(--vc-result-muted, #666);
     padding: 0.5rem !important;
 }
 
 tr.is-duplicate {
-    background-color: #fff3e0 !important;
+    background-color: var(--vc-recommend-selected-bg, #fff3e0) !important;
 }
 
 tr.is-duplicate:hover {
-    background-color: #ffeaca !important;
+    background-color: var(--vc-list-hover-bg, #ffeaca) !important;
 }
 
 /* 复制按钮样式 */
 .copy-btn {
     min-width: 55px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important; /* 灰色阴影 */
+    box-shadow: var(--vc-panel-shadow-compact, 0 2px 4px rgba(0, 0, 0, 0.1)) !important;
     overflow: hidden;
     background: transparent;
     transition: box-shadow 0.3s, background-color 0.3s;
@@ -1697,15 +2172,15 @@ tr.is-duplicate:hover {
     z-index: 1;
     background: radial-gradient(
       65.28% 65.28% at 50% 100%,
-      rgba(255, 255, 255, 1.0) 0%, /* 白色光晕 */
-      rgba(255, 255, 255, 0) 100%
+      var(--vc-button-shine, rgba(255, 255, 255, 1.0)) 0%,
+      transparent 100%
     ),
-    linear-gradient(0deg, #f1f1f1, #f1f1f1);
+    linear-gradient(0deg, var(--vc-button-bg, #f1f1f1), var(--vc-button-bg, #f1f1f1));
     transition: filter 0.3s;
 }
 /* hover */
 .copy-btn:hover {
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: var(--vc-shadow-md, 0 2px 6px rgba(0, 0, 0, 0.2)) !important;
 }
 .copy-btn:hover svg {
     transform: scale(1.1);
@@ -1716,7 +2191,7 @@ tr.is-duplicate:hover {
 /* active */
 .copy-btn:active {
     transform: scale(0.95);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: var(--vc-shadow-sm, 0 2px 4px rgba(0, 0, 0, 0.2)) !important;
 }
 .copy-btn:active::before {
     filter: brightness(90%);
@@ -1732,10 +2207,10 @@ tr.is-duplicate:hover {
         rgba(110, 231, 183, 0.6) 0%,  /* 浅绿色光晕 */
         rgba(110, 231, 183, 0) 100%
     ),
-    linear-gradient(0deg, #17a84c, #17a84c);
+    linear-gradient(0deg, var(--vc-action-success, #17a84c), var(--vc-action-success, #17a84c));
 }
 .copy-btn.is-success:hover {
-    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4) !important;
+    box-shadow: 0 6px 16px var(--vc-action-success-shadow, rgba(34, 197, 94, 0.4)) !important;
 }
 .copy-btn.is-success:active {
     box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2) !important;
@@ -1751,10 +2226,10 @@ tr.is-duplicate:hover {
         rgba(255, 134, 134, 0.6) 0%,  /* 浅红色光晕 */
         rgba(255, 134, 134, 0) 100%
     ),
-    linear-gradient(0deg, #ff3950, #ff3950);  /* 深红色底色 */
+    linear-gradient(0deg, var(--vc-action-danger, #ff3950), var(--vc-action-danger, #ff3950));  /* 深红色底色 */
 }
 .copy-btn.is-danger:hover {
-    box-shadow: 0 6px 16px rgba(241, 70, 104, 0.4) !important;
+    box-shadow: 0 6px 16px var(--vc-action-danger-shadow, rgba(241, 70, 104, 0.4)) !important;
 }
 .copy-btn.is-danger:active {
     box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
@@ -1781,7 +2256,7 @@ tr.is-duplicate:hover {
         rgba(255, 255, 255, 0.25) 0%,
         rgba(255, 255, 255, 0) 100%
     ),
-    #e0e0e0;
+    var(--vc-tag-hover-bg, #e0e0e0);
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -1791,9 +2266,9 @@ tr.is-duplicate:hover {
         rgba(255, 255, 255, 0.25) 0%,
         rgba(255, 255, 255, 0) 100%
     ),
-    #4A9DEC;
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    var(--vc-tag-selected-bg, #4A9DEC);
+    color: var(--vc-tag-selected-text, white);
+    border: 1px solid var(--vc-tag-selected-bg, rgba(255, 255, 255, 0.1));
     box-shadow: 0 2px 4px rgba(74, 157, 236, 0.2);
 }
 .tag.is-selected:hover {
@@ -1802,7 +2277,7 @@ tr.is-duplicate:hover {
         rgba(255, 255, 255, 0.3) 0%,
         rgba(255, 255, 255, 0) 100%
     ),
-    #3b8ed8;
+    var(--vc-tag-selected-hover-bg, #3b8ed8);
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(74, 157, 236, 0.3);
 }
@@ -1814,16 +2289,17 @@ tr.is-duplicate:hover {
 ----------------------------------------*/
 /* 工具栏按钮特效 */
 .function-tools .tool-btn:hover svg {
-    fill: #fff;
+    fill: var(--vc-tool-hover-text, #fff);
     transform: rotate(10deg);
     transition: transform 0.3s, background-color 0.3s;
 }
 .function-tools .tool-btn.is-active svg {
-    fill: #fff;
+    fill: var(--vc-tool-hover-text, #fff);
     transition: transform 0.3s, background-color 0.3s;
 }
 .function-tools .tool-btn:hover {
     transform: translateY(-2px);
+    color: var(--vc-tool-hover-text, #fff);
     box-shadow: 0 6px 10px color-mix(in srgb, var(--btn-color) 40%, transparent);
 }
 .function-tools .tool-btn:hover::before {
@@ -1835,6 +2311,7 @@ tr.is-duplicate:hover {
 }
 .function-tools .tool-btn.is-active {
     transform: scale(0.95) translateY(1px);
+    color: var(--vc-tool-hover-text, #fff);
     animation: button-pulse 2s infinite;
 }
 .function-tools .tool-btn:active::before,
@@ -1860,12 +2337,12 @@ tr.is-duplicate:hover {
 }
 
 .search-btn:hover {
-    box-shadow: 0 6px 16px rgba(67, 97, 238, 0.4) !important;
+    box-shadow: 0 6px 16px var(--vc-action-primary-shadow, rgba(67, 97, 238, 0.4)) !important;
 }
 .save-btn:hover,
 .save-btn-small:hover,
 .add-btn:hover {
-    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4) !important;
+    box-shadow: 0 6px 16px var(--vc-action-success-shadow, rgba(34, 197, 94, 0.4)) !important;
 }
 .delete-btn:hover::before,
 .search-btn:hover::before,
@@ -1945,7 +2422,7 @@ tr.is-duplicate:hover {
         rgba(255, 134, 134, 0.8) 0%,  /* 浅红色光晕 */
         rgba(255, 134, 134, 0) 100%
     ),
-    linear-gradient(0deg, #ff3950, #ff3950);  /* 深红色底色 */
+    linear-gradient(0deg, var(--vc-action-danger, #ff3950), var(--vc-action-danger, #ff3950));  /* 深红色底色 */
     transition: filter 0.3s;
 }
 .delete-btn span {
@@ -1954,7 +2431,7 @@ tr.is-duplicate:hover {
     transition: transform 0.3s ease-in-out;
 }
 .delete-btn:hover {
-    box-shadow: 0 6px 16px rgba(241, 70, 104, 0.4) !important;
+    box-shadow: 0 6px 16px var(--vc-action-danger-shadow, rgba(241, 70, 104, 0.4)) !important;
 }
 .delete-btn:active {
     transform: scale(0.95);
@@ -1996,13 +2473,13 @@ tr.is-duplicate:hover {
 .edit-btn:hover {
     filter: brightness(95%);
     transform: scale(1.03);
-    box-shadow: 0 2px 6px rgba(23, 116, 255, 0.4);
+    box-shadow: 0 2px 6px var(--vc-action-primary-shadow, rgba(23, 116, 255, 0.4));
 }
 /* active效果 */
 .edit-btn:active {
     filter: brightness(92%);
     transform: scale(0.95);
-    box-shadow: 0 2px 4px rgba(23, 116, 255, 0.4);
+    box-shadow: 0 2px 4px var(--vc-action-primary-shadow, rgba(23, 116, 255, 0.4));
 }
 
 
@@ -2055,8 +2532,8 @@ tr.is-duplicate:hover {
         rgba(74, 157, 236, 0.08) 0%,
         rgba(74, 157, 236, 0.02) 100%
     ),
-    #ffffff;
-    border-color: rgba(74, 157, 236, 0.4) !important;
+    var(--vc-control-bg, #ffffff);
+    border-color: var(--vc-control-focus-border, rgba(74, 157, 236, 0.4)) !important;
     box-shadow: 0 2px 6px rgba(74, 157, 236, 0.15);
 }
 
@@ -2154,18 +2631,19 @@ tr.is-duplicate:hover {
   图片上传框 - 通用样式 - 必要样式在index中
 ----------------------------------------*/
 .image-upload-area.dragover {
-    border-color: #3273dc;
-    background-color: rgba(50, 115, 220, 0.1);
+    border-color: var(--vc-control-focus-border, #3273dc);
+    background-color: var(--vc-color-primary-soft, rgba(50, 115, 220, 0.1));
 }
 .image-upload-area:hover {
-    border-color: rgba(50, 115, 220, 0.5);
-    background-color: rgba(50, 115, 220, 0.02);
+    border-color: var(--vc-control-focus-border, rgba(50, 115, 220, 0.5));
+    background-color: var(--vc-list-hover-bg, rgba(50, 115, 220, 0.02));
 }
 /* 图片预览样式 */
 .preview-item {
     position: relative;
     aspect-ratio: 1;
-    box-shadow: 0 4px 8px rgba(50, 115, 220, 0.2);
+    background: var(--vc-image-card-bg, #ffffff);
+    box-shadow: var(--vc-image-card-shadow, 0 4px 8px rgba(50, 115, 220, 0.2));
     border-radius: 8px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
@@ -2179,7 +2657,7 @@ tr.is-duplicate:hover {
 }
 .preview-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(50, 115, 220, 0.3);
+    box-shadow: var(--vc-image-card-hover-shadow, 0 6px 12px rgba(50, 115, 220, 0.3));
 }
 .preview-item img {
     width: 100%;
@@ -2197,24 +2675,24 @@ tr.is-duplicate:hover {
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: #ff3860;
-    color: white;
+    background: var(--vc-color-danger, #ff3860);
+    color: var(--vc-color-on-action, #ffffff);
     border: none;
     cursor: pointer;
     z-index: 1;
-    box-shadow: 0 2px 4px rgba(255, 56, 96, 0.3);
+    box-shadow: 0 2px 4px var(--vc-action-danger-shadow, rgba(255, 56, 96, 0.3));
     transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     pointer-events: auto;
 }
 .preview-item .delete-image:hover {
-    background: #eb0023;
+    background: var(--vc-action-danger, #eb0023);
     transform: scale(1.3);
-    box-shadow: 0 4px 8px rgba(255, 17, 51, 0.4);
+    box-shadow: 0 4px 8px var(--vc-action-danger-shadow, rgba(255, 17, 51, 0.4));
 }
 .preview-item .delete-image:active {
-    background: #c7001e;
+    background: var(--vc-modal-control-close-active-bg, #c7001e);
     transform: scale(0.95);
-    box-shadow: 0 1px 2px rgba(230, 0, 34, 0.3);
+    box-shadow: 0 1px 2px var(--vc-action-danger-shadow, rgba(230, 0, 34, 0.3));
 }
 .preview-item .delete-image svg {
     height: 100%;
@@ -2262,7 +2740,7 @@ tr.is-duplicate:hover {
 }
 .existing-image-item:hover {
     transform: translateY(-2px) !important;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--vc-image-existing-hover-shadow, 0 4px 8px rgba(0, 0, 0, 0.1));
 }
 .existing-image-item img {
     width: 100%;
@@ -2275,7 +2753,7 @@ tr.is-duplicate:hover {
     position: absolute;
     top: 5px;
     right: 5px;
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--vc-overlay-control-bg, rgba(0, 0, 0, 0.3));
     border: none;
     border-radius: 50%;
     width: 24px;
@@ -2284,17 +2762,17 @@ tr.is-duplicate:hover {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: white;
+    color: var(--vc-overlay-control-text, #ffffff);
     transition: transform 0.2s ease, background-color 0.2s ease;
     pointer-events: auto;
 }
 .delete-existing-image:hover {
     transform: scale(1.15);
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--vc-overlay-control-hover-bg, rgba(0, 0, 0, 0.5));
 }
 .delete-existing-image:active {
     transform: scale(0.95);
-    background: rgba(0, 0, 0, 0.7);
+    background: var(--vc-overlay-control-active-bg, rgba(0, 0, 0, 0.7));
 }
 /* 顺序拖拽样式 */
 .existing-image-item.dragging {
@@ -2315,7 +2793,7 @@ tr.is-duplicate:hover {
 }
 /* 图片容器拖动状态 */
 .existing-images.dragging-over {
-    background: rgba(50, 115, 220, 0.05);
+    background: var(--vc-image-drag-bg, rgba(50, 115, 220, 0.05));
     border-radius: 4px;
 }
 
@@ -2473,23 +2951,23 @@ tr.is-duplicate:hover {
 }
 .nav-button {
     position: absolute;
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--vc-overlay-control-bg, rgba(0, 0, 0, 0.1));
     border: none;
     border-radius: 50%;
     width: 60px;
     height: 60px;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: var(--vc-overlay-control-text, #ffffff);
     cursor: pointer;
     transition: transform 0.2s ease, background-color 0.2s ease;
     pointer-events: auto;
 }
 .nav-button:hover {
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--vc-overlay-control-hover-bg, rgba(0, 0, 0, 0.3));
 }
 .nav-button:active {
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--vc-overlay-control-active-bg, rgba(0, 0, 0, 0.5));
 }
 .nav-button.prev {
     left: 20px;
@@ -2513,15 +2991,15 @@ tr.is-duplicate:hover {
 .image-counter {
     position: absolute;
     bottom: 20px;
-    background: rgba(0, 0, 0, 0.1);
-    color: white;
+    background: var(--vc-overlay-control-bg, rgba(0, 0, 0, 0.1));
+    color: var(--vc-overlay-control-text, #ffffff);
     padding: 5px 15px;
     border-radius: 15px;
     transition: transform 0.2s ease, background-color 0.2s ease;
 }
 .image-counter:hover {
     transform: scale(1.15);
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--vc-overlay-control-hover-bg, rgba(0, 0, 0, 0.3));
 }
 
 
@@ -2580,10 +3058,10 @@ tr.is-duplicate:hover {
 .tags-box-title {
     font-size: 1rem;
     font-weight: bold;
-    color: #363636;
+    color: var(--vc-section-title-text, #363636);
     padding-bottom: 0.3rem;
     margin-bottom: 0.2rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--vc-section-title-border, #eeeeee);
     padding-left: 0.3rem;
 }
 
@@ -2602,7 +3080,7 @@ tr.is-duplicate:hover {
 }
 
 .ratings-box label.radio:hover {
-    color: #3273dc;
+    color: var(--vc-color-primary, #3273dc);
 }
 
 
@@ -2637,10 +3115,11 @@ tr.is-duplicate:hover {
 
 /* 下拉菜单内容区域 */
 .dropdown-content {
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--vc-dropdown-bg, #ffffff);
+    border: 1px solid var(--vc-dropdown-border, #dddddd);
     border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--vc-dropdown-shadow, 0 2px 8px rgba(0,0,0,0.1));
+    color: var(--vc-dropdown-text, #363636);
     padding: 0.5rem;
 }
 
@@ -2652,6 +3131,7 @@ tr.is-duplicate:hover {
     display: flex;
     align-items: center;
     white-space: nowrap;
+    color: var(--vc-dropdown-text, #363636);
 }
 .rating-item .stars  {
     transform: translateY(2px);
@@ -2661,7 +3141,7 @@ tr.is-duplicate:hover {
 .dimension-name {
     font-weight: normal;
     min-width: 2.8rem;
-    color: #4a4a4a;
+    color: var(--vc-dropdown-text, #4a4a4a);
 }
 
 /* 悬浮显示下拉菜单 */
@@ -2731,10 +3211,11 @@ tr.is-duplicate:hover {
   z-index: 1000;
   display: none;
   min-width: 9rem;
-  background-color: white;
-  border: 1px solid #dbdbdb;
+  background-color: var(--vc-dropdown-bg, #ffffff);
+  border: 1px solid var(--vc-dropdown-border, #dbdbdb);
   border-radius: 4px;
-  box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+  box-shadow: var(--vc-dropdown-shadow, 0 2px 3px rgba(10, 10, 10, 0.1));
+  color: var(--vc-dropdown-text, #363636);
 }
 
 .ratings-cell .dropdown.is-active .dropdown-menu,
@@ -2829,6 +3310,7 @@ tr.is-duplicate:hover {
     flex-grow: 1;
     overflow: hidden;
     line-height: 32px !important;
+    color: var(--vc-modal-title-text, #1f2937);
 }
 
 /* 模态框内容区 */
@@ -2859,6 +3341,7 @@ tr.is-duplicate:hover {
     border-radius: 50%;
     padding: 0;
     background: var(--vc-modal-control-bg, rgba(255, 255, 255, 0.2));
+    color: var(--vc-modal-control-icon, #4a4a4a);
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.2s ease;
     display: flex;
@@ -2867,31 +3350,34 @@ tr.is-duplicate:hover {
     flex-shrink: 0; /* 防止按钮被压缩 */
 }
 .modal-control-button svg {
-    fill: var(--vc-modal-control-icon, #4a4a4a);
+    fill: currentColor;
     width: 10px;
     height: 10px;
     transition: fill 0.2s ease;
 }
 /* 悬停效果 */
 .modal-control-button.minimize:hover {
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--vc-modal-control-hover-bg, rgba(0, 0, 0, 0.1));
+    color: var(--vc-modal-control-hover-icon, #2a2a2a);
 }
 .modal-control-button.close:hover {
-    background: #ff3860;
+    background: var(--vc-modal-control-close-bg, #ff3860);
+    color: var(--vc-modal-control-close-icon, #ffffff);
 }
 .modal-control-button.minimize:hover svg {
-    fill: #2a2a2a;
+    fill: currentColor;
 }
 .modal-control-button.close:hover svg {
-    fill: white;
+    fill: currentColor;
 }
 .modal-control-button.minimize:active {
     transform: scale(0.9);
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--vc-modal-control-active-bg, rgba(0, 0, 0, 0.2));
 }
 .modal-control-button.close:active {
     transform: scale(0.9);
-    background: #e8324d;
+    background: var(--vc-modal-control-close-active-bg, #e8324d);
+    color: var(--vc-modal-control-close-icon, #ffffff);
 }
 
 /* 模态框动画 */
@@ -3279,8 +3765,8 @@ tr.is-duplicate:hover {
     min-width: 100%;
     max-width: 300px;
     padding: 8px;
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--vc-panel-bg, white);
+    border: 1px solid var(--vc-panel-border, #ddd);
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     white-space: normal;
@@ -3301,8 +3787,8 @@ tr.is-duplicate:hover {
     min-width: 100%;
     max-width: 300px;
     padding: 8px;
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--vc-panel-bg, white);
+    border: 1px solid var(--vc-panel-border, #ddd);
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     white-space: normal;
@@ -3320,8 +3806,8 @@ tr.is-duplicate:hover {
     min-width: 100%;
     max-width: 300px;
     padding: 5px;
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--vc-panel-bg, white);
+    border: 1px solid var(--vc-panel-border, #ddd);
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     white-space: normal;
@@ -3361,7 +3847,7 @@ tr.is-duplicate:hover {
 .search-skeleton .skeleton-block {
     display: block;
     border-radius: 6px;
-    background: linear-gradient(90deg, #eef1f5 25%, #e2e7ee 37%, #eef1f5 63%);
+    background: var(--vc-skeleton-gradient, linear-gradient(90deg, #eef1f5 25%, #e2e7ee 37%, #eef1f5 63%));
     background-size: 400% 100%;
     animation: search-skeleton-loading 1.2s ease-in-out infinite;
 }
@@ -3429,11 +3915,11 @@ tr.is-duplicate:hover {
 
     .table tr {
         display: block;
-        background: white;
+        background: var(--vc-result-card-bg, white);
         padding: 0.8rem;
         margin-bottom: 0.8rem;
         border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: var(--vc-panel-shadow-compact, 0 2px 4px rgba(0,0,0,0.1));
     }
 
     .table td {
@@ -3451,7 +3937,7 @@ tr.is-duplicate:hover {
     .table td:before {
         content: attr(data-label);
         font-weight: bold;
-        color: #666;
+        color: var(--vc-result-muted, #666);
         flex-shrink: 0;
     }
     
@@ -3525,24 +4011,24 @@ tr.is-duplicate:hover {
         gap: 0.55rem 0.85rem;
         margin: 0;
         padding: 0.9rem;
-        border: 1px solid rgba(219, 219, 219, 0.9);
+        border: 1px solid var(--vc-result-card-border, rgba(219, 219, 219, 0.9));
         border-radius: 8px;
-        background: #fff;
-        box-shadow: 0 2px 8px rgba(10, 10, 10, 0.08);
+        background: var(--vc-result-card-bg, #fff);
+        box-shadow: var(--vc-panel-shadow-compact, 0 2px 8px rgba(10, 10, 10, 0.08));
     }
     #search-results .movie-results-table td {
         min-width: 0;
         max-width: none;
         border: none;
         padding: 0;
-        color: #363636;
+        color: var(--vc-color-text, #363636);
         font-size: 0.9rem;
         font-weight: 400;
         line-height: 1.45;
         white-space: normal;
     }
     #search-results .movie-results-table td::before {
-        color: #7a7a7a;
+        color: var(--vc-result-muted, #7a7a7a);
         font-size: 0.78rem;
         font-weight: 700;
         line-height: 1.4;
@@ -3550,7 +4036,7 @@ tr.is-duplicate:hover {
     #search-results .movie-results-table .movie-title-cell {
         grid-area: title;
         padding-bottom: 0.75rem;
-        border-bottom: 1px solid rgba(219, 219, 219, 0.75);
+        border-bottom: 1px solid var(--vc-result-section-border, rgba(219, 219, 219, 0.75));
     }
     #search-results .movie-results-table .movie-title-cell::before,
     #search-results .movie-results-table .movie-action-cell::before,
@@ -3566,7 +4052,7 @@ tr.is-duplicate:hover {
         height: 108px;
         border-radius: 8px;
         overflow: hidden;
-        background: #f5f5f5;
+        background: var(--vc-result-preview-bg, #f5f5f5);
     }
     #search-results .movie-results-table .movie-preview-image img {
         border-radius: 8px;
@@ -3574,7 +4060,7 @@ tr.is-duplicate:hover {
     #search-results .movie-results-table .movie-title-text {
         display: -webkit-box;
         overflow: hidden;
-        color: #242424;
+        color: var(--vc-color-text, #242424);
         font-size: 1rem;
         font-weight: 700;
         line-height: 1.35;
@@ -3591,15 +4077,15 @@ tr.is-duplicate:hover {
     #search-results .movie-results-table .movie-recommended-chip {
         min-height: 1.8rem;
         border-radius: 999px;
-        background: #f5f5f5;
-        color: #666;
+        background: var(--vc-result-chip-bg, #f5f5f5);
+        color: var(--vc-result-chip-text, #666);
         font-size: 0.78rem;
         font-weight: 700;
         padding: 0.25rem 0.55rem;
     }
     #search-results .movie-results-table .movie-recommended-chip.is-recommended {
-        background: rgba(255, 123, 0, 0.12);
-        color: #b55300;
+        background: var(--vc-result-recommended-bg, rgba(255, 123, 0, 0.12));
+        color: var(--vc-result-recommended-text, #b55300);
     }
     #search-results .movie-results-table .movie-recommended-text {
         display: inline;
@@ -3621,8 +4107,8 @@ tr.is-duplicate:hover {
         grid-template-columns: 3.5rem minmax(0, 1fr);
         align-items: start;
         gap: 0.55rem;
-        border-top: 1px solid rgba(219, 219, 219, 0.72);
-        background: rgba(245, 245, 245, 0.5);
+        border-top: 1px solid var(--vc-result-section-border, rgba(219, 219, 219, 0.72));
+        background: var(--vc-result-section-bg, rgba(245, 245, 245, 0.5));
         border-radius: 6px;
         padding: 0.55rem 0.6rem;
     }
@@ -3651,7 +4137,7 @@ tr.is-duplicate:hover {
     #search-results .movie-results-table .movie-tags-text {
         display: -webkit-box;
         overflow: hidden;
-        color: #4a4a4a;
+        color: var(--vc-color-text, #4a4a4a);
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         line-clamp: 2;
@@ -3659,11 +4145,11 @@ tr.is-duplicate:hover {
     }
     #search-results .movie-results-table .movie-review-text.is-empty::before {
         content: "暂无评价";
-        color: #9a9a9a;
+        color: var(--vc-color-text-subtle, #9a9a9a);
     }
     #search-results .movie-results-table .movie-tags-text.is-empty::before {
         content: "暂无标签";
-        color: #9a9a9a;
+        color: var(--vc-color-text-subtle, #9a9a9a);
     }
     #search-results .movie-results-table .desktop-ratings-dropdown,
     #search-results .movie-results-table .desktop-ratings-empty {
@@ -3676,7 +4162,7 @@ tr.is-duplicate:hover {
         gap: 0.2rem;
     }
     #search-results .movie-results-table .mobile-ratings-list.is-empty {
-        color: #9a9a9a;
+        color: var(--vc-color-text-subtle, #9a9a9a);
     }
     #search-results .movie-results-table .mobile-ratings-list .rating-item {
         display: flex;
@@ -3686,7 +4172,7 @@ tr.is-duplicate:hover {
         flex-wrap: wrap;
     }
     #search-results .movie-results-table .mobile-ratings-list .dimension-name {
-        color: #4a4a4a;
+        color: var(--vc-color-text, #4a4a4a);
         font-size: 0.82rem;
         font-weight: 700;
     }
@@ -3754,7 +4240,7 @@ tr.is-duplicate:hover {
   设置模态框样式 - 必要样式在index中
 ----------------------------------------*/
 .settings-btn:hover {
-    background-color: #f0f0f0;
+    background-color: var(--vc-button-hover-bg, #f0f0f0);
 }
 
 /* 设置模态框样式 */
@@ -3809,22 +4295,22 @@ tr.is-duplicate:hover {
 .settings-tabs li.is-active {
     background: linear-gradient(
         177.95deg,
-        rgba(74, 157, 236, 0.04) 0%,
-        rgba(74, 157, 236, 0.12) 100%
+        color-mix(in srgb, var(--vc-color-primary) 6%, transparent) 0%,
+        color-mix(in srgb, var(--vc-color-primary) 15%, transparent) 100%
     );
 }
 .settings-tabs li:active {
     background: linear-gradient(
         177.95deg,
-        rgba(74, 157, 236, 0.08) 0%,
-        rgba(74, 157, 236, 0.24) 100%
+        color-mix(in srgb, var(--vc-color-primary) 10%, transparent) 0%,
+        color-mix(in srgb, var(--vc-color-primary) 26%, transparent) 100%
     );
 }
 .settings-tabs li.is-active {
-    border-bottom: 1px solid #3273dc;
+    border-bottom: 1px solid var(--vc-color-primary, #3273dc);
 }
 .settings-tabs li:not(.is-active) {
-    border-bottom: 1px solid #dbdbdb;
+    border-bottom: 1px solid var(--vc-panel-border, #dbdbdb);
 }
 
 /* 标签特定样式 */
@@ -3865,7 +4351,7 @@ tr.is-duplicate:hover {
     border: 1px solid rgba(50, 115, 220, 0.18);
     border-radius: 8px;
     background: linear-gradient(180deg, rgba(50, 115, 220, 0.08), rgba(50, 115, 220, 0.03));
-    color: #334155;
+    color: var(--vc-color-text, #334155);
     padding: 0.75rem 0.85rem;
 }
 
@@ -3886,7 +4372,7 @@ tr.is-duplicate:hover {
 }
 
 .maintenance-schedule-details {
-    color: #64748b;
+    color: var(--vc-color-text-muted, #64748b);
     font-size: 0.84rem;
     line-height: 1.45;
 }
@@ -4011,7 +4497,7 @@ tr.is-duplicate:hover {
         rgba(253, 230, 138, 0.85) 0%,
         rgba(253, 230, 138, 0) 100%
     ),
-    linear-gradient(0deg, #f59e0b, #f59e0b);
+    linear-gradient(0deg, var(--vc-color-warning, #f59e0b), var(--vc-color-warning, #f59e0b));
     transition: filter 0.3s;
 }
 
@@ -4028,7 +4514,7 @@ tr.is-duplicate:hover {
 }
 
 .maintenance-create-btn:hover {
-    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.42) !important;
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--vc-color-warning, #f59e0b) 42%, transparent) !important;
 }
 
 .maintenance-create-btn:hover::before {
@@ -4124,7 +4610,7 @@ tr.is-duplicate:hover {
 }
 
 .maintenance-empty-row td {
-    color: #6b7280;
+    color: var(--vc-color-text-muted, #6b7280);
     text-align: center;
 }
 
@@ -4136,14 +4622,15 @@ tr.is-duplicate:hover {
     display: flex;
     align-items: center;
     padding: 0.75rem;
-    border: 1px solid #dbdbdb;
+    border: 1px solid var(--vc-list-border, #dbdbdb);
     border-radius: 4px;
     margin-bottom: 0.5rem;
-    background-color: #fff;
+    background-color: var(--vc-list-bg, #fff);
+    color: var(--vc-list-text, #1f2937);
 }
 
 .settings-list-item:hover {
-    background-color: #f8f8f8;
+    background-color: var(--vc-list-hover-bg, #f8f8f8);
 }
 
 .settings-list-item .item-content {
@@ -4250,14 +4737,14 @@ tr.is-duplicate:hover {
         rgba(248, 113, 113, 0.85) 0%,
         rgba(248, 113, 113, 0) 100%
     ),
-    linear-gradient(0deg, #e53935, #e53935);
+    linear-gradient(0deg, var(--vc-action-danger, #e53935), var(--vc-action-danger, #e53935));
     transition: filter 0.3s;
 }
 
 .settings-modal .settings-delete-btn:hover {
     filter: brightness(96%);
     transform: scale(1.03);
-    box-shadow: 0 2px 8px rgba(229, 57, 53, 0.38);
+    box-shadow: 0 2px 8px var(--vc-action-danger-shadow, rgba(229, 57, 53, 0.38));
 }
 
 .settings-modal .settings-delete-btn:hover::before {
@@ -4289,14 +4776,14 @@ tr.is-duplicate:hover {
         rgba(96, 165, 250, 0.85) 0%,
         rgba(96, 165, 250, 0) 100%
     ),
-    linear-gradient(0deg, #2563eb, #2563eb);
+    linear-gradient(0deg, var(--vc-action-primary, #2563eb), var(--vc-action-primary, #2563eb));
     transition: filter 0.3s;
 }
 
 .settings-modal .maintenance-backup-restore-btn:hover {
     filter: brightness(98%);
     transform: scale(1.03);
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.36);
+    box-shadow: 0 2px 8px var(--vc-action-primary-shadow, rgba(37, 99, 235, 0.36));
 }
 
 .settings-modal .maintenance-backup-restore-btn:hover::before {
@@ -4395,7 +4882,7 @@ tr.is-duplicate:hover {
         width: 100%;
         min-width: 720px;
         table-layout: fixed;
-        background: #fff;
+        background: var(--vc-table-bg, #fff);
     }
     .maintenance-backups-table .table thead {
         display: table-header-group;
@@ -4416,7 +4903,7 @@ tr.is-duplicate:hover {
         display: table-cell;
         align-items: initial;
         padding: 0.5em 0.75em;
-        border: 1px solid #dbdbdb;
+        border: 1px solid var(--vc-color-border, #dbdbdb);
         font-size: 0.9rem;
         font-weight: 400;
         line-height: 1.5;
@@ -4459,19 +4946,19 @@ tr.is-duplicate:hover {
 .settings-modal .table thead {
     position: sticky;
     top: 0;
-    background-color: white;
+    background-color: var(--vc-table-head-bg, #ffffff);
     z-index: 1;
 }
 
 /* 表格行悬停效果 */
 .settings-modal .table tbody tr:hover {
-    background-color: #f5f5f5;
+    background-color: var(--vc-table-hover-bg, #f5f5f5);
 }
 
 /* 设置按钮特效 */
 .settings-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(151, 71, 255, 0.4) !important;
+    box-shadow: 0 6px 16px var(--vc-action-settings-shadow, rgba(151, 71, 255, 0.4)) !important;
 }
 .settings-btn:hover::before {
     opacity: 1;
@@ -4483,11 +4970,11 @@ tr.is-duplicate:hover {
 .settings-btn:hover svg,
 .settings-btn.is-active svg {
     transform: scale(1.3);
-    fill: #fff;
+    fill: var(--vc-color-on-action, #fff);
 }
 .settings-btn:active {
     transform: scale(0.95) translateY(1px);
-    box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
+    box-shadow: 0 2px 8px var(--vc-action-settings-shadow, rgba(113, 42, 136, 0.2)) !important;
 }
 .settings-btn.is-active {
     transform: scale(0.95) translateY(1px);
@@ -4499,7 +4986,7 @@ tr.is-duplicate:hover {
     filter: brightness(90%);
 }
 @keyframes button-pulse-settings-btn {
-    0% { box-shadow: 0 0 0 0 #712aec; }
+    0% { box-shadow: 0 0 0 0 var(--vc-action-settings, #712aec); }
     70% { box-shadow: 0 0 0 10px transparent; }
     100% { box-shadow: 0 0 0 0 transparent; }
 }
@@ -4569,7 +5056,7 @@ tr.is-duplicate:hover {
 
 /* 推荐按钮样式 */
 .recommend-field input:checked + label svg {
-    fill: #ff7b00;
+    fill: var(--vc-recommend-selected-icon, #ff7b00);
     animation: thumbUpButton 1s;
     transform: rotate(180deg); /* 旋转到最终状态 */
 }
@@ -4589,19 +5076,19 @@ tr.is-duplicate:hover {
     opacity: 1;
 }
 .recommend-field input:checked + label {
-    background-color: #fff3e0;  /* 浅橙色背景 */
-    border-color: #ffcc80;     /* 浅橙色边框 */
-    color: #f57c00;           /* 深橙色文字 */
+    background-color: var(--vc-recommend-selected-bg, #fff3e0);  /* 浅橙色背景 */
+    border-color: var(--vc-recommend-selected-border, #ffcc80);     /* 浅橙色边框 */
+    color: var(--vc-recommend-selected-text, #f57c00);           /* 深橙色文字 */
 }
 .recommend-field label:hover {
     transform: translateY(-1px);
-    background-color: #fff8e1;
-    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+    background-color: var(--vc-recommend-hover-bg, #fff8e1);
+    box-shadow: 0 4px 12px var(--vc-recommend-hover-shadow, rgba(255, 152, 0, 0.3));
 }
 .recommend-field label:active {
     transform: translateY(1px);
-    background-color: #fffde7;
-    box-shadow: 0 2px 6px rgba(255, 152, 0, 0.2);
+    background-color: var(--vc-recommend-active-bg, #fffde7);
+    box-shadow: 0 2px 6px var(--vc-recommend-active-shadow, rgba(255, 152, 0, 0.2));
 }
 
 /* 设置按钮尺寸，确保特效正常 */
@@ -4624,10 +5111,10 @@ tr.is-duplicate:hover {
     overflow: hidden;
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
-        rgba(223, 113, 255, 0.8) 0%,
-        rgba(223, 113, 255, 0) 100%
+        var(--vc-duplicate-start-glow, rgba(223, 113, 255, 0.8)) 0%,
+        transparent 100%
         ),
-        linear-gradient(0deg, #7a5af8, #7a5af8);
+        linear-gradient(0deg, var(--vc-duplicate-start-bg, #7a5af8), var(--vc-duplicate-start-bg, #7a5af8));
     border: none !important;
     outline: none;
     transition: background-color 0.3s ease, transform 0.3s, box-shadow 0.3s, position 0.3s, opacity 0.3s;
@@ -4644,25 +5131,25 @@ tr.is-duplicate:hover {
 .dupStart-btn::before {
     background: linear-gradient(
         177.95deg,
-        rgba(255, 255, 255, 0.19) 0%,
-        rgba(255, 255, 255, 0) 100%
+        var(--vc-duplicate-start-shine, rgba(255, 255, 255, 0.19)) 0%,
+        transparent 100%
     );
 }
 .dupStart-btn::after {
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
-        rgba(223, 113, 255, 0.8) 0%,
-        rgba(223, 113, 255, 0) 100%
+        var(--vc-duplicate-start-glow, rgba(223, 113, 255, 0.8)) 0%,
+        transparent 100%
         ),
-        linear-gradient(0deg, #7a5af8, #7a5af8);
+        linear-gradient(0deg, var(--vc-duplicate-start-bg, #7a5af8), var(--vc-duplicate-start-bg, #7a5af8));
 }
 .dupStart-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(151, 71, 255, 0.4) !important;
+    box-shadow: 0 6px 16px var(--vc-duplicate-start-shadow, rgba(151, 71, 255, 0.4)) !important;
 }
 .dupStart-btn:active {
     transform: scale(0.95) translateY(1px);
-    box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
+    box-shadow: 0 2px 8px var(--vc-duplicate-start-active-shadow, rgba(113, 42, 136, 0.2)) !important;
 }
 /* 泡泡特效 */
 .dupStart-btn .points_wrapper {
@@ -4680,7 +5167,7 @@ tr.is-duplicate:hover {
     pointer-events: none;
     width: 2px;
     height: 2px;
-    background-color: #fff;
+    background-color: var(--vc-duplicate-start-point, #ffffff);
     border-radius: 9999px;
 }
 @keyframes floating-points {
@@ -4757,7 +5244,7 @@ tr.is-duplicate:hover {
     transition: fill 0.1s linear;
 }
 .dupStart-btn:focus svg.icon {
-    fill: white;
+    fill: var(--vc-color-on-action, #ffffff);
 }
 .dupStart-btn:hover svg.icon {
     fill: transparent;
@@ -4770,7 +5257,7 @@ tr.is-duplicate:hover {
     to {stroke-dasharray: 68 68 0 0;}
 }
 @keyframes filled {
-    to {fill: white;}
+    to {fill: var(--vc-color-on-action, #ffffff);}
 }
 
 
@@ -4779,7 +5266,7 @@ tr.is-duplicate:hover {
   alert通知样式 - 必要样式在index中
 ----------------------------------------*/
 .alert-card {
-    background-color: #ffffff;
+    background-color: var(--vc-alert-bg, #ffffff);
     border-radius: 0.5rem;
     min-width: 20rem;
     max-width: 24rem;
@@ -4831,13 +5318,13 @@ tr.is-duplicate:hover {
     text-align: center;
 }
 .alert-title {
-    color: #111827;
+    color: var(--vc-alert-title, #111827);
     font-size: 1rem;
     font-weight: 600;
 }
 .alert-message {
     margin: 0.5rem 1rem;
-    color: #6b7280;
+    color: var(--vc-alert-text, #6b7280);
     font-size: 0.95rem;
 }
 .alert-actions {
@@ -4893,13 +5380,13 @@ tr.is-duplicate:hover {
 .confirm-btn.info { background-color: var(--alert-info); }
 
 .confirm-btn {
-    color: #ffffff;
+    color: var(--vc-color-on-action, #ffffff);
     border: none;
 }
 .cancel-btn {
-    background-color: #ffffff;
-    color: #374151;
-    border: 1px solid #d1d5db;
+    background-color: var(--vc-alert-cancel-bg, #ffffff);
+    color: var(--vc-alert-cancel-text, #374151);
+    border: 1px solid var(--vc-alert-cancel-border, #d1d5db);
 }
 
 
@@ -4914,8 +5401,8 @@ tr.is-duplicate:hover {
         rgba(74, 157, 236, 0.08) 0%,
         rgba(74, 157, 236, 0.02) 100%
     ),
-    #ffffff;
-    border-color: rgba(74, 157, 236, 0.4) !important;
+    var(--vc-control-bg, #ffffff);
+    border-color: var(--vc-control-focus-border, rgba(74, 157, 236, 0.4)) !important;
     box-shadow: 0 2px 6px rgba(74, 157, 236, 0.15);
 }
 /* 聚焦效果 */
@@ -4925,8 +5412,8 @@ tr.is-duplicate:hover {
         rgba(74, 157, 236, 0.15) 0%,
         rgba(74, 157, 236, 0.02) 100%
     ),
-    #ffffff;
-    border-color: rgba(74, 157, 236, 0.8) !important;
+    var(--vc-control-bg, #ffffff);
+    border-color: var(--vc-control-focus-border, rgba(74, 157, 236, 0.8)) !important;
 }
 /* 下拉箭头样式 */
 .select:not(.is-multiple):not(.is-loading):hover::after {

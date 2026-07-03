@@ -2,18 +2,19 @@
   图片上传框 - 通用样式 - 必要样式在index中
 ----------------------------------------*/
 .image-upload-area.dragover {
-    border-color: #3273dc;
-    background-color: rgba(50, 115, 220, 0.1);
+    border-color: var(--vc-control-focus-border, #3273dc);
+    background-color: var(--vc-color-primary-soft, rgba(50, 115, 220, 0.1));
 }
 .image-upload-area:hover {
-    border-color: rgba(50, 115, 220, 0.5);
-    background-color: rgba(50, 115, 220, 0.02);
+    border-color: var(--vc-control-focus-border, rgba(50, 115, 220, 0.5));
+    background-color: var(--vc-list-hover-bg, rgba(50, 115, 220, 0.02));
 }
 /* 图片预览样式 */
 .preview-item {
     position: relative;
     aspect-ratio: 1;
-    box-shadow: 0 4px 8px rgba(50, 115, 220, 0.2);
+    background: var(--vc-image-card-bg, #ffffff);
+    box-shadow: var(--vc-image-card-shadow, 0 4px 8px rgba(50, 115, 220, 0.2));
     border-radius: 8px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
@@ -27,7 +28,7 @@
 }
 .preview-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(50, 115, 220, 0.3);
+    box-shadow: var(--vc-image-card-hover-shadow, 0 6px 12px rgba(50, 115, 220, 0.3));
 }
 .preview-item img {
     width: 100%;
@@ -45,24 +46,24 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: #ff3860;
-    color: white;
+    background: var(--vc-color-danger, #ff3860);
+    color: var(--vc-color-on-action, #ffffff);
     border: none;
     cursor: pointer;
     z-index: 1;
-    box-shadow: 0 2px 4px rgba(255, 56, 96, 0.3);
+    box-shadow: 0 2px 4px var(--vc-action-danger-shadow, rgba(255, 56, 96, 0.3));
     transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     pointer-events: auto;
 }
 .preview-item .delete-image:hover {
-    background: #eb0023;
+    background: var(--vc-action-danger, #eb0023);
     transform: scale(1.3);
-    box-shadow: 0 4px 8px rgba(255, 17, 51, 0.4);
+    box-shadow: 0 4px 8px var(--vc-action-danger-shadow, rgba(255, 17, 51, 0.4));
 }
 .preview-item .delete-image:active {
-    background: #c7001e;
+    background: var(--vc-modal-control-close-active-bg, #c7001e);
     transform: scale(0.95);
-    box-shadow: 0 1px 2px rgba(230, 0, 34, 0.3);
+    box-shadow: 0 1px 2px var(--vc-action-danger-shadow, rgba(230, 0, 34, 0.3));
 }
 .preview-item .delete-image svg {
     height: 100%;
@@ -110,7 +111,7 @@
 }
 .existing-image-item:hover {
     transform: translateY(-2px) !important;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--vc-image-existing-hover-shadow, 0 4px 8px rgba(0, 0, 0, 0.1));
 }
 .existing-image-item img {
     width: 100%;
@@ -123,7 +124,7 @@
     position: absolute;
     top: 5px;
     right: 5px;
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--vc-overlay-control-bg, rgba(0, 0, 0, 0.3));
     border: none;
     border-radius: 50%;
     width: 24px;
@@ -132,17 +133,17 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: white;
+    color: var(--vc-overlay-control-text, #ffffff);
     transition: transform 0.2s ease, background-color 0.2s ease;
     pointer-events: auto;
 }
 .delete-existing-image:hover {
     transform: scale(1.15);
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--vc-overlay-control-hover-bg, rgba(0, 0, 0, 0.5));
 }
 .delete-existing-image:active {
     transform: scale(0.95);
-    background: rgba(0, 0, 0, 0.7);
+    background: var(--vc-overlay-control-active-bg, rgba(0, 0, 0, 0.7));
 }
 /* 顺序拖拽样式 */
 .existing-image-item.dragging {
@@ -163,7 +164,7 @@
 }
 /* 图片容器拖动状态 */
 .existing-images.dragging-over {
-    background: rgba(50, 115, 220, 0.05);
+    background: var(--vc-image-drag-bg, rgba(50, 115, 220, 0.05));
     border-radius: 4px;
 }
 
@@ -321,23 +322,23 @@
 }
 .nav-button {
     position: absolute;
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--vc-overlay-control-bg, rgba(0, 0, 0, 0.1));
     border: none;
     border-radius: 50%;
     width: 60px;
     height: 60px;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: var(--vc-overlay-control-text, #ffffff);
     cursor: pointer;
     transition: transform 0.2s ease, background-color 0.2s ease;
     pointer-events: auto;
 }
 .nav-button:hover {
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--vc-overlay-control-hover-bg, rgba(0, 0, 0, 0.3));
 }
 .nav-button:active {
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--vc-overlay-control-active-bg, rgba(0, 0, 0, 0.5));
 }
 .nav-button.prev {
     left: 20px;
@@ -361,15 +362,15 @@
 .image-counter {
     position: absolute;
     bottom: 20px;
-    background: rgba(0, 0, 0, 0.1);
-    color: white;
+    background: var(--vc-overlay-control-bg, rgba(0, 0, 0, 0.1));
+    color: var(--vc-overlay-control-text, #ffffff);
     padding: 5px 15px;
     border-radius: 15px;
     transition: transform 0.2s ease, background-color 0.2s ease;
 }
 .image-counter:hover {
     transform: scale(1.15);
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--vc-overlay-control-hover-bg, rgba(0, 0, 0, 0.3));
 }
 
 
@@ -428,10 +429,10 @@
 .tags-box-title {
     font-size: 1rem;
     font-weight: bold;
-    color: #363636;
+    color: var(--vc-section-title-text, #363636);
     padding-bottom: 0.3rem;
     margin-bottom: 0.2rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--vc-section-title-border, #eeeeee);
     padding-left: 0.3rem;
 }
 
@@ -450,7 +451,7 @@
 }
 
 .ratings-box label.radio:hover {
-    color: #3273dc;
+    color: var(--vc-color-primary, #3273dc);
 }
 
 
@@ -485,10 +486,11 @@
 
 /* 下拉菜单内容区域 */
 .dropdown-content {
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--vc-dropdown-bg, #ffffff);
+    border: 1px solid var(--vc-dropdown-border, #dddddd);
     border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--vc-dropdown-shadow, 0 2px 8px rgba(0,0,0,0.1));
+    color: var(--vc-dropdown-text, #363636);
     padding: 0.5rem;
 }
 
@@ -500,6 +502,7 @@
     display: flex;
     align-items: center;
     white-space: nowrap;
+    color: var(--vc-dropdown-text, #363636);
 }
 .rating-item .stars  {
     transform: translateY(2px);
@@ -509,7 +512,7 @@
 .dimension-name {
     font-weight: normal;
     min-width: 2.8rem;
-    color: #4a4a4a;
+    color: var(--vc-dropdown-text, #4a4a4a);
 }
 
 /* 悬浮显示下拉菜单 */
@@ -579,10 +582,11 @@
   z-index: 1000;
   display: none;
   min-width: 9rem;
-  background-color: white;
-  border: 1px solid #dbdbdb;
+  background-color: var(--vc-dropdown-bg, #ffffff);
+  border: 1px solid var(--vc-dropdown-border, #dbdbdb);
   border-radius: 4px;
-  box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+  box-shadow: var(--vc-dropdown-shadow, 0 2px 3px rgba(10, 10, 10, 0.1));
+  color: var(--vc-dropdown-text, #363636);
 }
 
 .ratings-cell .dropdown.is-active .dropdown-menu,

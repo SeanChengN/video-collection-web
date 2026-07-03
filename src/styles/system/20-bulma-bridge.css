@@ -27,6 +27,15 @@ body {
     color: var(--vc-color-text);
 }
 
+.navbar.is-light .navbar-brand .title,
+.navbar.is-light .navbar-brand .navbar-item {
+    color: var(--vc-color-text) !important;
+}
+
+.navbar.is-light svg {
+    color: var(--vc-color-text);
+}
+
 .box,
 .function-tools,
 .collapsible-box,
@@ -39,6 +48,28 @@ body {
 
 .box {
     box-shadow: var(--vc-panel-shadow);
+}
+
+.card {
+    background: var(--vc-service-card-bg);
+    border: 1px solid var(--vc-service-card-border);
+    color: var(--vc-service-card-text);
+    box-shadow: var(--vc-panel-shadow-compact);
+}
+
+.card .title,
+.card .subtitle,
+.card .content,
+.card-content {
+    color: var(--vc-service-card-text);
+}
+
+.content {
+    color: var(--vc-color-text);
+}
+
+.content strong {
+    color: var(--vc-color-text);
 }
 
 .collapsible-box,
@@ -67,6 +98,183 @@ body {
     color: var(--vc-control-placeholder);
 }
 
+.button {
+    background: var(--vc-button-bg);
+    border-color: var(--vc-button-border);
+    color: var(--vc-button-text);
+}
+
+.button:hover,
+.button:focus {
+    background: var(--vc-button-hover-bg);
+    border-color: var(--vc-control-focus-border);
+    color: var(--vc-button-text);
+}
+
+.button:focus-visible {
+    box-shadow: var(--vc-focus-ring);
+}
+
+.button.is-info,
+.button.is-primary,
+.button.is-link {
+    background: var(--vc-color-primary);
+    border-color: var(--vc-color-primary);
+    color: var(--vc-color-on-action);
+}
+
+.button.is-info:hover,
+.button.is-primary:hover,
+.button.is-link:hover {
+    background: var(--vc-color-primary-hover);
+    border-color: var(--vc-color-primary-hover);
+    color: var(--vc-color-on-action);
+}
+
+.button.is-success {
+    background: var(--vc-color-success);
+    border-color: var(--vc-color-success);
+    color: var(--vc-color-on-action);
+}
+
+.button.is-danger {
+    background: var(--vc-color-danger);
+    border-color: var(--vc-color-danger);
+    color: var(--vc-color-on-action);
+}
+
+.button.is-warning {
+    background: var(--vc-color-warning);
+    border-color: var(--vc-color-warning);
+    color: var(--vc-color-on-action);
+}
+
+.button.is-light {
+    background: var(--vc-button-light-bg);
+    border-color: var(--vc-button-border);
+    color: var(--vc-button-light-text);
+}
+
+.button[disabled],
+.button:disabled {
+    background: var(--vc-button-disabled-bg);
+    border-color: var(--vc-button-border);
+    color: var(--vc-button-disabled-text);
+}
+
+.tag {
+    background: var(--vc-tag-bg);
+    border-color: var(--vc-tag-border);
+    color: var(--vc-tag-text);
+}
+
+.tag:hover {
+    background: var(--vc-tag-hover-bg);
+    color: var(--vc-tag-text);
+}
+
+.tag.is-info,
+.tag.is-selected {
+    background: var(--vc-tag-selected-bg);
+    border-color: var(--vc-tag-selected-bg);
+    color: var(--vc-tag-selected-text);
+}
+
+.tag.is-selected:hover {
+    background: var(--vc-tag-selected-hover-bg);
+    border-color: var(--vc-tag-selected-hover-bg);
+    color: var(--vc-tag-selected-text);
+}
+
+.notification {
+    background: var(--vc-panel-bg);
+    color: var(--vc-color-text);
+}
+
+.modal-card-title {
+    color: var(--vc-modal-title-text);
+}
+
+.modal-control-button {
+    background: var(--vc-modal-control-bg);
+    color: var(--vc-modal-control-icon);
+}
+
+.modal-control-button svg {
+    fill: currentColor;
+}
+
+.modal-control-button.minimize:hover {
+    background: var(--vc-modal-control-hover-bg);
+    color: var(--vc-modal-control-hover-icon);
+}
+
+.modal-control-button.minimize:active {
+    background: var(--vc-modal-control-active-bg);
+}
+
+.modal-control-button.close:hover {
+    background: var(--vc-modal-control-close-bg);
+    color: var(--vc-modal-control-close-icon);
+}
+
+.modal-control-button.close:active {
+    background: var(--vc-modal-control-close-active-bg);
+    color: var(--vc-modal-control-close-icon);
+}
+
+.dropdown-menu {
+    color: var(--vc-dropdown-text);
+}
+
+.dropdown-content {
+    background: var(--vc-dropdown-bg);
+    border-color: var(--vc-dropdown-border);
+    color: var(--vc-dropdown-text);
+    box-shadow: var(--vc-dropdown-shadow);
+}
+
+.dropdown-item {
+    color: var(--vc-dropdown-text);
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background: var(--vc-dropdown-hover-bg);
+    color: var(--vc-dropdown-text);
+}
+
+.pagination-link,
+.pagination-previous,
+.pagination-next,
+.pagination-ellipsis {
+    background: var(--vc-button-bg);
+    border-color: var(--vc-button-border);
+    color: var(--vc-button-text);
+}
+
+.pagination-link:hover,
+.pagination-previous:hover,
+.pagination-next:hover {
+    background: var(--vc-button-hover-bg);
+    border-color: var(--vc-control-focus-border);
+    color: var(--vc-button-text);
+}
+
+.pagination-link.is-current {
+    background: var(--vc-color-primary);
+    border-color: var(--vc-color-primary);
+    color: var(--vc-color-on-action);
+}
+
+.pagination-previous[disabled],
+.pagination-next[disabled],
+.pagination-link[disabled] {
+    background: var(--vc-button-disabled-bg);
+    border-color: var(--vc-button-border);
+    color: var(--vc-button-disabled-text);
+}
+
 .table {
     background: var(--vc-table-bg);
     color: var(--vc-color-text);
@@ -85,6 +293,12 @@ body {
 
 .table.is-hoverable tbody tr:not(.is-selected):hover {
     background-color: var(--vc-table-hover-bg);
+}
+
+.settings-list-item:hover,
+.thumbnail-file-row:hover,
+.list-item:hover {
+    background-color: var(--vc-list-hover-bg);
 }
 
 .label,

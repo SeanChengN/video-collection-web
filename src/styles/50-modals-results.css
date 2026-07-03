@@ -68,6 +68,7 @@
     flex-grow: 1;
     overflow: hidden;
     line-height: 32px !important;
+    color: var(--vc-modal-title-text, #1f2937);
 }
 
 /* 模态框内容区 */
@@ -98,6 +99,7 @@
     border-radius: 50%;
     padding: 0;
     background: var(--vc-modal-control-bg, rgba(255, 255, 255, 0.2));
+    color: var(--vc-modal-control-icon, #4a4a4a);
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.2s ease;
     display: flex;
@@ -106,31 +108,34 @@
     flex-shrink: 0; /* 防止按钮被压缩 */
 }
 .modal-control-button svg {
-    fill: var(--vc-modal-control-icon, #4a4a4a);
+    fill: currentColor;
     width: 10px;
     height: 10px;
     transition: fill 0.2s ease;
 }
 /* 悬停效果 */
 .modal-control-button.minimize:hover {
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--vc-modal-control-hover-bg, rgba(0, 0, 0, 0.1));
+    color: var(--vc-modal-control-hover-icon, #2a2a2a);
 }
 .modal-control-button.close:hover {
-    background: #ff3860;
+    background: var(--vc-modal-control-close-bg, #ff3860);
+    color: var(--vc-modal-control-close-icon, #ffffff);
 }
 .modal-control-button.minimize:hover svg {
-    fill: #2a2a2a;
+    fill: currentColor;
 }
 .modal-control-button.close:hover svg {
-    fill: white;
+    fill: currentColor;
 }
 .modal-control-button.minimize:active {
     transform: scale(0.9);
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--vc-modal-control-active-bg, rgba(0, 0, 0, 0.2));
 }
 .modal-control-button.close:active {
     transform: scale(0.9);
-    background: #e8324d;
+    background: var(--vc-modal-control-close-active-bg, #e8324d);
+    color: var(--vc-modal-control-close-icon, #ffffff);
 }
 
 /* 模态框动画 */
@@ -518,8 +523,8 @@
     min-width: 100%;
     max-width: 300px;
     padding: 8px;
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--vc-panel-bg, white);
+    border: 1px solid var(--vc-panel-border, #ddd);
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     white-space: normal;
@@ -540,8 +545,8 @@
     min-width: 100%;
     max-width: 300px;
     padding: 8px;
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--vc-panel-bg, white);
+    border: 1px solid var(--vc-panel-border, #ddd);
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     white-space: normal;
@@ -559,8 +564,8 @@
     min-width: 100%;
     max-width: 300px;
     padding: 5px;
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--vc-panel-bg, white);
+    border: 1px solid var(--vc-panel-border, #ddd);
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     white-space: normal;
@@ -600,7 +605,7 @@
 .search-skeleton .skeleton-block {
     display: block;
     border-radius: 6px;
-    background: linear-gradient(90deg, #eef1f5 25%, #e2e7ee 37%, #eef1f5 63%);
+    background: var(--vc-skeleton-gradient, linear-gradient(90deg, #eef1f5 25%, #e2e7ee 37%, #eef1f5 63%));
     background-size: 400% 100%;
     animation: search-skeleton-loading 1.2s ease-in-out infinite;
 }
@@ -668,11 +673,11 @@
 
     .table tr {
         display: block;
-        background: white;
+        background: var(--vc-result-card-bg, white);
         padding: 0.8rem;
         margin-bottom: 0.8rem;
         border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: var(--vc-panel-shadow-compact, 0 2px 4px rgba(0,0,0,0.1));
     }
 
     .table td {
@@ -690,7 +695,7 @@
     .table td:before {
         content: attr(data-label);
         font-weight: bold;
-        color: #666;
+        color: var(--vc-result-muted, #666);
         flex-shrink: 0;
     }
     
@@ -764,24 +769,24 @@
         gap: 0.55rem 0.85rem;
         margin: 0;
         padding: 0.9rem;
-        border: 1px solid rgba(219, 219, 219, 0.9);
+        border: 1px solid var(--vc-result-card-border, rgba(219, 219, 219, 0.9));
         border-radius: 8px;
-        background: #fff;
-        box-shadow: 0 2px 8px rgba(10, 10, 10, 0.08);
+        background: var(--vc-result-card-bg, #fff);
+        box-shadow: var(--vc-panel-shadow-compact, 0 2px 8px rgba(10, 10, 10, 0.08));
     }
     #search-results .movie-results-table td {
         min-width: 0;
         max-width: none;
         border: none;
         padding: 0;
-        color: #363636;
+        color: var(--vc-color-text, #363636);
         font-size: 0.9rem;
         font-weight: 400;
         line-height: 1.45;
         white-space: normal;
     }
     #search-results .movie-results-table td::before {
-        color: #7a7a7a;
+        color: var(--vc-result-muted, #7a7a7a);
         font-size: 0.78rem;
         font-weight: 700;
         line-height: 1.4;
@@ -789,7 +794,7 @@
     #search-results .movie-results-table .movie-title-cell {
         grid-area: title;
         padding-bottom: 0.75rem;
-        border-bottom: 1px solid rgba(219, 219, 219, 0.75);
+        border-bottom: 1px solid var(--vc-result-section-border, rgba(219, 219, 219, 0.75));
     }
     #search-results .movie-results-table .movie-title-cell::before,
     #search-results .movie-results-table .movie-action-cell::before,
@@ -805,7 +810,7 @@
         height: 108px;
         border-radius: 8px;
         overflow: hidden;
-        background: #f5f5f5;
+        background: var(--vc-result-preview-bg, #f5f5f5);
     }
     #search-results .movie-results-table .movie-preview-image img {
         border-radius: 8px;
@@ -813,7 +818,7 @@
     #search-results .movie-results-table .movie-title-text {
         display: -webkit-box;
         overflow: hidden;
-        color: #242424;
+        color: var(--vc-color-text, #242424);
         font-size: 1rem;
         font-weight: 700;
         line-height: 1.35;
@@ -830,15 +835,15 @@
     #search-results .movie-results-table .movie-recommended-chip {
         min-height: 1.8rem;
         border-radius: 999px;
-        background: #f5f5f5;
-        color: #666;
+        background: var(--vc-result-chip-bg, #f5f5f5);
+        color: var(--vc-result-chip-text, #666);
         font-size: 0.78rem;
         font-weight: 700;
         padding: 0.25rem 0.55rem;
     }
     #search-results .movie-results-table .movie-recommended-chip.is-recommended {
-        background: rgba(255, 123, 0, 0.12);
-        color: #b55300;
+        background: var(--vc-result-recommended-bg, rgba(255, 123, 0, 0.12));
+        color: var(--vc-result-recommended-text, #b55300);
     }
     #search-results .movie-results-table .movie-recommended-text {
         display: inline;
@@ -860,8 +865,8 @@
         grid-template-columns: 3.5rem minmax(0, 1fr);
         align-items: start;
         gap: 0.55rem;
-        border-top: 1px solid rgba(219, 219, 219, 0.72);
-        background: rgba(245, 245, 245, 0.5);
+        border-top: 1px solid var(--vc-result-section-border, rgba(219, 219, 219, 0.72));
+        background: var(--vc-result-section-bg, rgba(245, 245, 245, 0.5));
         border-radius: 6px;
         padding: 0.55rem 0.6rem;
     }
@@ -890,7 +895,7 @@
     #search-results .movie-results-table .movie-tags-text {
         display: -webkit-box;
         overflow: hidden;
-        color: #4a4a4a;
+        color: var(--vc-color-text, #4a4a4a);
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         line-clamp: 2;
@@ -898,11 +903,11 @@
     }
     #search-results .movie-results-table .movie-review-text.is-empty::before {
         content: "暂无评价";
-        color: #9a9a9a;
+        color: var(--vc-color-text-subtle, #9a9a9a);
     }
     #search-results .movie-results-table .movie-tags-text.is-empty::before {
         content: "暂无标签";
-        color: #9a9a9a;
+        color: var(--vc-color-text-subtle, #9a9a9a);
     }
     #search-results .movie-results-table .desktop-ratings-dropdown,
     #search-results .movie-results-table .desktop-ratings-empty {
@@ -915,7 +920,7 @@
         gap: 0.2rem;
     }
     #search-results .movie-results-table .mobile-ratings-list.is-empty {
-        color: #9a9a9a;
+        color: var(--vc-color-text-subtle, #9a9a9a);
     }
     #search-results .movie-results-table .mobile-ratings-list .rating-item {
         display: flex;
@@ -925,7 +930,7 @@
         flex-wrap: wrap;
     }
     #search-results .movie-results-table .mobile-ratings-list .dimension-name {
-        color: #4a4a4a;
+        color: var(--vc-color-text, #4a4a4a);
         font-size: 0.82rem;
         font-weight: 700;
     }

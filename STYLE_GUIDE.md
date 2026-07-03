@@ -44,3 +44,14 @@
 - If a hard-coded value appears more than once, promote it to a token.
 - Keep CSS changes close to the smallest relevant source file.
 - Preserve UTF-8 for Chinese labels and comments.
+
+## Theme Migration Checklist
+
+- SVG icons should use `fill="currentColor"` unless the icon asset itself requires multiple fixed colors.
+- Buttons, tags, inputs, selects, notifications, tables, cards, and modal shells should consume `--vc-*` tokens.
+- New hover, active, selected, disabled, and focus states should have both light and dark token values.
+- Prefer changing legacy selector values to tokens over adding broader override selectors.
+- Modal titles and window controls should use `--vc-modal-*` tokens.
+- Dropdowns, pagination, list rows, result cards, and service cards should use `--vc-dropdown-*`, `--vc-list-*`, `--vc-result-*`, and `--vc-service-*` tokens.
+- Button effects should use semantic action tokens such as `--vc-action-*` or feature tokens such as `--vc-duplicate-start-*`; do not reuse unrelated button colors just because the visual effect is similar.
+- Avoid naked `#fff`, `#000`, `white`, `black`, `rgb(...)`, or `rgba(...)` in theme-critical component selectors; wrap them behind a token unless the color is part of media content or a deliberate overlay.

@@ -5,6 +5,9 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+    background: var(--vc-service-card-bg, #ffffff);
+    border-color: var(--vc-service-card-border, #dbdbdb);
+    color: var(--vc-service-card-text, #363636);
 }
 .movie-card .card-content {
     padding: 0.8rem;
@@ -18,13 +21,14 @@
     margin-bottom: 0 !important;
     line-height: 1.4;
     height: 4.2em;
+    color: var(--vc-service-card-text, #363636);
 }
 .runtime-badge {
     position: absolute;
     bottom: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
+    background: var(--vc-service-runtime-bg, rgba(0, 0, 0, 0.7));
+    color: var(--vc-service-runtime-text, #ffffff);
     padding: 0.3rem 0.6rem;
     font-weight: bold;
     border-top-left-radius: 4px;
@@ -42,6 +46,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
+    color: var(--vc-service-card-text, #363636);
 }
 #embyModal .emby-playable-card {
     cursor: pointer;
@@ -57,7 +62,7 @@
 }
 #embyModal .emby-playable-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--vc-service-card-hover-shadow, 0 14px 28px rgba(0, 0, 0, 0.18));
 }
 #embyModal .emby-playable-card:hover img {
     transform: scale(1.035);
@@ -65,10 +70,10 @@
 }
 #embyModal .emby-playable-card:active {
     transform: translateY(-1px) scale(0.99);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+    box-shadow: var(--vc-service-card-active-shadow, 0 8px 18px rgba(0, 0, 0, 0.16));
 }
 #embyModal .emby-playable-card:focus-visible {
-    box-shadow: 0 0 0 3px rgba(50, 115, 220, 0.38), 0 14px 28px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--vc-service-card-focus-shadow, 0 0 0 3px rgba(50, 115, 220, 0.38), 0 14px 28px rgba(0, 0, 0, 0.18));
 }
 #embyModal .emby-unplayable-card {
     cursor: default;
@@ -95,11 +100,11 @@
     position: sticky;
     top: 0;
     z-index: 1;
-    background: inherit;
+    background: var(--vc-service-sticky-bg, inherit);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     padding: 1.5rem 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid var(--vc-service-sticky-border, rgba(255, 255, 255, 0.2));
 }
 
 /* 滚动内容区域 */

@@ -82,7 +82,7 @@
         /* 图片预览容器 */
         .image-upload-area {
             margin-top: 0.5rem;
-            border: 2px dashed #dbdbdb;
+            border: 2px dashed var(--vc-upload-border, #dbdbdb);
             border-radius: 10px;
             padding: 15px;
             text-align: center;
@@ -90,7 +90,10 @@
             transition: border-color 0.3s ease, background-color 0.3s ease;
         }
         .image-upload-area .upload-placeholder {
-            color: #666;
+            color: var(--vc-upload-text, #666);
+        }
+        .image-upload-area .upload-placeholder svg {
+            color: var(--vc-upload-icon, #78c0dd);
         }
         .image-preview-container {
             display: grid;
@@ -280,7 +283,7 @@
         /* 标签过滤样式 */
         .tags-filter {
             padding: 0.3rem;
-            border: 1px solid #dbdbdb;
+            border: 1px solid var(--vc-panel-border, #dbdbdb);
             border-radius: 10px;
             background-color: var(--vc-panel-header-bg, white);
             width: 100%;
@@ -298,9 +301,9 @@
                 rgba(255, 255, 255, 0.19) 0%,
                 rgba(255, 255, 255, 0) 100%
             ),
-            #f0f0f0;
-            color: #515151;
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            var(--vc-tag-bg, #f0f0f0);
+            color: var(--vc-tag-text, #515151);
+            border: 1px solid var(--vc-tag-border, rgba(0, 0, 0, 0.05));
             transition: 
                 background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
                 box-shadow 0.3s ease, 
@@ -334,10 +337,10 @@
             transition: opacity 0.3s;
             background: radial-gradient(
                 65.28% 65.28% at 50% 100%,
-                rgba(223, 113, 255, 0.8) 0%,
-                rgba(223, 113, 255, 0) 100%
+                var(--vc-action-settings-shadow, rgba(223, 113, 255, 0.8)) 0%,
+                transparent 100%
             ),
-            linear-gradient(0deg, #8034FF, #8034FF);
+            linear-gradient(0deg, var(--vc-action-settings, #8034FF), var(--vc-action-settings, #8034FF));
         }
 
         /*----------------------------------------
@@ -374,10 +377,10 @@
             z-index: 1;
             background: radial-gradient(
                 65.28% 65.28% at 50% 100%,
-                rgba(142, 161, 255, 0.8) 0%,
-                rgba(142, 161, 255, 0) 100%
+                var(--vc-action-primary-shadow, rgba(142, 161, 255, 0.8)) 0%,
+                transparent 100%
             ),
-            linear-gradient(0deg, #4169e1, #4169e1);
+            linear-gradient(0deg, var(--vc-action-primary, #4169e1), var(--vc-action-primary, #4169e1));
             transition: filter 0.3s;
         }
         .save-btn::before,
@@ -389,10 +392,10 @@
             z-index: 1;
             background: radial-gradient(
                 65.28% 65.28% at 50% 100%,
-                rgba(110, 231, 183, 0.8) 0%,  /* 浅绿色光晕 */
-                rgba(110, 231, 183, 0) 100%
+                var(--vc-action-success-shadow, rgba(110, 231, 183, 0.8)) 0%,
+                transparent 100%
             ),
-            linear-gradient(0deg, #17a84c, #17a84c);
+            linear-gradient(0deg, var(--vc-action-success, #17a84c), var(--vc-action-success, #17a84c));
             transition: filter 0.3s;
         }
         .settings-btn span,
@@ -416,12 +419,12 @@
 
         /* 工具栏按钮特效 */
         .function-tools {
-            --btn-duplicate: rgb(255, 170, 31);
-            --btn-jackett: rgb(89, 87, 88);
-            --btn-wtl: rgb(103, 104, 255);
-            --btn-thunder: rgb(52, 168, 224);
-            --btn-emby: rgb(82, 172, 75);
-            --btn-thumbnail: rgb(224, 82, 117);
+            --btn-duplicate: var(--vc-tool-duplicate, rgb(255, 170, 31));
+            --btn-jackett: var(--vc-tool-jackett, rgb(89, 87, 88));
+            --btn-wtl: var(--vc-tool-wtl, rgb(103, 104, 255));
+            --btn-thunder: var(--vc-tool-thunder, rgb(52, 168, 224));
+            --btn-emby: var(--vc-tool-emby, rgb(82, 172, 75));
+            --btn-thumbnail: var(--vc-tool-thumbnail, rgb(224, 82, 117));
         }
         /* 为每个按钮设置对应颜色变量 */
         .function-tools .duplicate-btn { --btn-color: var(--btn-duplicate); }
@@ -437,7 +440,8 @@
             border: none !important;
             overflow: hidden;
             background: transparent;
-            background-color: #f5f5f5;
+            background-color: var(--vc-tool-button-bg, #f5f5f5);
+            color: var(--btn-color);
             transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s, opacity 0.3s, filter 0.3s;
         }
         .function-tools .tool-btn::before {
@@ -448,8 +452,8 @@
             opacity: 0;
             background: radial-gradient(
                 65.28% 65.28% at 50% 100%,
-                rgba(255, 255, 255, 0.3) 0%,
-                rgba(255, 255, 255, 0) 100%
+                var(--vc-button-shine, rgba(255, 255, 255, 0.3)) 0%,
+                transparent 100%
             ),
             linear-gradient(0deg, var(--btn-color), var(--btn-color));
             transition: opacity 0.3s;
@@ -587,7 +591,7 @@
 
         /* 推荐按钮效果 */
         .recommend-field label {
-            background-color: #fafafa;
+            background-color: var(--vc-recommend-bg, #fafafa);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -595,14 +599,15 @@
             cursor: pointer;
             user-select: none;
             border-radius: 10px;
-            color: #666;
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            color: var(--vc-recommend-text, #666);
+            border: 1px solid var(--vc-recommend-border, rgba(0, 0, 0, 0.05));
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .recommend-field input {
             display: none;
         }
         .recommend-field label svg {
+            color: var(--vc-recommend-icon, #515151);
             transform: rotate(180deg);
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);  /* 弹性过渡效果 */
         }
@@ -636,7 +641,9 @@
             padding-left: 0.8em !important;
             outline: none;
             overflow: hidden !important;
-            background-color: #f5f5f5 !important;
+            background-color: var(--vc-control-bg, #f5f5f5) !important;
+            border-color: var(--vc-control-border, #dbdbdb) !important;
+            color: var(--vc-control-text, #363636) !important;
             border-radius: 10px !important;
             transition: border-color 0.5s, box-shadow 0.5s, background-color 0.5s;
         }
@@ -656,17 +663,18 @@
         }
         /* 下拉箭头样式 */
         .select:not(.is-multiple):not(.is-loading)::after {
-            border-color: #4A9DEC !important;
+            border-color: var(--vc-select-arrow, #4A9DEC) !important;
             transition: transform 0.3s ease;
         }
         /* option基础样式 */
         .select select option {
-            background-color: #ffffff;
+            background-color: var(--vc-select-option-bg, #ffffff);
+            color: var(--vc-control-text, #363636);
         }
         /* 选中状态 */
         .select select option:checked {
-            background-color: #cee6ff;
-            color: #0874d8;
+            background-color: var(--vc-select-option-selected-bg, #cee6ff);
+            color: var(--vc-select-option-selected-text, #0874d8);
         }
 
         /*----------------------------------------
@@ -709,42 +717,42 @@
                     <div class="buttons">
                         <a href="#" class="button tool-btn duplicate-btn" data-action="open-modal" data-modal-id="duplicateModal" data-toolbar-modal="duplicateModal">
                             <span class="icon">
-                                <svg width="64" height="64" fill="#ffaa1f" stroke="none" aria-label="查重核对">
+                                <svg width="64" height="64" fill="currentColor" stroke="none" aria-label="查重核对">
                                     <use href="../static/sprite.svg#duplicate-icon"></use>
                                 </svg>
                             </span>
                         </a>
                         <a href="#" class="button tool-btn jackett-btn" data-action="open-modal" data-modal-id="jackettModal" data-toolbar-modal="jackettModal">
                             <span class="icon">
-                                <svg width="64" height="64" fill="#595757" stroke="none" aria-label="Jackett">
+                                <svg width="64" height="64" fill="currentColor" stroke="none" aria-label="Jackett">
                                     <use href="../static/sprite.svg#jackett-icon"></use>
                                 </svg>
                             </span>
                         </a>
                         <a href="#" class="button tool-btn wtl-btn" data-action="open-modal" data-modal-id="wtlModal" data-toolbar-modal="wtlModal">
                             <span class="icon">
-                                <svg width="64" height="64" fill="#6768ff" stroke="none" aria-label="What's the link">
+                                <svg width="64" height="64" fill="currentColor" stroke="none" aria-label="What's the link">
                                     <use href="../static/sprite.svg#wtl-icon"></use>
                                 </svg>
                             </span>
                         </a>
                         <a href="#" class="button tool-btn thunder-btn" data-action="open-modal" data-modal-id="thunderModal" data-toolbar-modal="thunderModal">
                             <span class="icon">
-                                <svg width="64" height="64" fill="#34a8e0" stroke="none" aria-label="迅雷">
+                                <svg width="64" height="64" fill="currentColor" stroke="none" aria-label="迅雷">
                                     <use href="../static/sprite.svg#thunder-icon"></use>
                                 </svg>
                             </span>
                         </a>
                         <a href="#" class="button tool-btn emby-btn" data-action="open-modal" data-modal-id="embyModal" data-toolbar-modal="embyModal">
                             <span class="icon">
-                                <svg width="64" height="64" fill="#52ac4b" stroke="none" aria-label="Emby">
+                                <svg width="64" height="64" fill="currentColor" stroke="none" aria-label="Emby">
                                     <use href="../static/sprite.svg#emby-icon"></use>
                                 </svg>
                             </span>
                         </a>
                         <a href="#" class="button tool-btn thumbnail-btn" data-action="open-modal" data-modal-id="thumbnailModal" data-toolbar-modal="thumbnailModal">
                             <span class="icon">
-                                <svg width="64" height="64" fill="#e05275" stroke="none" aria-label="视频缩略图提取">
+                                <svg width="64" height="64" fill="currentColor" stroke="none" aria-label="视频缩略图提取">
                                     <use href="../static/sprite.svg#thumbnail-icon"></use>
                                 </svg>
                             </span>
@@ -823,7 +831,7 @@
                         <h2 class="subtitle">添加电影</h2>
                         <button class="button is-light is-small settings-btn" data-action="open-modal" data-modal-id="settingsModal" data-toolbar-modal="settingsModal" aria-label="打开设置">
                             <span class="icon">
-                                <svg width="14" height="14" fill="#515151" stroke="none" aria-label="设置">
+                                <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="设置">
                                     <use href="../static/sprite.svg#settings-btn-icon"></use>
                                 </svg>
                             </span>
@@ -836,7 +844,7 @@
                         <div class="field recommend-field">
                             <input type="checkbox" id="recommended" name="recommended" value="1">
                             <label for="recommended">
-                                <svg width="20" height="20" fill="#515151" stroke="none" aria-label="推荐">
+                                <svg width="20" height="20" fill="currentColor" stroke="none" aria-label="推荐">
                                     <use href="../static/sprite.svg#recommend-icon"></use>
                                 </svg>
                                 <div class="action">
@@ -876,7 +884,7 @@
                                     <input type="file" id="image-input" accept="image/*" multiple hidden>
                                     <input type="hidden" id="image-filenames" name="image_filenames">
                                     <div class="upload-placeholder">
-                                        <svg width="32" height="32" fill="#78c0dd" stroke="none">
+                                        <svg width="32" height="32" fill="currentColor" stroke="none">
                                             <use href="../static/sprite.svg#upload-icon"></use>
                                         </svg>
                                         <p>点击或拖放图片到此处</p>
@@ -953,7 +961,7 @@
                             <input type="file" id="edit-image-input" accept="image/*" multiple hidden>
                             <input type="hidden" id="edit-image-filenames" name="image_filenames">
                             <div class="upload-placeholder">
-                                <svg width="32" height="32" fill="#78c0dd" stroke="none">
+                                <svg width="32" height="32" fill="currentColor" stroke="none">
                                     <use href="../static/sprite.svg#upload-icon"></use>
                                 </svg>
                                 <p>点击或拖放图片到此处</p>

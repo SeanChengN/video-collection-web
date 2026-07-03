@@ -2,7 +2,7 @@
   设置模态框样式 - 必要样式在index中
 ----------------------------------------*/
 .settings-btn:hover {
-    background-color: #f0f0f0;
+    background-color: var(--vc-button-hover-bg, #f0f0f0);
 }
 
 /* 设置模态框样式 */
@@ -57,22 +57,22 @@
 .settings-tabs li.is-active {
     background: linear-gradient(
         177.95deg,
-        rgba(74, 157, 236, 0.04) 0%,
-        rgba(74, 157, 236, 0.12) 100%
+        color-mix(in srgb, var(--vc-color-primary) 6%, transparent) 0%,
+        color-mix(in srgb, var(--vc-color-primary) 15%, transparent) 100%
     );
 }
 .settings-tabs li:active {
     background: linear-gradient(
         177.95deg,
-        rgba(74, 157, 236, 0.08) 0%,
-        rgba(74, 157, 236, 0.24) 100%
+        color-mix(in srgb, var(--vc-color-primary) 10%, transparent) 0%,
+        color-mix(in srgb, var(--vc-color-primary) 26%, transparent) 100%
     );
 }
 .settings-tabs li.is-active {
-    border-bottom: 1px solid #3273dc;
+    border-bottom: 1px solid var(--vc-color-primary, #3273dc);
 }
 .settings-tabs li:not(.is-active) {
-    border-bottom: 1px solid #dbdbdb;
+    border-bottom: 1px solid var(--vc-panel-border, #dbdbdb);
 }
 
 /* 标签特定样式 */
@@ -113,7 +113,7 @@
     border: 1px solid rgba(50, 115, 220, 0.18);
     border-radius: 8px;
     background: linear-gradient(180deg, rgba(50, 115, 220, 0.08), rgba(50, 115, 220, 0.03));
-    color: #334155;
+    color: var(--vc-color-text, #334155);
     padding: 0.75rem 0.85rem;
 }
 
@@ -134,7 +134,7 @@
 }
 
 .maintenance-schedule-details {
-    color: #64748b;
+    color: var(--vc-color-text-muted, #64748b);
     font-size: 0.84rem;
     line-height: 1.45;
 }
@@ -259,7 +259,7 @@
         rgba(253, 230, 138, 0.85) 0%,
         rgba(253, 230, 138, 0) 100%
     ),
-    linear-gradient(0deg, #f59e0b, #f59e0b);
+    linear-gradient(0deg, var(--vc-color-warning, #f59e0b), var(--vc-color-warning, #f59e0b));
     transition: filter 0.3s;
 }
 
@@ -276,7 +276,7 @@
 }
 
 .maintenance-create-btn:hover {
-    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.42) !important;
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--vc-color-warning, #f59e0b) 42%, transparent) !important;
 }
 
 .maintenance-create-btn:hover::before {
@@ -372,7 +372,7 @@
 }
 
 .maintenance-empty-row td {
-    color: #6b7280;
+    color: var(--vc-color-text-muted, #6b7280);
     text-align: center;
 }
 
@@ -384,14 +384,15 @@
     display: flex;
     align-items: center;
     padding: 0.75rem;
-    border: 1px solid #dbdbdb;
+    border: 1px solid var(--vc-list-border, #dbdbdb);
     border-radius: 4px;
     margin-bottom: 0.5rem;
-    background-color: #fff;
+    background-color: var(--vc-list-bg, #fff);
+    color: var(--vc-list-text, #1f2937);
 }
 
 .settings-list-item:hover {
-    background-color: #f8f8f8;
+    background-color: var(--vc-list-hover-bg, #f8f8f8);
 }
 
 .settings-list-item .item-content {
@@ -498,14 +499,14 @@
         rgba(248, 113, 113, 0.85) 0%,
         rgba(248, 113, 113, 0) 100%
     ),
-    linear-gradient(0deg, #e53935, #e53935);
+    linear-gradient(0deg, var(--vc-action-danger, #e53935), var(--vc-action-danger, #e53935));
     transition: filter 0.3s;
 }
 
 .settings-modal .settings-delete-btn:hover {
     filter: brightness(96%);
     transform: scale(1.03);
-    box-shadow: 0 2px 8px rgba(229, 57, 53, 0.38);
+    box-shadow: 0 2px 8px var(--vc-action-danger-shadow, rgba(229, 57, 53, 0.38));
 }
 
 .settings-modal .settings-delete-btn:hover::before {
@@ -537,14 +538,14 @@
         rgba(96, 165, 250, 0.85) 0%,
         rgba(96, 165, 250, 0) 100%
     ),
-    linear-gradient(0deg, #2563eb, #2563eb);
+    linear-gradient(0deg, var(--vc-action-primary, #2563eb), var(--vc-action-primary, #2563eb));
     transition: filter 0.3s;
 }
 
 .settings-modal .maintenance-backup-restore-btn:hover {
     filter: brightness(98%);
     transform: scale(1.03);
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.36);
+    box-shadow: 0 2px 8px var(--vc-action-primary-shadow, rgba(37, 99, 235, 0.36));
 }
 
 .settings-modal .maintenance-backup-restore-btn:hover::before {
@@ -643,7 +644,7 @@
         width: 100%;
         min-width: 720px;
         table-layout: fixed;
-        background: #fff;
+        background: var(--vc-table-bg, #fff);
     }
     .maintenance-backups-table .table thead {
         display: table-header-group;
@@ -664,7 +665,7 @@
         display: table-cell;
         align-items: initial;
         padding: 0.5em 0.75em;
-        border: 1px solid #dbdbdb;
+        border: 1px solid var(--vc-color-border, #dbdbdb);
         font-size: 0.9rem;
         font-weight: 400;
         line-height: 1.5;
@@ -707,19 +708,19 @@
 .settings-modal .table thead {
     position: sticky;
     top: 0;
-    background-color: white;
+    background-color: var(--vc-table-head-bg, #ffffff);
     z-index: 1;
 }
 
 /* 表格行悬停效果 */
 .settings-modal .table tbody tr:hover {
-    background-color: #f5f5f5;
+    background-color: var(--vc-table-hover-bg, #f5f5f5);
 }
 
 /* 设置按钮特效 */
 .settings-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(151, 71, 255, 0.4) !important;
+    box-shadow: 0 6px 16px var(--vc-action-settings-shadow, rgba(151, 71, 255, 0.4)) !important;
 }
 .settings-btn:hover::before {
     opacity: 1;
@@ -731,11 +732,11 @@
 .settings-btn:hover svg,
 .settings-btn.is-active svg {
     transform: scale(1.3);
-    fill: #fff;
+    fill: var(--vc-color-on-action, #fff);
 }
 .settings-btn:active {
     transform: scale(0.95) translateY(1px);
-    box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
+    box-shadow: 0 2px 8px var(--vc-action-settings-shadow, rgba(113, 42, 136, 0.2)) !important;
 }
 .settings-btn.is-active {
     transform: scale(0.95) translateY(1px);
@@ -747,7 +748,7 @@
     filter: brightness(90%);
 }
 @keyframes button-pulse-settings-btn {
-    0% { box-shadow: 0 0 0 0 #712aec; }
+    0% { box-shadow: 0 0 0 0 var(--vc-action-settings, #712aec); }
     70% { box-shadow: 0 0 0 10px transparent; }
     100% { box-shadow: 0 0 0 0 transparent; }
 }

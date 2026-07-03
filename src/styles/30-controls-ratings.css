@@ -9,7 +9,8 @@
     margin-top: 10px;
     padding: 10px;
     border-radius: 4px;
-    background-color: #f5f5f5;
+    background-color: var(--vc-result-section-bg, #f5f5f5);
+    color: var(--vc-color-text, #363636);
     font-size: 0.9em;
 }
 
@@ -17,7 +18,8 @@
     min-height: 100px;
     padding: 1rem;
     border-radius: 4px;
-    background: #f5f5f5;
+    background: var(--vc-result-section-bg, #f5f5f5);
+    color: var(--vc-color-text, #363636);
     flex-grow: 1;
     margin-bottom: 1rem;
 }
@@ -47,24 +49,24 @@
 
 .duplicate-separator td {
     text-align: center;
-    background-color: #f5f5f5;
+    background-color: var(--vc-result-section-bg, #f5f5f5);
     font-weight: bold;
-    color: #666;
+    color: var(--vc-result-muted, #666);
     padding: 0.5rem !important;
 }
 
 tr.is-duplicate {
-    background-color: #fff3e0 !important;
+    background-color: var(--vc-recommend-selected-bg, #fff3e0) !important;
 }
 
 tr.is-duplicate:hover {
-    background-color: #ffeaca !important;
+    background-color: var(--vc-list-hover-bg, #ffeaca) !important;
 }
 
 /* 复制按钮样式 */
 .copy-btn {
     min-width: 55px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important; /* 灰色阴影 */
+    box-shadow: var(--vc-panel-shadow-compact, 0 2px 4px rgba(0, 0, 0, 0.1)) !important;
     overflow: hidden;
     background: transparent;
     transition: box-shadow 0.3s, background-color 0.3s;
@@ -80,15 +82,15 @@ tr.is-duplicate:hover {
     z-index: 1;
     background: radial-gradient(
       65.28% 65.28% at 50% 100%,
-      rgba(255, 255, 255, 1.0) 0%, /* 白色光晕 */
-      rgba(255, 255, 255, 0) 100%
+      var(--vc-button-shine, rgba(255, 255, 255, 1.0)) 0%,
+      transparent 100%
     ),
-    linear-gradient(0deg, #f1f1f1, #f1f1f1);
+    linear-gradient(0deg, var(--vc-button-bg, #f1f1f1), var(--vc-button-bg, #f1f1f1));
     transition: filter 0.3s;
 }
 /* hover */
 .copy-btn:hover {
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: var(--vc-shadow-md, 0 2px 6px rgba(0, 0, 0, 0.2)) !important;
 }
 .copy-btn:hover svg {
     transform: scale(1.1);
@@ -99,7 +101,7 @@ tr.is-duplicate:hover {
 /* active */
 .copy-btn:active {
     transform: scale(0.95);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: var(--vc-shadow-sm, 0 2px 4px rgba(0, 0, 0, 0.2)) !important;
 }
 .copy-btn:active::before {
     filter: brightness(90%);
@@ -115,10 +117,10 @@ tr.is-duplicate:hover {
         rgba(110, 231, 183, 0.6) 0%,  /* 浅绿色光晕 */
         rgba(110, 231, 183, 0) 100%
     ),
-    linear-gradient(0deg, #17a84c, #17a84c);
+    linear-gradient(0deg, var(--vc-action-success, #17a84c), var(--vc-action-success, #17a84c));
 }
 .copy-btn.is-success:hover {
-    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4) !important;
+    box-shadow: 0 6px 16px var(--vc-action-success-shadow, rgba(34, 197, 94, 0.4)) !important;
 }
 .copy-btn.is-success:active {
     box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2) !important;
@@ -134,10 +136,10 @@ tr.is-duplicate:hover {
         rgba(255, 134, 134, 0.6) 0%,  /* 浅红色光晕 */
         rgba(255, 134, 134, 0) 100%
     ),
-    linear-gradient(0deg, #ff3950, #ff3950);  /* 深红色底色 */
+    linear-gradient(0deg, var(--vc-action-danger, #ff3950), var(--vc-action-danger, #ff3950));  /* 深红色底色 */
 }
 .copy-btn.is-danger:hover {
-    box-shadow: 0 6px 16px rgba(241, 70, 104, 0.4) !important;
+    box-shadow: 0 6px 16px var(--vc-action-danger-shadow, rgba(241, 70, 104, 0.4)) !important;
 }
 .copy-btn.is-danger:active {
     box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
@@ -164,7 +166,7 @@ tr.is-duplicate:hover {
         rgba(255, 255, 255, 0.25) 0%,
         rgba(255, 255, 255, 0) 100%
     ),
-    #e0e0e0;
+    var(--vc-tag-hover-bg, #e0e0e0);
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -174,9 +176,9 @@ tr.is-duplicate:hover {
         rgba(255, 255, 255, 0.25) 0%,
         rgba(255, 255, 255, 0) 100%
     ),
-    #4A9DEC;
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    var(--vc-tag-selected-bg, #4A9DEC);
+    color: var(--vc-tag-selected-text, white);
+    border: 1px solid var(--vc-tag-selected-bg, rgba(255, 255, 255, 0.1));
     box-shadow: 0 2px 4px rgba(74, 157, 236, 0.2);
 }
 .tag.is-selected:hover {
@@ -185,7 +187,7 @@ tr.is-duplicate:hover {
         rgba(255, 255, 255, 0.3) 0%,
         rgba(255, 255, 255, 0) 100%
     ),
-    #3b8ed8;
+    var(--vc-tag-selected-hover-bg, #3b8ed8);
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(74, 157, 236, 0.3);
 }
@@ -197,16 +199,17 @@ tr.is-duplicate:hover {
 ----------------------------------------*/
 /* 工具栏按钮特效 */
 .function-tools .tool-btn:hover svg {
-    fill: #fff;
+    fill: var(--vc-tool-hover-text, #fff);
     transform: rotate(10deg);
     transition: transform 0.3s, background-color 0.3s;
 }
 .function-tools .tool-btn.is-active svg {
-    fill: #fff;
+    fill: var(--vc-tool-hover-text, #fff);
     transition: transform 0.3s, background-color 0.3s;
 }
 .function-tools .tool-btn:hover {
     transform: translateY(-2px);
+    color: var(--vc-tool-hover-text, #fff);
     box-shadow: 0 6px 10px color-mix(in srgb, var(--btn-color) 40%, transparent);
 }
 .function-tools .tool-btn:hover::before {
@@ -218,6 +221,7 @@ tr.is-duplicate:hover {
 }
 .function-tools .tool-btn.is-active {
     transform: scale(0.95) translateY(1px);
+    color: var(--vc-tool-hover-text, #fff);
     animation: button-pulse 2s infinite;
 }
 .function-tools .tool-btn:active::before,
@@ -243,12 +247,12 @@ tr.is-duplicate:hover {
 }
 
 .search-btn:hover {
-    box-shadow: 0 6px 16px rgba(67, 97, 238, 0.4) !important;
+    box-shadow: 0 6px 16px var(--vc-action-primary-shadow, rgba(67, 97, 238, 0.4)) !important;
 }
 .save-btn:hover,
 .save-btn-small:hover,
 .add-btn:hover {
-    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4) !important;
+    box-shadow: 0 6px 16px var(--vc-action-success-shadow, rgba(34, 197, 94, 0.4)) !important;
 }
 .delete-btn:hover::before,
 .search-btn:hover::before,
@@ -328,7 +332,7 @@ tr.is-duplicate:hover {
         rgba(255, 134, 134, 0.8) 0%,  /* 浅红色光晕 */
         rgba(255, 134, 134, 0) 100%
     ),
-    linear-gradient(0deg, #ff3950, #ff3950);  /* 深红色底色 */
+    linear-gradient(0deg, var(--vc-action-danger, #ff3950), var(--vc-action-danger, #ff3950));  /* 深红色底色 */
     transition: filter 0.3s;
 }
 .delete-btn span {
@@ -337,7 +341,7 @@ tr.is-duplicate:hover {
     transition: transform 0.3s ease-in-out;
 }
 .delete-btn:hover {
-    box-shadow: 0 6px 16px rgba(241, 70, 104, 0.4) !important;
+    box-shadow: 0 6px 16px var(--vc-action-danger-shadow, rgba(241, 70, 104, 0.4)) !important;
 }
 .delete-btn:active {
     transform: scale(0.95);
@@ -379,13 +383,13 @@ tr.is-duplicate:hover {
 .edit-btn:hover {
     filter: brightness(95%);
     transform: scale(1.03);
-    box-shadow: 0 2px 6px rgba(23, 116, 255, 0.4);
+    box-shadow: 0 2px 6px var(--vc-action-primary-shadow, rgba(23, 116, 255, 0.4));
 }
 /* active效果 */
 .edit-btn:active {
     filter: brightness(92%);
     transform: scale(0.95);
-    box-shadow: 0 2px 4px rgba(23, 116, 255, 0.4);
+    box-shadow: 0 2px 4px var(--vc-action-primary-shadow, rgba(23, 116, 255, 0.4));
 }
 
 
@@ -438,8 +442,8 @@ tr.is-duplicate:hover {
         rgba(74, 157, 236, 0.08) 0%,
         rgba(74, 157, 236, 0.02) 100%
     ),
-    #ffffff;
-    border-color: rgba(74, 157, 236, 0.4) !important;
+    var(--vc-control-bg, #ffffff);
+    border-color: var(--vc-control-focus-border, rgba(74, 157, 236, 0.4)) !important;
     box-shadow: 0 2px 6px rgba(74, 157, 236, 0.15);
 }
 

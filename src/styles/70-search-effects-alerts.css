@@ -61,7 +61,7 @@
 
 /* 推荐按钮样式 */
 .recommend-field input:checked + label svg {
-    fill: #ff7b00;
+    fill: var(--vc-recommend-selected-icon, #ff7b00);
     animation: thumbUpButton 1s;
     transform: rotate(180deg); /* 旋转到最终状态 */
 }
@@ -81,19 +81,19 @@
     opacity: 1;
 }
 .recommend-field input:checked + label {
-    background-color: #fff3e0;  /* 浅橙色背景 */
-    border-color: #ffcc80;     /* 浅橙色边框 */
-    color: #f57c00;           /* 深橙色文字 */
+    background-color: var(--vc-recommend-selected-bg, #fff3e0);  /* 浅橙色背景 */
+    border-color: var(--vc-recommend-selected-border, #ffcc80);     /* 浅橙色边框 */
+    color: var(--vc-recommend-selected-text, #f57c00);           /* 深橙色文字 */
 }
 .recommend-field label:hover {
     transform: translateY(-1px);
-    background-color: #fff8e1;
-    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+    background-color: var(--vc-recommend-hover-bg, #fff8e1);
+    box-shadow: 0 4px 12px var(--vc-recommend-hover-shadow, rgba(255, 152, 0, 0.3));
 }
 .recommend-field label:active {
     transform: translateY(1px);
-    background-color: #fffde7;
-    box-shadow: 0 2px 6px rgba(255, 152, 0, 0.2);
+    background-color: var(--vc-recommend-active-bg, #fffde7);
+    box-shadow: 0 2px 6px var(--vc-recommend-active-shadow, rgba(255, 152, 0, 0.2));
 }
 
 /* 设置按钮尺寸，确保特效正常 */
@@ -116,10 +116,10 @@
     overflow: hidden;
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
-        rgba(223, 113, 255, 0.8) 0%,
-        rgba(223, 113, 255, 0) 100%
+        var(--vc-duplicate-start-glow, rgba(223, 113, 255, 0.8)) 0%,
+        transparent 100%
         ),
-        linear-gradient(0deg, #7a5af8, #7a5af8);
+        linear-gradient(0deg, var(--vc-duplicate-start-bg, #7a5af8), var(--vc-duplicate-start-bg, #7a5af8));
     border: none !important;
     outline: none;
     transition: background-color 0.3s ease, transform 0.3s, box-shadow 0.3s, position 0.3s, opacity 0.3s;
@@ -136,25 +136,25 @@
 .dupStart-btn::before {
     background: linear-gradient(
         177.95deg,
-        rgba(255, 255, 255, 0.19) 0%,
-        rgba(255, 255, 255, 0) 100%
+        var(--vc-duplicate-start-shine, rgba(255, 255, 255, 0.19)) 0%,
+        transparent 100%
     );
 }
 .dupStart-btn::after {
     background: radial-gradient(
         65.28% 65.28% at 50% 100%,
-        rgba(223, 113, 255, 0.8) 0%,
-        rgba(223, 113, 255, 0) 100%
+        var(--vc-duplicate-start-glow, rgba(223, 113, 255, 0.8)) 0%,
+        transparent 100%
         ),
-        linear-gradient(0deg, #7a5af8, #7a5af8);
+        linear-gradient(0deg, var(--vc-duplicate-start-bg, #7a5af8), var(--vc-duplicate-start-bg, #7a5af8));
 }
 .dupStart-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(151, 71, 255, 0.4) !important;
+    box-shadow: 0 6px 16px var(--vc-duplicate-start-shadow, rgba(151, 71, 255, 0.4)) !important;
 }
 .dupStart-btn:active {
     transform: scale(0.95) translateY(1px);
-    box-shadow: 0 2px 8px rgba(113, 42, 136, 0.2) !important;
+    box-shadow: 0 2px 8px var(--vc-duplicate-start-active-shadow, rgba(113, 42, 136, 0.2)) !important;
 }
 /* 泡泡特效 */
 .dupStart-btn .points_wrapper {
@@ -172,7 +172,7 @@
     pointer-events: none;
     width: 2px;
     height: 2px;
-    background-color: #fff;
+    background-color: var(--vc-duplicate-start-point, #ffffff);
     border-radius: 9999px;
 }
 @keyframes floating-points {
@@ -249,7 +249,7 @@
     transition: fill 0.1s linear;
 }
 .dupStart-btn:focus svg.icon {
-    fill: white;
+    fill: var(--vc-color-on-action, #ffffff);
 }
 .dupStart-btn:hover svg.icon {
     fill: transparent;
@@ -262,7 +262,7 @@
     to {stroke-dasharray: 68 68 0 0;}
 }
 @keyframes filled {
-    to {fill: white;}
+    to {fill: var(--vc-color-on-action, #ffffff);}
 }
 
 
@@ -271,7 +271,7 @@
   alert通知样式 - 必要样式在index中
 ----------------------------------------*/
 .alert-card {
-    background-color: #ffffff;
+    background-color: var(--vc-alert-bg, #ffffff);
     border-radius: 0.5rem;
     min-width: 20rem;
     max-width: 24rem;
@@ -323,13 +323,13 @@
     text-align: center;
 }
 .alert-title {
-    color: #111827;
+    color: var(--vc-alert-title, #111827);
     font-size: 1rem;
     font-weight: 600;
 }
 .alert-message {
     margin: 0.5rem 1rem;
-    color: #6b7280;
+    color: var(--vc-alert-text, #6b7280);
     font-size: 0.95rem;
 }
 .alert-actions {
@@ -385,13 +385,13 @@
 .confirm-btn.info { background-color: var(--alert-info); }
 
 .confirm-btn {
-    color: #ffffff;
+    color: var(--vc-color-on-action, #ffffff);
     border: none;
 }
 .cancel-btn {
-    background-color: #ffffff;
-    color: #374151;
-    border: 1px solid #d1d5db;
+    background-color: var(--vc-alert-cancel-bg, #ffffff);
+    color: var(--vc-alert-cancel-text, #374151);
+    border: 1px solid var(--vc-alert-cancel-border, #d1d5db);
 }
 
 
@@ -406,8 +406,8 @@
         rgba(74, 157, 236, 0.08) 0%,
         rgba(74, 157, 236, 0.02) 100%
     ),
-    #ffffff;
-    border-color: rgba(74, 157, 236, 0.4) !important;
+    var(--vc-control-bg, #ffffff);
+    border-color: var(--vc-control-focus-border, rgba(74, 157, 236, 0.4)) !important;
     box-shadow: 0 2px 6px rgba(74, 157, 236, 0.15);
 }
 /* 聚焦效果 */
@@ -417,8 +417,8 @@
         rgba(74, 157, 236, 0.15) 0%,
         rgba(74, 157, 236, 0.02) 100%
     ),
-    #ffffff;
-    border-color: rgba(74, 157, 236, 0.8) !important;
+    var(--vc-control-bg, #ffffff);
+    border-color: var(--vc-control-focus-border, rgba(74, 157, 236, 0.8)) !important;
 }
 /* 下拉箭头样式 */
 .select:not(.is-multiple):not(.is-loading):hover::after {
