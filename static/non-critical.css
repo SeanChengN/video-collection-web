@@ -1484,6 +1484,139 @@ html[data-theme="dark"] .has-text-grey,
     padding: 0 !important;
     overflow: auto;
 }
+#wtlModal .wtl-screenshots-panel {
+    margin-top: 1rem;
+}
+#wtlModal .wtl-screenshot-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+#wtlModal .wtl-selected-count {
+    color: var(--vc-color-text-muted, #7a7a7a);
+    flex: 1 0 100%;
+    font-size: 0.9rem;
+    min-width: 0;
+}
+#wtlModal .wtl-screenshot-action {
+    --thumbnail-action-color: var(--vc-tool-wtl, #6768ff);
+    background-color: var(--vc-thumbnail-action-bg, rgba(255, 255, 255, 0.82)) !important;
+    background-image:
+        linear-gradient(180deg, var(--vc-thumbnail-action-shine, rgba(255, 255, 255, 0.22)), transparent),
+        radial-gradient(80% 100% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 52%, transparent), transparent 72%),
+        linear-gradient(0deg, color-mix(in srgb, var(--thumbnail-action-color) 38%, var(--vc-thumbnail-action-bg, #ffffff)), color-mix(in srgb, var(--thumbnail-action-color) 30%, var(--vc-thumbnail-action-bg, #ffffff))) !important;
+    border-color: color-mix(in srgb, var(--thumbnail-action-color) 58%, var(--vc-thumbnail-action-border, rgba(0, 0, 0, 0.08))) !important;
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--thumbnail-action-color) 38%, transparent);
+    color: var(--vc-thumbnail-action-text, #363636) !important;
+    flex: 1 1 8rem;
+    height: auto;
+    isolation: isolate;
+    line-height: 1.15;
+    min-height: 2.35rem;
+    min-width: 0;
+    overflow: hidden;
+    padding: 0.35rem 0.65rem;
+    position: relative;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, filter 0.2s ease, background-color 0.2s ease;
+    white-space: normal;
+}
+#wtlModal .wtl-screenshot-action[data-wtl-action="select-all"] {
+    --thumbnail-action-color: var(--vc-color-text-muted, #7a7a7a);
+}
+#wtlModal .wtl-screenshot-action span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    position: relative;
+    white-space: normal;
+    z-index: 1;
+}
+#wtlModal .wtl-screenshot-action::before {
+    background:
+        radial-gradient(70% 70% at 50% 100%, var(--vc-thumbnail-action-shine, rgba(255, 255, 255, 0.35)), transparent 70%),
+        linear-gradient(0deg, var(--thumbnail-action-color), var(--thumbnail-action-color));
+    content: '';
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transition: opacity 0.2s ease;
+    z-index: 0;
+}
+#wtlModal .wtl-screenshot-action:not(:disabled):not([disabled]):hover {
+    background-image:
+        linear-gradient(180deg, var(--vc-thumbnail-action-shine, rgba(255, 255, 255, 0.28)), transparent),
+        radial-gradient(85% 110% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 58%, transparent), transparent 70%),
+        linear-gradient(0deg, color-mix(in srgb, var(--thumbnail-action-color) 42%, var(--vc-thumbnail-action-bg, #ffffff)), color-mix(in srgb, var(--thumbnail-action-color) 32%, var(--vc-thumbnail-action-bg, #ffffff))) !important;
+    border-color: color-mix(in srgb, var(--thumbnail-action-color) 88%, transparent) !important;
+    box-shadow: 0 9px 20px color-mix(in srgb, var(--thumbnail-action-color) 58%, transparent);
+    transform: translateY(-2px);
+}
+#wtlModal .wtl-screenshot-action:not(:disabled):not([disabled]):hover::before {
+    opacity: 0.48;
+}
+#wtlModal .wtl-screenshot-action:not(:disabled):not([disabled]):active {
+    box-shadow: 0 2px 6px color-mix(in srgb, var(--thumbnail-action-color) 22%, transparent);
+    transform: scale(0.96) translateY(1px);
+}
+#wtlModal .wtl-screenshot-action:disabled,
+#wtlModal .wtl-screenshot-action[disabled] {
+    box-shadow: none;
+    cursor: not-allowed;
+    filter: saturate(0.65);
+}
+#wtlModal .wtl-screenshots {
+    margin-top: 0;
+}
+#wtlModal .wtl-screenshot-item {
+    appearance: none;
+    background: var(--vc-service-card-bg, #ffffff);
+    border: 2px solid var(--vc-service-card-border, #dbdbdb);
+    border-radius: 8px;
+    color: inherit;
+    cursor: pointer;
+    display: block;
+    padding: 0;
+    position: relative;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, transform 0.2s ease;
+}
+#wtlModal .wtl-screenshot-item:hover {
+    border-color: color-mix(in srgb, var(--vc-tool-wtl, #6768ff) 64%, var(--vc-service-card-border, #dbdbdb));
+    box-shadow: var(--vc-service-card-hover-shadow, 0 14px 28px rgba(0, 0, 0, 0.18));
+    transform: translateY(-2px);
+}
+#wtlModal .wtl-screenshot-item.is-selected {
+    border-color: var(--vc-tool-wtl, #6768ff);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--vc-tool-wtl, #6768ff) 35%, transparent), var(--vc-service-card-hover-shadow, 0 14px 28px rgba(0, 0, 0, 0.18));
+}
+#wtlModal .wtl-screenshot-item.dragging {
+    filter: saturate(1.08);
+    opacity: 0.78;
+    transform: scale(0.98);
+}
+#wtlModal .wtl-screenshot-check {
+    align-items: center;
+    background: var(--vc-tool-wtl, #6768ff);
+    border-radius: 999px;
+    color: var(--vc-color-on-action, #ffffff);
+    display: flex;
+    font-size: 0.85rem;
+    font-weight: 700;
+    height: 1.45rem;
+    justify-content: center;
+    opacity: 0;
+    position: absolute;
+    right: 0.45rem;
+    top: 0.45rem;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    width: 1.45rem;
+}
+#wtlModal .wtl-screenshot-item.is-selected .wtl-screenshot-check {
+    opacity: 1;
+    transform: scale(1);
+}
 #thunderModal .modal-card-body {
     padding: 0 !important;
 }
@@ -1890,14 +2023,14 @@ html[data-theme="dark"] .has-text-grey,
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    border-color: color-mix(in srgb, var(--thumbnail-action-color) 42%, var(--vc-thumbnail-action-border, rgba(0, 0, 0, 0.08)));
+    border-color: color-mix(in srgb, var(--thumbnail-action-color) 58%, var(--vc-thumbnail-action-border, rgba(0, 0, 0, 0.08)));
     background-color: var(--vc-thumbnail-action-bg, rgba(255, 255, 255, 0.82)) !important;
     background-image:
         linear-gradient(180deg, var(--vc-thumbnail-action-shine, rgba(255, 255, 255, 0.22)), transparent),
-        radial-gradient(80% 100% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 36%, transparent), transparent 72%),
-        linear-gradient(0deg, color-mix(in srgb, var(--thumbnail-action-color) 24%, var(--vc-thumbnail-action-bg, #ffffff)), color-mix(in srgb, var(--thumbnail-action-color) 18%, var(--vc-thumbnail-action-bg, #ffffff)));
+        radial-gradient(80% 100% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 52%, transparent), transparent 72%),
+        linear-gradient(0deg, color-mix(in srgb, var(--thumbnail-action-color) 38%, var(--vc-thumbnail-action-bg, #ffffff)), color-mix(in srgb, var(--thumbnail-action-color) 30%, var(--vc-thumbnail-action-bg, #ffffff)));
     color: var(--vc-thumbnail-action-text, #363636) !important;
-    box-shadow: 0 3px 9px color-mix(in srgb, var(--thumbnail-action-color) 28%, transparent);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--thumbnail-action-color) 38%, transparent);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, filter 0.2s ease, background-color 0.2s ease;
 }
 #thumbnailModal .thumbnail-manual-grid .button.is-small::before,
@@ -1918,17 +2051,17 @@ html[data-theme="dark"] .has-text-grey,
 #thumbnailModal .thumbnail-manual-capture .button.is-small:not(:disabled):not([disabled]):hover,
 #thumbnailModal .thumbnail-batch-section .button.is-small:not(:disabled):not([disabled]):hover {
     transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--thumbnail-action-color) 78%, transparent);
+    border-color: color-mix(in srgb, var(--thumbnail-action-color) 88%, transparent);
     background-image:
         linear-gradient(180deg, var(--vc-thumbnail-action-shine, rgba(255, 255, 255, 0.28)), transparent),
-        radial-gradient(85% 110% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 42%, transparent), transparent 70%),
-        linear-gradient(0deg, color-mix(in srgb, var(--thumbnail-action-color) 28%, var(--vc-thumbnail-action-bg, #ffffff)), color-mix(in srgb, var(--thumbnail-action-color) 20%, var(--vc-thumbnail-action-bg, #ffffff)));
-    box-shadow: 0 8px 18px color-mix(in srgb, var(--thumbnail-action-color) 48%, transparent);
+        radial-gradient(85% 110% at 50% 100%, color-mix(in srgb, var(--thumbnail-action-color) 58%, transparent), transparent 70%),
+        linear-gradient(0deg, color-mix(in srgb, var(--thumbnail-action-color) 42%, var(--vc-thumbnail-action-bg, #ffffff)), color-mix(in srgb, var(--thumbnail-action-color) 32%, var(--vc-thumbnail-action-bg, #ffffff)));
+    box-shadow: 0 9px 20px color-mix(in srgb, var(--thumbnail-action-color) 58%, transparent);
 }
 #thumbnailModal .thumbnail-manual-grid .button.is-small:not(:disabled):not([disabled]):hover::before,
 #thumbnailModal .thumbnail-manual-capture .button.is-small:not(:disabled):not([disabled]):hover::before,
 #thumbnailModal .thumbnail-batch-section .button.is-small:not(:disabled):not([disabled]):hover::before {
-    opacity: 0.38;
+    opacity: 0.48;
 }
 #thumbnailModal .thumbnail-manual-grid .button.is-small:not(:disabled):not([disabled]):active,
 #thumbnailModal .thumbnail-manual-capture .button.is-small:not(:disabled):not([disabled]):active,

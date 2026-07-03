@@ -65,4 +65,6 @@
 - Two-state segmented controls should style the selected state from `aria-pressed="true"` first; compatibility classes like `is-info` / `is-light` should not be the only source of visual truth.
 - Mobile tab bars should use `min-height` plus flex alignment for the tab item and link; avoid fixed-height-only rules that can clip text or counters.
 - Thumbnail capture controls should keep a visible default-state color mix from `--thumbnail-action-color`; do not make action buttons depend on hover alone for color strength.
+- External images shown by service integrations must go through the backend safe image import API before becoming upload files; do not assume browser CORS allows direct conversion to `File`.
+- Cross-tool image drag/drop should reuse `currentDraggedThumbnailFile` / `currentDraggedThumbnailFiles`; when files are prepared asynchronously, set `currentDraggedThumbnailFilesPromise` so upload areas can wait for the safe import to finish.
 - Avoid naked `#fff`, `#000`, `white`, `black`, `rgb(...)`, or `rgba(...)` in theme-critical component selectors; wrap them behind a token unless the color is part of media content or a deliberate overlay.

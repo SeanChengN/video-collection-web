@@ -96,6 +96,7 @@ function setThumbnailDraggingState(captureIds, isDragging) {
 function clearThumbnailDragCache() {
     window.currentDraggedThumbnailFile = null;
     window.currentDraggedThumbnailFiles = [];
+    window.currentDraggedThumbnailFilesPromise = null;
 }
 
 async function jumpThumbnailVideoToCapture(capture) {

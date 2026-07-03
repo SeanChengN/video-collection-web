@@ -1,5 +1,19 @@
 import os
+import base64
+import io
+import ipaddress
+import re
+import socket
 from urllib.parse import quote
+from urllib.parse import unquote
+from urllib.parse import urlsplit
+
+from PIL import Image, UnidentifiedImageError
+
+
+EXTERNAL_IMAGE_CHUNK_BYTES = 64 * 1024
+EXTERNAL_IMAGE_USER_AGENT = 'video-collection-image-import/1.0'
+EXTERNAL_IMAGE_SAFE_NAME_PATTERN = re.compile(r'[^A-Za-z0-9._-]+')
 
 
 class ApiIntegrationHandlersMixin:
@@ -80,6 +94,168 @@ class ApiIntegrationHandlersMixin:
             })
         except Exception as e:
             return self.dependencies.json_exception('Emby search', e, 'Emby search failed')
+
+    def external_image_host_is_public(self, hostname, port=443):
+        normalized_host = (hostname or '').strip().strip('[]')
+        if not normalized_host:
+            return False
+        if normalized_host.lower() in {'localhost'} or normalized_host.lower().endswith('.localhost'):
+            return False
+
+        try:
+            candidate_ip = ipaddress.ip_address(normalized_host)
+            return candidate_ip.is_global
+        except ValueError:
+            pass
+
+        try:
+            idna_host = normalized_host.encode('idna').decode('ascii')
+            address_infos = socket.getaddrinfo(idna_host, port or 443, type=socket.SOCK_STREAM)
+        except (OSError, UnicodeError):
+            return False
+
+        resolved_addresses = {
+            info[4][0].split('%', 1)[0]
+            for info in address_infos
+            if info and len(info) > 4 and info[4]
+        }
+        if not resolved_addresses:
+            return False
+
+        try:
+            return all(ipaddress.ip_address(address).is_global for address in resolved_addresses)
+        except ValueError:
+            return False
+
+    def validate_external_image_url(self, url):
+        try:
+            parsed = urlsplit(url)
+            port = parsed.port
+        except ValueError:
+            return None
+
+        if parsed.scheme.lower() != 'https':
+            return None
+        if not parsed.hostname or parsed.username or parsed.password:
+            return None
+        if port not in (None, 443):
+            return None
+        if not self.external_image_host_is_public(parsed.hostname, port or 443):
+            return None
+        return parsed
+
+    def external_image_filename(self, parsed_url):
+        basename = os.path.basename(unquote(parsed_url.path or '')) or 'wtl-screenshot'
+        stem = os.path.splitext(basename)[0] or 'wtl-screenshot'
+        safe_stem = EXTERNAL_IMAGE_SAFE_NAME_PATTERN.sub('_', stem).strip('._-') or 'wtl-screenshot'
+        return f'{safe_stem[:80]}.jpg'
+
+    def read_external_image_response(self, response, max_bytes):
+        content_length = response.headers.get('Content-Length', '')
+        if content_length:
+            try:
+                if int(content_length) > max_bytes:
+                    return None, 413, 'External image is too large'
+            except ValueError:
+                pass
+
+        content_type = response.headers.get('Content-Type', '').split(';', 1)[0].strip().lower()
+        if not content_type.startswith('image/') or content_type == 'image/svg+xml':
+            return None, 400, 'External URL did not return a supported image'
+
+        image_bytes = bytearray()
+        for chunk in response.iter_content(EXTERNAL_IMAGE_CHUNK_BYTES):
+            if not chunk:
+                continue
+            image_bytes.extend(chunk)
+            if len(image_bytes) > max_bytes:
+                return None, 413, 'External image is too large'
+
+        if not image_bytes:
+            return None, 400, 'External image was empty'
+        return bytes(image_bytes), None, None
+
+    def external_image_bytes_to_jpeg_data_url(self, image_bytes, max_bytes):
+        try:
+            with Image.open(io.BytesIO(image_bytes)) as image:
+                image.load()
+                if image.mode not in {'RGB', 'L'}:
+                    image = image.convert('RGB')
+                elif image.mode == 'L':
+                    image = image.convert('RGB')
+
+                output = io.BytesIO()
+                image.save(output, format='JPEG', quality=90, optimize=True)
+        except (UnidentifiedImageError, Image.DecompressionBombError, OSError, ValueError):
+            return None, 400, 'External image is invalid or unsupported'
+
+        encoded_bytes = output.getvalue()
+        if len(encoded_bytes) > max_bytes:
+            return None, 413, 'External image is too large'
+
+        encoded = base64.b64encode(encoded_bytes).decode('ascii')
+        return f'data:image/jpeg;base64,{encoded}', None, None
+
+    def fetch_external_image_handler(self, data, method='POST'):
+        try:
+            image_url = (data or {}).get('url', '').strip()
+            parsed_url = self.validate_external_image_url(image_url)
+            if not parsed_url:
+                return self.dependencies.jsonify({
+                    'success': False,
+                    'message': 'Unsupported external image URL'
+                }), 400
+
+            max_bytes = int(self.dependencies.get_max_image_upload_bytes())
+            response = self.dependencies.external_image_get(
+                image_url,
+                stream=True,
+                timeout=(5, 15),
+                allow_redirects=False,
+                headers={
+                    'Accept': 'image/avif,image/webp,image/jpeg,image/png,image/*;q=0.8',
+                    'User-Agent': EXTERNAL_IMAGE_USER_AGENT
+                }
+            )
+
+            try:
+                status_code = getattr(response, 'status_code', 0)
+                if status_code < 200 or status_code >= 300:
+                    return self.dependencies.jsonify({
+                        'success': False,
+                        'message': f'External image fetch failed: HTTP {status_code}'
+                    }), 502
+
+                image_bytes, error_status, error_message = self.read_external_image_response(response, max_bytes)
+                if error_status:
+                    return self.dependencies.jsonify({
+                        'success': False,
+                        'message': error_message
+                    }), error_status
+
+                data_url, error_status, error_message = self.external_image_bytes_to_jpeg_data_url(image_bytes, max_bytes)
+                if error_status:
+                    return self.dependencies.jsonify({
+                        'success': False,
+                        'message': error_message
+                    }), error_status
+
+                return self.dependencies.jsonify({
+                    'success': True,
+                    'data_url': data_url,
+                    'filename': self.external_image_filename(parsed_url),
+                    'content_type': 'image/jpeg'
+                })
+            finally:
+                close = getattr(response, 'close', None)
+                if callable(close):
+                    close()
+        except Exception as e:
+            self.dependencies.logger.warning("External image import failed: %s", e)
+            return self.dependencies.jsonify({
+                'success': False,
+                'message': 'External image fetch failed'
+            }), 502
 
     def check_title_match(self, title1, title2):
         # 转换为小写进行比较

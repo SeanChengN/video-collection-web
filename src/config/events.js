@@ -19,7 +19,8 @@ const event_map = {
     list_db_backups: 1018,
     create_db_backup: 1019,
     restore_db_backup: 1020,
-    delete_db_backup: 1021
+    delete_db_backup: 1021,
+    fetch_external_image: 1022
 };
 
 window.event_map = event_map;

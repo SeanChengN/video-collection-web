@@ -177,7 +177,7 @@ function initUploadArea(areaId, inputId) {
         }
     });
     
-    uploadArea.addEventListener('drop', (e) => {
+    uploadArea.addEventListener('drop', async (e) => {
         e.preventDefault();
         if (isPreviewDragging) {
             const draggingItem = previewContainer.querySelector('.dragging');
@@ -197,6 +197,22 @@ function initUploadArea(areaId, inputId) {
             }
         } else {
             uploadArea.classList.remove('dragover');
+            if (window.currentDraggedThumbnailFilesPromise && typeof window.currentDraggedThumbnailFilesPromise.then === 'function') {
+                try {
+                    const files = await window.currentDraggedThumbnailFilesPromise;
+                    if (Array.isArray(files) && files.length) {
+                        handleNewFiles(files);
+                    }
+                } catch (error) {
+                    showAlert({
+                        title: '加入失败',
+                        message: error.message || '无法导入拖放图片',
+                        type: 'error',
+                        showCancel: false
+                    });
+                }
+                return;
+            }
             if (Array.isArray(window.currentDraggedThumbnailFiles) && window.currentDraggedThumbnailFiles.length) {
                 handleNewFiles(window.currentDraggedThumbnailFiles);
                 return;

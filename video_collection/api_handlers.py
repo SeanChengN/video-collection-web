@@ -53,6 +53,8 @@ class ApiHandlerDependencies:
     process_image: Any
     get_upload_file_path: Any
     get_upload_folder: Any
+    external_image_get: Any
+    get_max_image_upload_bytes: Any
 
 
 class ApiHandlers(

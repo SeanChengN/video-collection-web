@@ -34,6 +34,7 @@ function openWtlModal() {
         ModalManager.open('wtlModal');
         document.getElementById('wtl-input').value = '';
         clearElement(document.getElementById('wtl-results'));
+        if (typeof resetWtlSelection === 'function') resetWtlSelection();
         resetWtlModalHeight();
     }
 }

@@ -59,6 +59,9 @@ THEME_CRITICAL_SELECTORS = (
     ".thumbnail-source-tabs .button.is-small[aria-pressed=\"true\"]",
     ".thumbnail-batch-section",
     ".thumbnail-manual-grid",
+    ".wtl-screenshot-action",
+    ".wtl-screenshot-item",
+    ".wtl-screenshot-check",
     ".thumbnail-item-time",
     ".image-box-title",
     ".ratings-box-title",
@@ -192,8 +195,35 @@ def test_mobile_settings_tabs_keep_readable_height():
 
 def test_thumbnail_capture_buttons_use_stronger_token_mix():
     content = (STYLE_SOURCE_DIR / "20-thumbnail.css").read_text(encoding="utf-8")
-    assert "color-mix(in srgb, var(--thumbnail-action-color) 42%" in content
-    assert "color-mix(in srgb, var(--thumbnail-action-color) 36%" in content
-    assert "color-mix(in srgb, var(--thumbnail-action-color) 24%" in content
+    assert "color-mix(in srgb, var(--thumbnail-action-color) 58%" in content
+    assert "color-mix(in srgb, var(--thumbnail-action-color) 52%" in content
+    assert "color-mix(in srgb, var(--thumbnail-action-color) 38%" in content
     assert "--vc-thumbnail-action-bg" in content
     assert "--vc-thumbnail-action-border" in content
+
+
+def test_wtl_screenshot_import_uses_safe_api_event():
+    content = (FRONTEND_SOURCE_DIR / "20-tools" / "30-wtl-search-results.js").read_text(encoding="utf-8")
+    assert "event_map.fetch_external_image" in content
+    assert "wtlDataUrlToFile" in content
+    assert "addSelectedWtlScreenshotsToUploadArea" in content
+    assert "startWtlScreenshotDrag" in content
+    assert "currentDraggedThumbnailFilesPromise" in content
+    assert "draggable: 'true'" in content
+    assert "addimage-upload-areaFiles" not in content
+
+
+def test_upload_area_accepts_async_dragged_files():
+    content = (FRONTEND_SOURCE_DIR / "70-images" / "00-upload.js").read_text(encoding="utf-8")
+    assert "currentDraggedThumbnailFilesPromise" in content
+    assert "await window.currentDraggedThumbnailFilesPromise" in content
+
+
+def test_wtl_screenshot_actions_share_thumbnail_button_tokens():
+    content = (STYLE_SOURCE_DIR / "10-services-tools.css").read_text(encoding="utf-8")
+    assert "#wtlModal .wtl-screenshot-action" in content
+    assert "--thumbnail-action-color" in content
+    assert "--vc-thumbnail-action-bg" in content
+    assert "white-space: normal" in content
+    assert "overflow-wrap: anywhere" in content
+    assert "#wtlModal .wtl-screenshot-action::before" in content
