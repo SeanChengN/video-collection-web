@@ -1,9 +1,23 @@
 import io
 import tarfile
+import ast
+from pathlib import Path
 
 from PIL import Image
 
 import app as app_module
+import video_collection.backups as backups_module
+from video_collection.backup_archive_ops import BackupArchiveOpsMixin
+from video_collection.backup_database_ops import BackupDatabaseOpsMixin
+from video_collection.backup_scheduler import BackupSchedulerMixin
+
+
+BACKUP_MODULES = [
+    "backup_validation.py",
+    "backup_database_ops.py",
+    "backup_archive_ops.py",
+    "backup_scheduler.py",
+]
 
 
 def make_client():
@@ -104,6 +118,29 @@ def test_backup_filename_validation():
     assert app_module.safe_backup_filename('movies.sql.gz')
     assert app_module.safe_backup_filename('../movies.sql.gz') is None
     assert app_module.safe_backup_filename('movies.zip') is None
+
+
+def test_backup_service_keeps_public_entrypoint_and_mixins():
+    assert isinstance(app_module.backup_service, BackupArchiveOpsMixin)
+    assert isinstance(app_module.backup_service, BackupDatabaseOpsMixin)
+    assert isinstance(app_module.backup_service, BackupSchedulerMixin)
+    assert backups_module.safe_backup_filename('movies.sql.gz') == 'movies.sql.gz'
+    assert backups_module.parse_backup_schedule_time('03:30') == (3, 30)
+    assert backups_module.classify_backup_filename('movies.sql.gz')['type'] == 'database'
+
+
+def test_backup_modules_do_not_import_app_module():
+    project_root = Path(__file__).resolve().parents[1]
+    for module_name in BACKUP_MODULES:
+        module_path = project_root / 'video_collection' / module_name
+        tree = ast.parse(module_path.read_text(encoding='utf-8'))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imported_names = {alias.name for alias in node.names}
+                assert 'app' not in imported_names
+            elif isinstance(node, ast.ImportFrom):
+                assert node.module != 'app'
+                assert not (node.module or '').startswith('app.')
 
 
 def test_full_backup_member_validation_accepts_only_expected_files():

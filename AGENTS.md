@@ -27,6 +27,8 @@
 - Media and service route implementations live in `video_collection/media_routes.py`; `app.py` keeps route decorators and thin wrappers.
 - API handler entrypoint lives in `video_collection/api_handlers.py`; grouped implementations live in `video_collection/api_handlers_*.py`.
 - API handlers use `ApiHandlerDependencies`; add new handler dependencies there and inject them from `app.py`, instead of relying on implicit globals.
+- Backup service entrypoint lives in `video_collection/backups.py`; grouped implementation lives in `video_collection/backup_*.py`.
+- Backup/restore changes must preserve path validation, tar member validation, scheduled-backup single-worker behavior, and UTF-8 Chinese messages.
 
 ## Security Configuration
 
