@@ -932,8 +932,6 @@ async function copyToClipboard(text, button) {
     
     // 复制按钮保持结果状态，直到列表刷新。
 }
-
-// Emby搜索相关代码
 function openEmbyModal() {
     if (ModalManager.minimizedModals.has('embyModal')) {
         ModalManager.restoreModal('embyModal');
@@ -2227,7 +2225,6 @@ function toggleFilterTag(tagElement) {
     tagElement.classList.toggle('is-selected');
     searchFromControls();
 }
-
 const SEARCH_URL_KEYS = ['q', 'rating', 'min', 'tags', 'rec', 'page', 'searched'];
 let searchRequestSequence = 0;
 
@@ -2387,7 +2384,6 @@ function syncSearchStateToUrl(state = getSearchControlsState()) {
     const nextUrl = `${url.pathname}${url.search}${url.hash}`;
     window.history.replaceState({}, '', nextUrl);
 }
-
 function searchFromControls() {
     searchMovies(1);
 }
@@ -2474,7 +2470,6 @@ function searchMovies(page = 1, options = {}) {
             clearElement(paginationDiv);
         });
 }
-
 function displayPagination() {
     updatePagination();
 }
