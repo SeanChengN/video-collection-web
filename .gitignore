@@ -63,3 +63,4 @@ favicon.*
 icon.*
 static/*.svg
 !static/sprite.svg
+static/example/

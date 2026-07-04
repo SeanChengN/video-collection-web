@@ -65,6 +65,7 @@ favicon.*
 icon.*
 static/*.svg
 !static/sprite.svg
+static/example/
 
 # Editor, OS, logs, and local notes
 .idea/
