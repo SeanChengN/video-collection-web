@@ -201,6 +201,26 @@ def test_theme_switch_uses_button_radius():
     assert ".theme-switch-slider {" in content
 
 
+def test_theme_switch_has_interactive_states():
+    content = (STYLE_SOURCE_DIR / "system" / "30-components.css").read_text(encoding="utf-8")
+    assert ".theme-switch:hover .theme-switch-slider" in content
+    assert ".theme-switch:active {" in content
+    assert ".theme-switch:active .theme-switch-slider" in content
+    assert "filter: brightness(1.08)" in content
+    assert "transform: scale(0.96)" in content
+
+
+def test_mobile_navbar_aligns_with_function_tools():
+    content = (STYLE_SOURCE_DIR / "00-mobile-base.css").read_text(encoding="utf-8")
+    template_content = INDEX_TEMPLATE.read_text(encoding="utf-8")
+    for source in (content, template_content):
+        assert ".navbar .container" in source
+        assert "padding-left: 2rem" in source
+        assert "padding-right: 2rem" in source
+        assert "font-size: clamp(15px, 4.8vw, 17px)" in source
+        assert "text-align: left" in source
+
+
 def test_dark_theme_switch_night_bg_follows_page_bg():
     content = THEME_OVERRIDE_FILE.read_text(encoding="utf-8")
     assert "--vc-theme-switch-night-bg: var(--vc-color-bg)" in content

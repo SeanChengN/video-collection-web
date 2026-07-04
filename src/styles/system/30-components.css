@@ -124,6 +124,7 @@
     font-size: 15px;
     height: 2.2em;
     position: relative;
+    transition: filter 0.2s ease, transform 0.18s ease;
     width: 4em;
 }
 
@@ -137,6 +138,7 @@
 .theme-switch-slider {
     background-color: var(--vc-theme-switch-night-bg, #111827);
     border-radius: var(--vc-radius-md, 8px);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vc-control-focus-border, #4a9dec) 18%, transparent);
     bottom: 0;
     cursor: pointer;
     left: 0;
@@ -144,7 +146,21 @@
     position: absolute;
     right: 0;
     top: 0;
-    transition: background-color 0.4s;
+    transition: background-color 0.4s, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.theme-switch:hover .theme-switch-slider {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vc-control-focus-border, #4a9dec) 44%, transparent), 0 0 0 3px color-mix(in srgb, var(--vc-control-focus-border, #4a9dec) 16%, transparent);
+    filter: brightness(1.08);
+}
+
+.theme-switch:active {
+    transform: scale(0.96);
+}
+
+.theme-switch:active .theme-switch-slider {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vc-control-focus-border, #4a9dec) 34%, transparent), 0 0 0 2px color-mix(in srgb, var(--vc-control-focus-border, #4a9dec) 12%, transparent);
+    filter: brightness(0.94);
 }
 
 html[data-theme="light"] .theme-switch-slider,
