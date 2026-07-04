@@ -23,6 +23,7 @@ html[data-theme="dark"],
     --vc-color-border-strong: #52617a;
     --vc-color-overlay: rgba(0, 0, 0, 0.78);
     --vc-page-bg: #111827;
+    --vc-theme-switch-night-bg: var(--vc-color-bg);
     --vc-color-primary: #70a5ff;
     --vc-color-primary-hover: #8bb6ff;
     --vc-color-primary-soft: rgba(112, 165, 255, 0.18);

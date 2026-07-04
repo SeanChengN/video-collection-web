@@ -126,10 +126,98 @@
         /* 导航栏样式 - 必要样式 */
         .navbar-brand {
             width: 100%;
+            align-items: center;
+            gap: 0.35rem;
             justify-content: flex-start;  
         }
         .navbar-brand .title {
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
             text-align: left;
+        }
+        .navbar-theme-switch {
+            flex: 0 0 auto;
+            margin-left: auto;
+        }
+        .theme-switch {
+            border-radius: var(--vc-radius-md, 8px);
+            box-shadow: var(--vc-theme-switch-shadow, 0 0 10px rgba(0, 0, 0, 0.1));
+            display: inline-block;
+            font-size: 15px;
+            height: 2.2em;
+            position: relative;
+            width: 4em;
+        }
+        .theme-switch input {
+            height: 1px;
+            opacity: 0;
+            position: absolute;
+            width: 1px;
+        }
+        .theme-switch-slider {
+            background-color: var(--vc-theme-switch-night-bg, #111827);
+            border-radius: var(--vc-radius-md, 8px);
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            overflow: hidden;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: background-color 0.4s;
+        }
+        html[data-theme="light"] .theme-switch-slider,
+        .theme-switch input:checked + .theme-switch-slider {
+            background-color: var(--vc-theme-switch-day-bg, #4bd6ff);
+        }
+        .theme-switch-slider::before {
+            border-radius: 20px;
+            bottom: 0.5em;
+            box-shadow: inset 8px -4px 0 0 var(--vc-theme-switch-moon, #ffffff);
+            content: "";
+            height: 1.2em;
+            left: 0.5em;
+            position: absolute;
+            transition: transform 0.4s cubic-bezier(0.81, -0.04, 0.38, 1.5), box-shadow 0.4s cubic-bezier(0.81, -0.04, 0.38, 1.5);
+            width: 1.2em;
+        }
+        html[data-theme="light"] .theme-switch-slider::before,
+        .theme-switch input:checked + .theme-switch-slider::before {
+            box-shadow: inset 15px -4px 0 15px var(--vc-theme-switch-sun, #ffcf48);
+            transform: translateX(1.8em);
+        }
+        .theme-switch-star {
+            background-color: var(--vc-theme-switch-star, #ffffff);
+            border-radius: 50%;
+            height: 5px;
+            position: absolute;
+            transition: opacity 0.4s;
+            width: 5px;
+        }
+        .theme-switch-star.is-one { left: 2.5em; top: 0.5em; }
+        .theme-switch-star.is-two { left: 2.2em; top: 1.2em; }
+        .theme-switch-star.is-three { left: 3em; top: 0.9em; }
+        html[data-theme="light"] .theme-switch-star,
+        .theme-switch input:checked + .theme-switch-slider .theme-switch-star {
+            opacity: 0;
+        }
+        .theme-switch-cloud {
+            bottom: -1.4em;
+            color: var(--vc-theme-switch-cloud, #e6e6e6);
+            fill: var(--vc-theme-switch-cloud, #e6e6e6);
+            height: auto;
+            left: -1.1em;
+            opacity: 0;
+            position: absolute;
+            transition: opacity 0.4s;
+            width: 3.5em;
+        }
+        html[data-theme="light"] .theme-switch-cloud,
+        .theme-switch input:checked + .theme-switch-slider .theme-switch-cloud {
+            opacity: 1;
         }
         /* 搜索结果相关样式 - 必要样式 */
         #search-results { 
@@ -488,30 +576,6 @@
             transform-origin: center center;
             transition: transform 0.3s ease-in-out;
         }
-        .settings-theme-toggle {
-            display: flex;
-            gap: 0.5rem;
-        }
-        .settings-theme-toggle.buttons.has-addons .button,
-        .settings-theme-toggle .button {
-            margin: 0 !important;
-            border-radius: 7px !important;
-        }
-        .settings-theme-toggle .button[aria-pressed="true"] {
-            border: none !important;
-            background: radial-gradient(
-                65.28% 65.28% at 50% 100%,
-                var(--vc-action-primary-glow, rgba(142, 161, 255, 0.8)) 0%,
-                transparent 100%
-            ),
-            linear-gradient(0deg, var(--vc-action-primary, #4169e1), var(--vc-action-primary, #4169e1)) !important;
-            color: var(--vc-color-on-action, #ffffff) !important;
-        }
-        .settings-theme-toggle .button[aria-pressed="true"]:hover,
-        .settings-theme-toggle .button[aria-pressed="true"]:active {
-            color: var(--vc-color-on-action-hover, #ffffff) !important;
-        }
-
         /* 工具栏按钮特效 */
         .function-tools {
             --btn-duplicate: var(--vc-tool-duplicate, rgb(255, 170, 31));
@@ -801,6 +865,17 @@
                 <use href="../static/sprite.svg#favicon"></use>
             </svg>            
             <h1 class="navbar-item title is-4 mb-0">Video Collection</h1>
+            <label class="theme-switch navbar-theme-switch" aria-label="切换主题">
+                <input type="checkbox" role="switch" data-theme-switch checked>
+                <span class="theme-switch-slider">
+                    <span class="theme-switch-star is-one"></span>
+                    <span class="theme-switch-star is-two"></span>
+                    <span class="theme-switch-star is-three"></span>
+                    <svg class="theme-switch-cloud" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                        <use href="../static/sprite.svg#theme-switch-cloud"></use>
+                    </svg>
+                </span>
+            </label>
         </div>
     </div>
 </nav>
@@ -1433,16 +1508,6 @@
             </button>
         </header>
         <section class="modal-card-body">
-            <div class="settings-theme-row vc-panel">
-                <div class="settings-theme-copy">
-                    <span class="settings-theme-title">主题</span>
-                    <span class="vc-muted">仅保存在当前浏览器</span>
-                </div>
-                <div class="buttons has-addons settings-theme-toggle" role="group" aria-label="主题切换">
-                    <button type="button" class="button is-small is-info" data-theme-choice="light" aria-pressed="true">浅色</button>
-                    <button type="button" class="button is-small is-light" data-theme-choice="dark" aria-pressed="false">深色</button>
-                </div>
-            </div>
             <div class="tabs settings-tabs">
                 <li class="is-active" data-tab="tags">
                     标签管理 <span class="tag is-info tag-counter">0</span>

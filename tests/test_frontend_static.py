@@ -5,6 +5,7 @@ from pathlib import Path
 FRONTEND_SOURCE_DIR = Path(__file__).resolve().parents[1] / "src" / "main"
 INDEX_TEMPLATE = Path(__file__).resolve().parents[1] / "templates" / "index.html"
 STYLE_SOURCE_DIR = Path(__file__).resolve().parents[1] / "src" / "styles"
+SPRITE_SVG = Path(__file__).resolve().parents[1] / "static" / "sprite.svg"
 THEME_OVERRIDE_FILE = STYLE_SOURCE_DIR / "system" / "10-themes.css"
 FORBIDDEN_DOM_HTML_PATTERN = re.compile(
     r"\.(?:innerHTML|outerHTML)\b|\.insertAdjacentHTML\b"
@@ -35,7 +36,9 @@ THEME_CRITICAL_SELECTORS = (
     ".settings-modal .button.maintenance-backup-restore-btn",
     ".settings-modal .button.maintenance-create-btn",
     ".maintenance-create-btn",
-    ".settings-theme-toggle .button",
+    ".theme-switch",
+    ".theme-switch-slider",
+    ".navbar-theme-switch",
     ".runtime-badge",
     ".movie-card",
     ".emby-playable-card",
@@ -101,6 +104,7 @@ THEME_SOURCE_FILES = (
     STYLE_SOURCE_DIR / "50-modals-results.css",
     STYLE_SOURCE_DIR / "60-settings.css",
     STYLE_SOURCE_DIR / "70-search-effects-alerts.css",
+    STYLE_SOURCE_DIR / "system" / "30-components.css",
     STYLE_SOURCE_DIR / "system" / "20-bulma-bridge.css",
     INDEX_TEMPLATE,
 )
@@ -164,6 +168,58 @@ def test_dark_theme_declares_action_text_state_tokens():
     content = THEME_OVERRIDE_FILE.read_text(encoding="utf-8")
     assert "--vc-color-on-action:" in content
     assert "--vc-color-on-action-hover:" in content
+
+
+def test_navbar_theme_switch_replaces_settings_theme_buttons():
+    content = INDEX_TEMPLATE.read_text(encoding="utf-8")
+    assert "navbar-theme-switch" in content
+    assert "data-theme-switch" in content
+    assert "settings-theme-toggle" not in content
+
+
+def test_theme_switch_cloud_lives_in_sprite():
+    template_content = INDEX_TEMPLATE.read_text(encoding="utf-8")
+    sprite_content = SPRITE_SVG.read_text(encoding="utf-8")
+    assert "#theme-switch-cloud" in template_content
+    assert 'id="theme-switch-cloud"' in sprite_content
+    cloud_symbol = sprite_content.split('id="theme-switch-cloud"', 1)[1].split("</symbol>", 1)[0]
+    assert 'fill="currentColor"' not in cloud_symbol
+
+
+def test_theme_switch_cloud_uses_fixed_cloud_token():
+    content = (STYLE_SOURCE_DIR / "system" / "30-components.css").read_text(encoding="utf-8")
+    tokens = (STYLE_SOURCE_DIR / "system" / "00-tokens.css").read_text(encoding="utf-8")
+    assert "fill: var(--vc-theme-switch-cloud, #e6e6e6)" in content
+    assert "--vc-theme-switch-cloud: #e6e6e6" in tokens
+    assert "--vc-theme-switch-day-bg: #4bd6ff" in tokens
+
+
+def test_theme_switch_uses_button_radius():
+    content = (STYLE_SOURCE_DIR / "system" / "30-components.css").read_text(encoding="utf-8")
+    assert ".theme-switch {" in content
+    assert "border-radius: var(--vc-radius-md, 8px)" in content
+    assert ".theme-switch-slider {" in content
+
+
+def test_dark_theme_switch_night_bg_follows_page_bg():
+    content = THEME_OVERRIDE_FILE.read_text(encoding="utf-8")
+    assert "--vc-theme-switch-night-bg: var(--vc-color-bg)" in content
+
+
+def test_theme_switch_js_syncs_checkbox_state():
+    content = (FRONTEND_SOURCE_DIR / "00-theme.js").read_text(encoding="utf-8")
+    assert "[data-theme-switch]" in content
+    assert "input.checked = theme === 'light'" in content
+    assert "input.checked ? 'light' : 'dark'" in content
+
+
+def test_mobile_maintenance_panel_uses_compact_buttons():
+    content = (STYLE_SOURCE_DIR / "60-settings.css").read_text(encoding="utf-8")
+    assert ".maintenance-status > div" in content
+    assert ".maintenance-create-btn.maintenance-panel-btn" in content
+    assert "height: 2rem !important" in content
+    assert "font-size: 0.82rem !important" in content
+    assert "flex-direction: row" in content
 
 
 def test_settings_table_hover_rules_cover_cells():

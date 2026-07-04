@@ -20,6 +20,10 @@ function syncVcThemeControls(theme) {
         button.classList.toggle('is-light', !isActive);
         button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
+    document.querySelectorAll('[data-theme-switch]').forEach(input => {
+        input.checked = theme === 'light';
+        input.setAttribute('aria-checked', input.checked ? 'true' : 'false');
+    });
 }
 
 function applyVcTheme(theme) {
@@ -47,6 +51,12 @@ function initializeVcTheme() {
         if (!button) return;
         event.preventDefault();
         setVcTheme(button.dataset.themeChoice);
+    });
+
+    document.addEventListener('change', event => {
+        const input = event.target.closest('[data-theme-switch]');
+        if (!input) return;
+        setVcTheme(input.checked ? 'light' : 'dark');
     });
 }
 

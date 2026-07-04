@@ -219,6 +219,13 @@
     --vc-thumbnail-action-bg: rgba(255, 255, 255, 0.82);
     --vc-thumbnail-action-text: #363636;
     --vc-thumbnail-action-border: rgba(0, 0, 0, 0.08);
+    --vc-theme-switch-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    --vc-theme-switch-night-bg: #111827;
+    --vc-theme-switch-day-bg: #4bd6ff;
+    --vc-theme-switch-moon: #ffffff;
+    --vc-theme-switch-sun: #ffcf48;
+    --vc-theme-switch-star: #ffffff;
+    --vc-theme-switch-cloud: #e6e6e6;
     --vc-modal-bg: rgba(255, 255, 255, 0.3);
     --vc-modal-border: rgba(255, 255, 255, 0.4);
     --vc-modal-header-bg: rgba(255, 255, 255, 0.4);

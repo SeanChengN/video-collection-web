@@ -32,7 +32,8 @@
 
 - Theme selection is CSS-driven with `html[data-theme="light"]` or `html[data-theme="dark"]`.
 - The browser storage key is `vc-theme`; valid values are `light` and `dark`.
-- The theme toggle lives in the settings modal and does not call the backend.
+- The theme switch lives in the navbar and does not call the backend.
+- Theme switch controls use `data-theme-switch`; checked means light theme, unchecked means dark theme.
 - Themes override tokens; components consume tokens.
 - Keep light theme behavior compatible with the existing UI.
 - Add theme-specific fixes in the bridge layer only when legacy Bulma/custom styles need scoped support.
@@ -48,6 +49,7 @@
 ## Theme Migration Checklist
 
 - SVG icons should use `fill="currentColor"` unless the icon asset itself requires multiple fixed colors.
+- New reusable SVG shapes should live in `static/sprite.svg` and be referenced with `<use>`, including theme switch artwork.
 - Buttons, tags, inputs, selects, notifications, tables, cards, and modal shells should consume `--vc-*` tokens.
 - New hover, active, selected, disabled, and focus states should have both light and dark token values.
 - Prefer changing legacy selector values to tokens over adding broader override selectors.
