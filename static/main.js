@@ -1643,6 +1643,7 @@ function createWtlScreenshots(screenshots) {
     if (wtlState.screenshots.length === 0) return null;
 
     const wrapper = createEl('div', { className: 'wtl-screenshots-panel' });
+    wrapper.appendChild(createEl('div', { className: 'wtl-screenshots-title', text: '截图' }));
     wrapper.appendChild(createWtlScreenshotActions(wrapper));
 
     const container = createEl('div', { className: 'screenshots wtl-screenshots' });
@@ -1675,7 +1676,7 @@ function createWtlScreenshots(screenshots) {
 
 function createWtlResultBox(data) {
     const box = createEl('div', { className: 'box' });
-    box.appendChild(createEl('div', { className: 'content' }, [
+    box.appendChild(createEl('div', { className: 'content wtl-result-info' }, [
         createWtlInfoRow('文件类型', data.file_type),
         createWtlInfoRow('资源名称', data.name),
         createWtlInfoRow('总文件大小', formatFileSize(data.size)),
@@ -5499,6 +5500,7 @@ function resizeImageViewerImage() {
     const viewer = modal?.querySelector('.viewer-image');
     const container = modal?.querySelector('.image-viewer-container');
     const scrollContainer = modal?.querySelector('.image-viewer-scroll');
+    const strip = modal?.querySelector('.image-viewer-strip');
 
     if (!modalCard || !modalBody || !viewer || !container || !scrollContainer || !viewer.naturalWidth || !viewer.naturalHeight) return;
 
@@ -5506,11 +5508,16 @@ function resizeImageViewerImage() {
     if (!displayWidth) return;
 
     const idealImageHeight = Math.round(displayWidth * viewer.naturalHeight / viewer.naturalWidth);
-    const bodyHeight = Math.min(idealImageHeight, getImageViewerMaxBodyHeight(modal, modalCard));
+    const stripHeight = strip && !strip.hidden ? strip.offsetHeight : 0;
+    const imagePaneHeight = Math.min(
+        idealImageHeight,
+        Math.max(1, getImageViewerMaxBodyHeight(modal, modalCard) - stripHeight)
+    );
+    const bodyHeight = imagePaneHeight + stripHeight;
 
     modalBody.style.height = `${bodyHeight}px`;
     modalBody.style.maxHeight = `${bodyHeight}px`;
-    container.style.height = `${bodyHeight}px`;
+    container.style.height = `${imagePaneHeight}px`;
     scrollContainer.style.height = '100%';
     viewer.style.width = '100%';
     viewer.style.height = `${idealImageHeight}px`;
@@ -5566,10 +5573,51 @@ function updateViewerImage() {
     // 根据图片位置和数量控制导航按钮
     prevButton.style.display = currentImages.length > 1 && currentImageIndex > 0 ? 'flex' : 'none';
     nextButton.style.display = currentImages.length > 1 && currentImageIndex < currentImages.length - 1 ? 'flex' : 'none';
+    renderImageViewerStrip();
     
     if (currentImages.length > 1) {
         updateImageCounter();
     }
+}
+function setImageViewerIndex(index) {
+    const nextIndex = Number(index);
+    if (!Number.isInteger(nextIndex) || nextIndex < 0 || nextIndex >= currentImages.length || nextIndex === currentImageIndex) return;
+    currentImageIndex = nextIndex;
+    updateViewerImage();
+}
+function renderImageViewerStrip() {
+    const modal = document.getElementById('imageViewerModal');
+    const strip = modal?.querySelector('.image-viewer-strip');
+    if (!strip) return;
+
+    clearElement(strip);
+    const hasNavigation = currentImages.length > 1;
+    strip.hidden = !hasNavigation;
+    if (!hasNavigation) return;
+
+    currentImages.forEach((filename, index) => {
+        const isActive = index === currentImageIndex;
+        const button = createEl('button', {
+            className: `image-viewer-thumb${isActive ? ' is-active' : ''}`,
+            attrs: {
+                type: 'button',
+                'aria-label': `Image ${index + 1}`,
+                'aria-current': isActive ? 'true' : 'false'
+            },
+            dataset: { index: String(index) }
+        }, [
+            createEl('img', { attrs: { src: buildImageUrl(filename), alt: `Image ${index + 1}` } })
+        ]);
+        button.addEventListener('click', () => setImageViewerIndex(index));
+        strip.appendChild(button);
+    });
+
+    requestAnimationFrame(() => {
+        strip.querySelector('.image-viewer-thumb.is-active')?.scrollIntoView({
+            block: 'nearest',
+            inline: 'center'
+        });
+    });
 }
 function updateImageCounter() {
     const counter = document.getElementById('imageViewerModal').querySelector('.image-counter');

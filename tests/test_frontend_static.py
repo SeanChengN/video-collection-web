@@ -66,11 +66,15 @@ THEME_CRITICAL_SELECTORS = (
     ".wtl-screenshot-item",
     ".wtl-screenshot-check",
     ".thumbnail-item-time",
+    ".image-viewer-strip",
+    ".image-viewer-thumb",
     ".image-box-title",
     ".ratings-box-title",
     ".tags-box-title",
     ".rating-item",
     ".dimension-name",
+    ".wtl-result-info",
+    ".wtl-screenshots-title",
 )
 FIXED_ACTION_TOKENS = (
     "--vc-action-primary",
@@ -303,3 +307,32 @@ def test_wtl_screenshot_actions_share_thumbnail_button_tokens():
     assert "white-space: normal" in content
     assert "overflow-wrap: anywhere" in content
     assert "#wtlModal .wtl-screenshot-action::before" in content
+
+
+def test_image_viewer_has_thumbnail_navigation():
+    template = INDEX_TEMPLATE.read_text(encoding="utf-8")
+    layout = (FRONTEND_SOURCE_DIR / "70-images" / "10-viewer-layout.js").read_text(encoding="utf-8")
+    navigation = (FRONTEND_SOURCE_DIR / "70-images" / "20-viewer-navigation.js").read_text(encoding="utf-8")
+    styles = (STYLE_SOURCE_DIR / "40-images-rating-cells.css").read_text(encoding="utf-8")
+
+    assert "image-viewer-strip" in template
+    assert "renderImageViewerStrip" in navigation
+    assert "setImageViewerIndex" in navigation
+    assert "scrollIntoView" in navigation
+    assert "aria-current" in navigation
+    assert "stripHeight" in layout
+    assert "imagePaneHeight" in layout
+    assert "#imageViewerModal .image-viewer-strip" in styles
+    assert "#imageViewerModal .image-viewer-thumb" in styles
+
+
+def test_wtl_result_sections_are_visually_separated():
+    content = (FRONTEND_SOURCE_DIR / "20-tools" / "30-wtl-search-results.js").read_text(encoding="utf-8")
+    styles = (STYLE_SOURCE_DIR / "10-services-tools.css").read_text(encoding="utf-8")
+
+    assert "content wtl-result-info" in content
+    assert "wtl-screenshots-title" in content
+    assert "#wtlModal .wtl-result-info" in styles
+    assert "#wtlModal .wtl-screenshots-panel" in styles
+    assert "#wtlModal .wtl-screenshots-title" in styles
+    assert "color-mix(in srgb, var(--vc-tool-wtl" in styles

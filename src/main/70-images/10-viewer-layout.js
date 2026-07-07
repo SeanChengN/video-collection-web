@@ -55,6 +55,7 @@ function resizeImageViewerImage() {
     const viewer = modal?.querySelector('.viewer-image');
     const container = modal?.querySelector('.image-viewer-container');
     const scrollContainer = modal?.querySelector('.image-viewer-scroll');
+    const strip = modal?.querySelector('.image-viewer-strip');
 
     if (!modalCard || !modalBody || !viewer || !container || !scrollContainer || !viewer.naturalWidth || !viewer.naturalHeight) return;
 
@@ -62,11 +63,16 @@ function resizeImageViewerImage() {
     if (!displayWidth) return;
 
     const idealImageHeight = Math.round(displayWidth * viewer.naturalHeight / viewer.naturalWidth);
-    const bodyHeight = Math.min(idealImageHeight, getImageViewerMaxBodyHeight(modal, modalCard));
+    const stripHeight = strip && !strip.hidden ? strip.offsetHeight : 0;
+    const imagePaneHeight = Math.min(
+        idealImageHeight,
+        Math.max(1, getImageViewerMaxBodyHeight(modal, modalCard) - stripHeight)
+    );
+    const bodyHeight = imagePaneHeight + stripHeight;
 
     modalBody.style.height = `${bodyHeight}px`;
     modalBody.style.maxHeight = `${bodyHeight}px`;
-    container.style.height = `${bodyHeight}px`;
+    container.style.height = `${imagePaneHeight}px`;
     scrollContainer.style.height = '100%';
     viewer.style.width = '100%';
     viewer.style.height = `${idealImageHeight}px`;

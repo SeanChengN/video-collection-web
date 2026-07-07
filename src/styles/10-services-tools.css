@@ -122,8 +122,28 @@
     padding: 0 !important;
     overflow: auto;
 }
+#wtlModal .wtl-result-info {
+    background: var(--vc-service-card-bg, #ffffff);
+    border: 1px solid var(--vc-service-card-border, #dbdbdb);
+    border-radius: var(--vc-radius-md, 8px);
+    color: var(--vc-service-card-text, #363636);
+    margin: 0;
+    padding: 0.85rem;
+}
 #wtlModal .wtl-screenshots-panel {
+    background: color-mix(in srgb, var(--vc-tool-wtl, #6768ff) 8%, var(--vc-service-card-bg, #ffffff));
+    border: 1px solid color-mix(in srgb, var(--vc-tool-wtl, #6768ff) 24%, var(--vc-service-card-border, #dbdbdb));
+    border-radius: var(--vc-radius-md, 8px);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--vc-tool-wtl, #6768ff) 14%, transparent);
     margin-top: 1rem;
+    padding: 0.85rem;
+}
+#wtlModal .wtl-screenshots-title {
+    color: var(--vc-color-text, #363636);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    margin-bottom: 0.65rem;
 }
 #wtlModal .wtl-screenshot-actions {
     align-items: center;

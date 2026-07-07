@@ -368,6 +368,7 @@ function createWtlScreenshots(screenshots) {
     if (wtlState.screenshots.length === 0) return null;
 
     const wrapper = createEl('div', { className: 'wtl-screenshots-panel' });
+    wrapper.appendChild(createEl('div', { className: 'wtl-screenshots-title', text: '截图' }));
     wrapper.appendChild(createWtlScreenshotActions(wrapper));
 
     const container = createEl('div', { className: 'screenshots wtl-screenshots' });
@@ -400,7 +401,7 @@ function createWtlScreenshots(screenshots) {
 
 function createWtlResultBox(data) {
     const box = createEl('div', { className: 'box' });
-    box.appendChild(createEl('div', { className: 'content' }, [
+    box.appendChild(createEl('div', { className: 'content wtl-result-info' }, [
         createWtlInfoRow('文件类型', data.file_type),
         createWtlInfoRow('资源名称', data.name),
         createWtlInfoRow('总文件大小', formatFileSize(data.size)),

@@ -1634,8 +1634,28 @@ html[data-theme="light"] .theme-switch-cloud,
     padding: 0 !important;
     overflow: auto;
 }
+#wtlModal .wtl-result-info {
+    background: var(--vc-service-card-bg, #ffffff);
+    border: 1px solid var(--vc-service-card-border, #dbdbdb);
+    border-radius: var(--vc-radius-md, 8px);
+    color: var(--vc-service-card-text, #363636);
+    margin: 0;
+    padding: 0.85rem;
+}
 #wtlModal .wtl-screenshots-panel {
+    background: color-mix(in srgb, var(--vc-tool-wtl, #6768ff) 8%, var(--vc-service-card-bg, #ffffff));
+    border: 1px solid color-mix(in srgb, var(--vc-tool-wtl, #6768ff) 24%, var(--vc-service-card-border, #dbdbdb));
+    border-radius: var(--vc-radius-md, 8px);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--vc-tool-wtl, #6768ff) 14%, transparent);
     margin-top: 1rem;
+    padding: 0.85rem;
+}
+#wtlModal .wtl-screenshots-title {
+    color: var(--vc-color-text, #363636);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    margin-bottom: 0.65rem;
 }
 #wtlModal .wtl-screenshot-actions {
     align-items: center;
@@ -3347,7 +3367,8 @@ tr.is-duplicate:hover {
 }
 #imageViewerModal .modal-card-body {
     flex: none;
-    display: block;
+    display: flex;
+    flex-direction: column;
     position: relative;
     padding: 0 !important;
     overflow: hidden;
@@ -3375,6 +3396,53 @@ tr.is-duplicate:hover {
     width: 100%;
     height: auto;
     object-fit: contain;
+}
+#imageViewerModal .image-viewer-strip {
+    align-items: center;
+    background: color-mix(in srgb, var(--vc-color-surface, #ffffff) 92%, var(--vc-color-accent, #3273dc));
+    border-top: 1px solid var(--vc-color-border, #dbdbdb);
+    display: flex;
+    flex: 0 0 auto;
+    gap: 0.5rem;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.55rem 0.7rem;
+    scrollbar-gutter: stable;
+    justify-content: center;
+}
+#imageViewerModal .image-viewer-strip[hidden] {
+    display: none !important;
+}
+#imageViewerModal .image-viewer-thumb {
+    appearance: none;
+    background: var(--vc-service-card-bg, #ffffff);
+    border: 2px solid var(--vc-service-card-border, #dbdbdb);
+    border-radius: var(--vc-radius-md, 8px);
+    box-shadow: var(--vc-shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.08));
+    cursor: pointer;
+    flex: 0 0 auto;
+    height: 3.35rem;
+    padding: 0.15rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, filter 0.2s ease;
+    width: 4.6rem;
+}
+#imageViewerModal .image-viewer-thumb img {
+    border-radius: calc(var(--vc-radius-md, 8px) - 3px);
+    display: block;
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+}
+#imageViewerModal .image-viewer-thumb:hover {
+    border-color: color-mix(in srgb, var(--vc-color-accent, #3273dc) 62%, var(--vc-service-card-border, #dbdbdb));
+    box-shadow: var(--vc-service-card-hover-shadow, 0 14px 28px rgba(0, 0, 0, 0.18));
+    transform: translateY(-1px);
+}
+#imageViewerModal .image-viewer-thumb.is-active {
+    border-color: var(--vc-color-accent, #3273dc);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--vc-color-accent, #3273dc) 28%, transparent), var(--vc-service-card-hover-shadow, 0 14px 28px rgba(0, 0, 0, 0.18));
+    filter: saturate(1.08);
 }
 #imageViewerModal .nav-buttons {
     inset: 0;
@@ -3555,6 +3623,16 @@ tr.is-duplicate:hover {
   移动端响应式样式
 ----------------------------------------*/
 @media screen and (max-width: 768px) {
+    #imageViewerModal .image-viewer-strip {
+        gap: 0.4rem;
+        padding: 0.45rem 0.55rem;
+    }
+
+    #imageViewerModal .image-viewer-thumb {
+        height: 2.65rem;
+        width: 3.6rem;
+    }
+
     .ratings-box {
         grid-template-columns: 1fr;
     }
