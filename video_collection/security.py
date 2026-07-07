@@ -2,6 +2,7 @@ import hmac
 import os
 import secrets
 import time
+from math import ceil
 from urllib.parse import urlsplit
 
 
@@ -63,30 +64,82 @@ def auth_rate_limit_exceeded(
     lock,
     attempts,
     window_seconds,
+    lock_seconds,
+    key,
+    now=None
+):
+    return auth_rate_limit_retry_after(
+        failures_by_key,
+        lock,
+        attempts,
+        window_seconds,
+        lock_seconds,
+        key,
+        now
+    ) > 0
+
+
+def _auth_rate_limit_entry(raw_entry, cutoff):
+    if isinstance(raw_entry, dict):
+        raw_failures = raw_entry.get('failures', [])
+        locked_until = float(raw_entry.get('locked_until') or 0)
+    else:
+        raw_failures = raw_entry or []
+        locked_until = 0
+
+    return {
+        'failures': [stamp for stamp in raw_failures if stamp >= cutoff],
+        'locked_until': locked_until
+    }
+
+
+def auth_rate_limit_retry_after(
+    failures_by_key,
+    lock,
+    attempts,
+    window_seconds,
+    lock_seconds,
     key,
     now=None
 ):
     now = now or time.monotonic()
     cutoff = now - window_seconds
     with lock:
-        failures = [stamp for stamp in failures_by_key.get(key, []) if stamp >= cutoff]
-        failures_by_key[key] = failures
-        return len(failures) >= attempts
+        entry = _auth_rate_limit_entry(failures_by_key.get(key), cutoff)
+        if entry['locked_until'] > now:
+            failures_by_key[key] = entry
+            return max(1, ceil(entry['locked_until'] - now))
+
+        if entry['locked_until']:
+            failures_by_key.pop(key, None)
+        elif entry['failures']:
+            failures_by_key[key] = entry
+        else:
+            failures_by_key.pop(key, None)
+        return 0
 
 
 def record_auth_failure(
     failures_by_key,
     lock,
+    attempts,
     window_seconds,
+    lock_seconds,
     key,
     now=None
 ):
     now = now or time.monotonic()
     cutoff = now - window_seconds
     with lock:
-        failures = [stamp for stamp in failures_by_key.get(key, []) if stamp >= cutoff]
-        failures.append(now)
-        failures_by_key[key] = failures
+        entry = _auth_rate_limit_entry(failures_by_key.get(key), cutoff)
+        if entry['locked_until'] > now:
+            failures_by_key[key] = entry
+            return
+
+        entry['failures'].append(now)
+        if len(entry['failures']) >= attempts:
+            entry['locked_until'] = now + lock_seconds
+        failures_by_key[key] = entry
 
 
 def clear_auth_failures(failures_by_key, lock, key):

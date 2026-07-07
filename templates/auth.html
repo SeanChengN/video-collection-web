@@ -125,13 +125,24 @@
         .auth-button:focus {
             background: var(--primary-dark);
         }
+
+        .auth-input:disabled,
+        .auth-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.62;
+        }
+
+        .auth-button:disabled:hover,
+        .auth-button:disabled:focus {
+            background: var(--primary);
+        }
     </style>
 </head>
 <body>
     <main class="auth-dialog" role="dialog" aria-labelledby="auth-title" aria-modal="true">
         <h1 class="auth-title" id="auth-title">Video Collection</h1>
         <p class="auth-copy">请输入访问令牌继续。</p>
-        <form method="post" action="{{ url_for('auth') }}">
+        <form method="post" action="{{ url_for('auth') }}"{% if rate_limited %} aria-disabled="true"{% endif %}>
             <input type="hidden" name="next" value="{{ next_path }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label class="auth-label" for="token">Access Token</label>
@@ -141,8 +152,9 @@
                 name="token"
                 type="password"
                 autocomplete="current-password"
-                autofocus
+                {% if not rate_limited %}autofocus{% endif %}
                 required
+                {% if rate_limited %}disabled aria-disabled="true"{% endif %}
             >
             {% if error %}
             {% if rate_limited %}
@@ -151,7 +163,7 @@
             <p class="auth-error">令牌无效，请重试。</p>
             {% endif %}
             {% endif %}
-            <button class="auth-button" type="submit">进入</button>
+            <button class="auth-button" type="submit"{% if rate_limited %} disabled aria-disabled="true"{% endif %}>进入</button>
         </form>
     </main>
 </body>

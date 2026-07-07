@@ -110,6 +110,7 @@ AUTH_RATE_LIMIT_FAILURES = {}
 AUTH_RATE_LIMIT_LOCK = threading.Lock()
 AUTH_RATE_LIMIT_ATTEMPTS = max(1, env_int('AUTH_RATE_LIMIT_ATTEMPTS', 10))
 AUTH_RATE_LIMIT_WINDOW_SECONDS = max(30, env_int('AUTH_RATE_LIMIT_WINDOW_SECONDS', 300))
+AUTH_RATE_LIMIT_LOCK_SECONDS = max(60, env_int('AUTH_RATE_LIMIT_LOCK_SECONDS', AUTH_RATE_LIMIT_WINDOW_SECONDS))
 
 app.secret_key = configured_secret_key() or fallback_secret_key()
 app.config.update(
@@ -149,6 +150,18 @@ def auth_rate_limit_exceeded(key, now=None):
         AUTH_RATE_LIMIT_LOCK,
         AUTH_RATE_LIMIT_ATTEMPTS,
         AUTH_RATE_LIMIT_WINDOW_SECONDS,
+        AUTH_RATE_LIMIT_LOCK_SECONDS,
+        key,
+        now
+    )
+
+def auth_rate_limit_retry_after(key, now=None):
+    return security.auth_rate_limit_retry_after(
+        AUTH_RATE_LIMIT_FAILURES,
+        AUTH_RATE_LIMIT_LOCK,
+        AUTH_RATE_LIMIT_ATTEMPTS,
+        AUTH_RATE_LIMIT_WINDOW_SECONDS,
+        AUTH_RATE_LIMIT_LOCK_SECONDS,
         key,
         now
     )
@@ -157,7 +170,9 @@ def record_auth_failure(key, now=None):
     return security.record_auth_failure(
         AUTH_RATE_LIMIT_FAILURES,
         AUTH_RATE_LIMIT_LOCK,
+        AUTH_RATE_LIMIT_ATTEMPTS,
         AUTH_RATE_LIMIT_WINDOW_SECONDS,
+        AUTH_RATE_LIMIT_LOCK_SECONDS,
         key,
         now
     )
@@ -216,17 +231,20 @@ def auth():
 
     error = False
     rate_limited = False
-    if request.method == 'POST':
-        client_key = auth_rate_limit_key()
-        if auth_rate_limit_exceeded(client_key):
-            rate_limited = True
-            return render_template(
-                'auth.html',
-                error=True,
-                rate_limited=rate_limited,
-                next_path=next_path
-            ), 429
+    retry_after_seconds = 0
+    client_key = auth_rate_limit_key()
+    retry_after_seconds = auth_rate_limit_retry_after(client_key)
+    if retry_after_seconds:
+        rate_limited = True
+        return render_template(
+            'auth.html',
+            error=True,
+            rate_limited=rate_limited,
+            retry_after_seconds=retry_after_seconds,
+            next_path=next_path
+        ), 429, {'Retry-After': str(retry_after_seconds)}
 
+    if request.method == 'POST':
         provided_token = request.form.get('token', '').strip()
         if provided_token and hmac.compare_digest(provided_token, configured_access_token()):
             session[AUTH_SESSION_KEY] = True
@@ -241,6 +259,7 @@ def auth():
         'auth.html',
         error=error,
         rate_limited=rate_limited,
+        retry_after_seconds=retry_after_seconds,
         next_path=next_path
     ), 401 if error else 200
 
