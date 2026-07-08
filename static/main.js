@@ -1360,20 +1360,10 @@ function setWtlSearchDisabled(disabled) {
 }
 
 function formatWtlStatusMeta() {
-    const parts = [];
     if (Number.isFinite(wtlState.serviceLatencyMs)) {
-        parts.push(`${wtlState.serviceLatencyMs} ms`);
+        return `${wtlState.serviceLatencyMs} ms`;
     }
-    if (wtlState.serviceCached) {
-        parts.push('缓存');
-    }
-    if (wtlState.serviceCheckedAt) {
-        const checkedDate = new Date(wtlState.serviceCheckedAt * 1000);
-        if (!Number.isNaN(checkedDate.getTime())) {
-            parts.push(checkedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-        }
-    }
-    return parts.join(' · ');
+    return '';
 }
 
 function updateWtlStatusPanel() {

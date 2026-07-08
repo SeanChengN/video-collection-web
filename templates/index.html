@@ -1204,6 +1204,11 @@
     <div class="modal-card">
         <header class="modal-card-head">
             <p class="modal-card-title">What's the link?</p>
+            <button type="button" id="wtl-status-panel" class="wtl-status-panel" data-state="idle" data-action="refresh-wtl-status" aria-live="polite">
+                <span class="wtl-status-dot" aria-hidden="true"></span>
+                <span id="wtl-status-text" class="wtl-status-text">状态未检测</span>
+                <span id="wtl-status-meta" class="wtl-status-meta"></span>
+            </button>
             <div class="modal-card-controls">
                 <button class="modal-control-button minimize" data-action="minimize-modal" data-modal-id="wtlModal" aria-label="minimize">
                     <svg aria-label="最小化">
@@ -1220,11 +1225,6 @@
         <section class="modal-card-body">
             <!-- 固定搜索区域 -->
             <div class="sticky-search">            
-                <button type="button" id="wtl-status-panel" class="wtl-status-panel" data-state="idle" data-action="refresh-wtl-status" aria-live="polite">
-                    <span class="wtl-status-dot" aria-hidden="true"></span>
-                    <span id="wtl-status-text" class="wtl-status-text">状态未检测</span>
-                    <span id="wtl-status-meta" class="wtl-status-meta"></span>
-                </button>
                 <div class="field has-addons">
                     <div class="control is-expanded">
                         <input class="input" type="text" id="wtl-input" placeholder="输入链接">

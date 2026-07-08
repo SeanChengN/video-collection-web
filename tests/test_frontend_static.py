@@ -317,25 +317,46 @@ def test_wtl_status_indicator_uses_safe_status_api():
     service_modals = (FRONTEND_SOURCE_DIR / "20-tools" / "20-service-modals.js").read_text(encoding="utf-8")
     content = (FRONTEND_SOURCE_DIR / "20-tools" / "30-wtl-search-results.js").read_text(encoding="utf-8")
     styles = (STYLE_SOURCE_DIR / "10-services-tools.css").read_text(encoding="utf-8")
+    wtl_start = template.index('<div class="modal" id="wtlModal">')
+    wtl_header_start = template.index('<header class="modal-card-head">', wtl_start)
+    wtl_header_end = template.index('</header>', wtl_header_start)
+    wtl_sticky_start = template.index('<div class="sticky-search"', wtl_header_end)
+    wtl_results_start = template.index('id="wtl-results"', wtl_sticky_start)
+    status_index = template.index('id="wtl-status-panel"', wtl_start)
+    status_meta_body = re.search(
+        r"function formatWtlStatusMeta\(\) \{(?P<body>.*?)\n\}",
+        content,
+        re.DOTALL,
+    ).group("body")
 
     assert "wtl-status-panel" in template
     assert 'data-action="refresh-wtl-status"' in template
-    assert template.index("wtl-status-panel") < template.index('id="wtl-input"')
+    assert wtl_header_start < status_index < wtl_header_end
+    assert status_index < wtl_sticky_start
+    assert "wtl-status-panel" not in template[wtl_sticky_start:wtl_results_start]
     assert "wtl-status-refresh" not in template
     assert "event_map.check_wtl_status" in content
     assert "function checkWtlStatus" in content
     assert "function refreshWtlStatus" in content
     assert "function setWtlSearchDisabled" in content
+    assert "serviceCached" not in status_meta_body
+    assert "serviceCheckedAt" not in status_meta_body
     assert "panel.disabled = wtlState.serviceStatus === 'checking'" in content
     assert "panel.setAttribute('aria-disabled'" in content
     assert "serviceStatus === 'checking'" in content
     assert "serviceStatus === 'offline'" in content
     assert "'refresh-wtl-status': refreshWtlStatus" in actions
     assert "checkWtlStatus()" in service_modals
+    assert "#wtlModal .modal-card-head" in styles
+    assert "#wtlModal .modal-card-controls" in styles
     assert "#wtlModal .wtl-status-panel" in styles
     assert "#wtlModal .wtl-status-panel[data-state=\"online\"]" in styles
     assert "#wtlModal .wtl-status-panel[data-state=\"offline\"]" in styles
     assert "#wtlModal .wtl-status-refresh" not in styles
+    assert "#wtlModal .wtl-status-panel {\n" in styles
+    status_panel_block = styles.split("#wtlModal .wtl-status-panel {", 1)[1].split("}", 1)[0]
+    assert "margin-left: auto" not in status_panel_block
+    assert "#wtlModal .wtl-status-meta {\n        display: none;" not in styles
 
 
 def test_image_viewer_has_thumbnail_navigation():
