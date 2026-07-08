@@ -63,7 +63,7 @@ def test_backend_api_events_match_frontend_event_map():
     backend_events = {
         event_id: event['name']
         for event_id, event in app_module.API_EVENTS.items()
-        if 1001 <= event_id <= 1022
+        if 1001 <= event_id <= 1023
     }
 
     assert backend_events == frontend_events
@@ -79,6 +79,15 @@ class FakeExternalImageResponse:
     def iter_content(self, chunk_size):
         for index in range(0, len(self.body), chunk_size):
             yield self.body[index:index + chunk_size]
+
+    def close(self):
+        self.closed = True
+
+
+class FakeWtlStatusResponse:
+    def __init__(self, status_code=200):
+        self.status_code = status_code
+        self.closed = False
 
     def close(self):
         self.closed = True
@@ -180,6 +189,91 @@ def test_fetch_external_image_wrapper_returns_jpeg_data_url(monkeypatch):
     assert captured['kwargs']['allow_redirects'] is False
     assert captured['kwargs']['stream'] is True
     assert external_response.closed is True
+
+
+def test_check_wtl_status_wrapper_pings_homepage_and_closes_response(monkeypatch):
+    monkeypatch.setenv('APP_ACCESS_TOKEN', '')
+    integrations_module.WTL_STATUS_CACHE.clear()
+    external_response = FakeWtlStatusResponse(200)
+    captured = {}
+
+    def fake_get(*args, **kwargs):
+        captured['args'] = args
+        captured['kwargs'] = kwargs
+        return external_response
+
+    monkeypatch.setattr(app_module.requests, 'get', fake_get)
+
+    with app_module.app.test_request_context('/api'):
+        response, status = unpack_response(app_module.check_wtl_status_handler({}, 'GET'))
+
+    payload = response.get_json()
+    assert status == 200
+    assert payload['success'] is True
+    assert payload['online'] is True
+    assert payload['status_code'] == 200
+    assert payload['cached'] is False
+    assert isinstance(payload['latency_ms'], int)
+    assert captured['args'] == ('https://whatslink.info/',)
+    assert captured['kwargs']['timeout'] == 3
+    assert captured['kwargs']['allow_redirects'] is True
+    assert external_response.closed is True
+
+
+def test_check_wtl_status_wrapper_caches_and_force_refreshes(monkeypatch):
+    monkeypatch.setenv('APP_ACCESS_TOKEN', '')
+    integrations_module.WTL_STATUS_CACHE.clear()
+    calls = []
+
+    def fake_get(*args, **kwargs):
+        response = FakeWtlStatusResponse(204)
+        calls.append(response)
+        return response
+
+    monkeypatch.setattr(app_module.requests, 'get', fake_get)
+
+    with app_module.app.test_request_context('/api'):
+        first_response, _ = unpack_response(app_module.check_wtl_status_handler({}, 'GET'))
+        second_response, _ = unpack_response(app_module.check_wtl_status_handler({}, 'GET'))
+        forced_response, _ = unpack_response(app_module.check_wtl_status_handler({'force': True}, 'GET'))
+
+    assert first_response.get_json()['cached'] is False
+    assert second_response.get_json()['cached'] is True
+    assert forced_response.get_json()['cached'] is False
+    assert len(calls) == 2
+    assert all(response.closed for response in calls)
+
+
+def test_check_wtl_status_wrapper_reports_offline_for_5xx_and_exceptions(monkeypatch):
+    monkeypatch.setenv('APP_ACCESS_TOKEN', '')
+    integrations_module.WTL_STATUS_CACHE.clear()
+    server_error = FakeWtlStatusResponse(503)
+    monkeypatch.setattr(app_module.requests, 'get', lambda *args, **kwargs: server_error)
+
+    with app_module.app.test_request_context('/api'):
+        response, status = unpack_response(app_module.check_wtl_status_handler({'force': True}, 'GET'))
+
+    payload = response.get_json()
+    assert status == 200
+    assert payload['success'] is True
+    assert payload['online'] is False
+    assert payload['status_code'] == 503
+    assert server_error.closed is True
+
+    integrations_module.WTL_STATUS_CACHE.clear()
+
+    def raise_timeout(*args, **kwargs):
+        raise TimeoutError('timeout')
+
+    monkeypatch.setattr(app_module.requests, 'get', raise_timeout)
+    with app_module.app.test_request_context('/api'):
+        response, status = unpack_response(app_module.check_wtl_status_handler({'force': True}, 'GET'))
+
+    payload = response.get_json()
+    assert status == 200
+    assert payload['success'] is True
+    assert payload['online'] is False
+    assert payload['status_code'] is None
 
 
 def test_search_movies_wrapper_rejects_invalid_recommended_filter(monkeypatch):

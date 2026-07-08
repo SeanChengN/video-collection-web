@@ -4,6 +4,8 @@ import io
 import ipaddress
 import re
 import socket
+import threading
+import time
 from urllib.parse import quote
 from urllib.parse import unquote
 from urllib.parse import urlsplit
@@ -14,6 +16,12 @@ from PIL import Image, UnidentifiedImageError
 EXTERNAL_IMAGE_CHUNK_BYTES = 64 * 1024
 EXTERNAL_IMAGE_USER_AGENT = 'video-collection-image-import/1.0'
 EXTERNAL_IMAGE_SAFE_NAME_PATTERN = re.compile(r'[^A-Za-z0-9._-]+')
+WTL_STATUS_URL = 'https://whatslink.info/'
+WTL_STATUS_CACHE_SECONDS = 60
+WTL_STATUS_TIMEOUT_SECONDS = 3
+WTL_STATUS_USER_AGENT = 'video-collection-wtl-status/1.0'
+WTL_STATUS_CACHE = {}
+WTL_STATUS_LOCK = threading.Lock()
 
 
 class ApiIntegrationHandlersMixin:
@@ -38,6 +46,70 @@ class ApiIntegrationHandlersMixin:
             })
         except Exception as e:
                 return self.dependencies.json_exception('Get services config', e)
+
+    def check_wtl_status_handler(self, data, method='GET'):
+        force = bool((data or {}).get('force'))
+        now = time.monotonic()
+
+        with WTL_STATUS_LOCK:
+            cached_result = WTL_STATUS_CACHE.get('result')
+            cached_at = WTL_STATUS_CACHE.get('checked_monotonic', 0)
+            if cached_result and not force and now - cached_at < WTL_STATUS_CACHE_SECONDS:
+                payload = dict(cached_result)
+                payload['cached'] = True
+                return self.dependencies.jsonify(payload)
+
+        response = None
+        started_at = time.monotonic()
+        checked_at = int(time.time())
+        try:
+            response = self.dependencies.external_image_get(
+                WTL_STATUS_URL,
+                timeout=WTL_STATUS_TIMEOUT_SECONDS,
+                allow_redirects=True,
+                headers={
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'User-Agent': WTL_STATUS_USER_AGENT
+                }
+            )
+            status_code = getattr(response, 'status_code', None)
+            latency_ms = int((time.monotonic() - started_at) * 1000)
+            online = bool(status_code and 200 <= int(status_code) < 500)
+            if online:
+                message = 'WTL service is reachable'
+            else:
+                message = f'WTL service returned HTTP {status_code}'
+
+            payload = {
+                'success': True,
+                'online': online,
+                'status_code': status_code,
+                'latency_ms': latency_ms,
+                'cached': False,
+                'checked_at': checked_at,
+                'message': message
+            }
+        except Exception as e:
+            latency_ms = int((time.monotonic() - started_at) * 1000)
+            self.dependencies.logger.warning("WTL status check failed: %s", e)
+            payload = {
+                'success': True,
+                'online': False,
+                'status_code': None,
+                'latency_ms': latency_ms,
+                'cached': False,
+                'checked_at': checked_at,
+                'message': 'WTL status check failed'
+            }
+        finally:
+            close = getattr(response, 'close', None)
+            if callable(close):
+                close()
+
+        with WTL_STATUS_LOCK:
+            WTL_STATUS_CACHE['result'] = dict(payload)
+            WTL_STATUS_CACHE['checked_monotonic'] = time.monotonic()
+        return self.dependencies.jsonify(payload)
 
     # 相似度计算相关代码
     def search_emby_handler(self, data, method='POST'):

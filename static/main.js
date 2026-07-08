@@ -513,6 +513,7 @@ function initStaticEventDelegates() {
         'delete-movie': deleteMovie,
         'close-wtl-modal': closeWtlModal,
         'search-wtl': searchWtl,
+        'refresh-wtl-status': refreshWtlStatus,
         'close-jackett-modal': closeJackettModal,
         'close-thunder-modal': closeThunderModal,
         'close-emby-modal': closeEmbyModal,
@@ -1261,12 +1262,14 @@ function closeThunderModal() {
 function openWtlModal() {
     if (ModalManager.minimizedModals.has('wtlModal')) {
         ModalManager.restoreModal('wtlModal');
+        if (typeof checkWtlStatus === 'function') checkWtlStatus();
     } else {
         ModalManager.open('wtlModal');
         document.getElementById('wtl-input').value = '';
         clearElement(document.getElementById('wtl-results'));
         if (typeof resetWtlSelection === 'function') resetWtlSelection();
         resetWtlModalHeight();
+        if (typeof checkWtlStatus === 'function') checkWtlStatus();
     }
 }
 
@@ -1278,7 +1281,12 @@ const WTL_MODAL_MAX_HEIGHT_RATIO = 0.9;
 const wtlState = {
     screenshots: [],
     selectedScreenshotUrls: new Set(),
-    isImporting: false
+    isImporting: false,
+    serviceStatus: 'idle',
+    serviceMessage: '',
+    serviceLatencyMs: null,
+    serviceCached: false,
+    serviceCheckedAt: null
 };
 
 function resetWtlSelection() {
@@ -1340,22 +1348,118 @@ function resizeWtlModalForResults() {
     });
 }
 
+function getWtlSearchButton() {
+    return document.querySelector('#wtlModal [data-action="search-wtl"]');
+}
+
+function setWtlSearchDisabled(disabled) {
+    const searchButton = getWtlSearchButton();
+    if (!searchButton) return;
+    searchButton.disabled = disabled;
+    searchButton.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+}
+
+function formatWtlStatusMeta() {
+    const parts = [];
+    if (Number.isFinite(wtlState.serviceLatencyMs)) {
+        parts.push(`${wtlState.serviceLatencyMs} ms`);
+    }
+    if (wtlState.serviceCached) {
+        parts.push('缓存');
+    }
+    if (wtlState.serviceCheckedAt) {
+        const checkedDate = new Date(wtlState.serviceCheckedAt * 1000);
+        if (!Number.isNaN(checkedDate.getTime())) {
+            parts.push(checkedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        }
+    }
+    return parts.join(' · ');
+}
+
+function updateWtlStatusPanel() {
+    const panel = document.getElementById('wtl-status-panel');
+    if (!panel) return;
+
+    const text = document.getElementById('wtl-status-text');
+    const meta = document.getElementById('wtl-status-meta');
+    panel.dataset.state = wtlState.serviceStatus;
+    if (text) text.textContent = wtlState.serviceMessage || '状态未检测';
+    if (meta) meta.textContent = formatWtlStatusMeta();
+    panel.disabled = wtlState.serviceStatus === 'checking';
+    panel.setAttribute('aria-disabled', wtlState.serviceStatus === 'checking' ? 'true' : 'false');
+}
+
+function setWtlStatus(status, options = {}) {
+    wtlState.serviceStatus = status;
+    wtlState.serviceMessage = options.message || '';
+    wtlState.serviceLatencyMs = Number.isFinite(options.latencyMs) ? options.latencyMs : null;
+    wtlState.serviceCached = Boolean(options.cached);
+    wtlState.serviceCheckedAt = options.checkedAt || null;
+    updateWtlStatusPanel();
+    setWtlSearchDisabled(status === 'checking' || status === 'offline' || status === 'limited');
+}
+
+async function checkWtlStatus(options = {}) {
+    setWtlStatus('checking', { message: '检测中' });
+    try {
+        const result = await callApi(event_map.check_wtl_status, { force: Boolean(options.force) }, 'GET');
+        const status = result.online ? 'online' : 'offline';
+        setWtlStatus(status, {
+            message: result.online ? '服务在线' : (result.message || '服务不可达'),
+            latencyMs: Number(result.latency_ms),
+            cached: Boolean(result.cached),
+            checkedAt: result.checked_at
+        });
+        return result;
+    } catch (error) {
+        setWtlStatus('offline', { message: error.message || '检测失败' });
+        return { success: false, online: false, message: error.message };
+    }
+}
+
+function refreshWtlStatus() {
+    return checkWtlStatus({ force: true });
+}
+
+function markWtlApiFailure(statusCode, message) {
+    const isLimited = statusCode === 403 || statusCode === 429 || (statusCode >= 500 && statusCode < 600) || !statusCode;
+    setWtlStatus(isLimited ? 'limited' : 'online', {
+        message: isLimited ? 'API 受限或查询失败' : (message || '查询失败')
+    });
+}
+
 function searchWtl() {
     const query = document.getElementById('wtl-input').value;
     const resultsDiv = document.getElementById('wtl-results');
-    
+
+    if (wtlState.serviceStatus === 'checking') {
+        setNotification(resultsDiv, 'warning', 'WTL 服务仍在检测中，请稍后再试');
+        return;
+    }
+    if (wtlState.serviceStatus === 'offline' || wtlState.serviceStatus === 'limited') {
+        setNotification(resultsDiv, 'warning', wtlState.serviceMessage || 'WTL 服务当前不可用，请稍后刷新状态');
+        return;
+    }
+
     if (!query.trim()) {
         resetWtlModalHeight();
         setNotification(resultsDiv, 'warning', '请输入链接');
         return;
     }
-    
+
     setNotification(resultsDiv, 'info', '正在查询...');
-    
+
     resetWtlSelection();
     fetch(`https://whatslink.info/api/v1/link?url=${encodeURIComponent(query)}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                markWtlApiFailure(response.status, `WTL API HTTP ${response.status}`);
+                throw new Error(`WTL API HTTP ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            setWtlStatus('online', { message: '服务在线' });
             clearElement(resultsDiv);
             resultsDiv.appendChild(createWtlResultBox(data));
             resultsDiv.querySelectorAll('img').forEach(img => {
@@ -1368,6 +1472,9 @@ function searchWtl() {
         })
         .catch(error => {
             resetWtlModalHeight();
+            if (wtlState.serviceStatus !== 'limited') {
+                markWtlApiFailure(0, error.message);
+            }
             setNotification(resultsDiv, 'danger', '查询失败，请检查链接是否正确');
             showAlert({
                 title: '查询失败',

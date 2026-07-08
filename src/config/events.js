@@ -20,7 +20,8 @@ const event_map = {
     create_db_backup: 1019,
     restore_db_backup: 1020,
     delete_db_backup: 1021,
-    fetch_external_image: 1022
+    fetch_external_image: 1022,
+    check_wtl_status: 1023
 };
 
 window.event_map = event_map;

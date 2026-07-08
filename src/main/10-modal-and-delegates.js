@@ -24,6 +24,7 @@ function initStaticEventDelegates() {
         'delete-movie': deleteMovie,
         'close-wtl-modal': closeWtlModal,
         'search-wtl': searchWtl,
+        'refresh-wtl-status': refreshWtlStatus,
         'close-jackett-modal': closeJackettModal,
         'close-thunder-modal': closeThunderModal,
         'close-emby-modal': closeEmbyModal,

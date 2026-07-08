@@ -822,6 +822,10 @@ def fetch_external_image_handler(data, method='POST'):
     return _api_handlers.fetch_external_image_handler(data, method)
 
 
+def check_wtl_status_handler(data, method='GET'):
+    return _api_handlers.check_wtl_status_handler(data, method)
+
+
 def check_title_match(title1, title2):
     return _api_handlers.check_title_match(title1, title2)
 
@@ -903,7 +907,8 @@ API_EVENTS.update({
     1019: api_event('create_db_backup', create_db_backup_handler, methods=('POST',)),
     1020: api_event('restore_db_backup', restore_db_backup_handler, methods=('POST',)),
     1021: api_event('delete_db_backup', delete_db_backup_handler, methods=('DELETE', 'POST')),
-    1022: api_event('fetch_external_image', fetch_external_image_handler, methods=('POST',))
+    1022: api_event('fetch_external_image', fetch_external_image_handler, methods=('POST',)),
+    1023: api_event('check_wtl_status', check_wtl_status_handler, methods=('GET', 'POST'))
 })
 
 APP_INITIALIZATION_LOCK = threading.Lock()

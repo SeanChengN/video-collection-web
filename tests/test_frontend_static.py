@@ -65,6 +65,8 @@ THEME_CRITICAL_SELECTORS = (
     ".wtl-screenshot-action",
     ".wtl-screenshot-item",
     ".wtl-screenshot-check",
+    ".wtl-status-panel",
+    ".wtl-status-dot",
     ".thumbnail-item-time",
     ".image-viewer-strip",
     ".image-viewer-thumb",
@@ -307,6 +309,33 @@ def test_wtl_screenshot_actions_share_thumbnail_button_tokens():
     assert "white-space: normal" in content
     assert "overflow-wrap: anywhere" in content
     assert "#wtlModal .wtl-screenshot-action::before" in content
+
+
+def test_wtl_status_indicator_uses_safe_status_api():
+    template = INDEX_TEMPLATE.read_text(encoding="utf-8")
+    actions = (FRONTEND_SOURCE_DIR / "10-modal-and-delegates.js").read_text(encoding="utf-8")
+    service_modals = (FRONTEND_SOURCE_DIR / "20-tools" / "20-service-modals.js").read_text(encoding="utf-8")
+    content = (FRONTEND_SOURCE_DIR / "20-tools" / "30-wtl-search-results.js").read_text(encoding="utf-8")
+    styles = (STYLE_SOURCE_DIR / "10-services-tools.css").read_text(encoding="utf-8")
+
+    assert "wtl-status-panel" in template
+    assert 'data-action="refresh-wtl-status"' in template
+    assert template.index("wtl-status-panel") < template.index('id="wtl-input"')
+    assert "wtl-status-refresh" not in template
+    assert "event_map.check_wtl_status" in content
+    assert "function checkWtlStatus" in content
+    assert "function refreshWtlStatus" in content
+    assert "function setWtlSearchDisabled" in content
+    assert "panel.disabled = wtlState.serviceStatus === 'checking'" in content
+    assert "panel.setAttribute('aria-disabled'" in content
+    assert "serviceStatus === 'checking'" in content
+    assert "serviceStatus === 'offline'" in content
+    assert "'refresh-wtl-status': refreshWtlStatus" in actions
+    assert "checkWtlStatus()" in service_modals
+    assert "#wtlModal .wtl-status-panel" in styles
+    assert "#wtlModal .wtl-status-panel[data-state=\"online\"]" in styles
+    assert "#wtlModal .wtl-status-panel[data-state=\"offline\"]" in styles
+    assert "#wtlModal .wtl-status-refresh" not in styles
 
 
 def test_image_viewer_has_thumbnail_navigation():

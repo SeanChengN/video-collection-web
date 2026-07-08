@@ -122,6 +122,82 @@
     padding: 0 !important;
     overflow: auto;
 }
+#wtlModal .wtl-status-panel {
+    align-items: center;
+    appearance: none;
+    background: color-mix(in srgb, var(--vc-tool-wtl, #6768ff) 8%, var(--vc-service-card-bg, #ffffff));
+    border: 1px solid color-mix(in srgb, var(--vc-tool-wtl, #6768ff) 22%, var(--vc-service-card-border, #dbdbdb));
+    border-radius: var(--vc-radius-md, 8px);
+    color: var(--vc-service-card-text, #363636);
+    cursor: pointer;
+    display: flex;
+    font: inherit;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.55rem;
+    margin-bottom: 0.55rem;
+    min-height: 2.55rem;
+    padding: 0.32rem 0.55rem;
+    text-align: left;
+    transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease, transform 0.18s ease;
+    width: 100%;
+}
+#wtlModal .wtl-status-panel:not(:disabled):hover {
+    background: color-mix(in srgb, var(--vc-tool-wtl, #6768ff) 13%, var(--vc-service-card-bg, #ffffff));
+    border-color: color-mix(in srgb, var(--vc-tool-wtl, #6768ff) 42%, var(--vc-service-card-border, #dbdbdb));
+    box-shadow: 0 5px 14px color-mix(in srgb, var(--vc-tool-wtl, #6768ff) 14%, transparent);
+}
+#wtlModal .wtl-status-panel:not(:disabled):active {
+    filter: brightness(0.97);
+    transform: translateY(1px);
+}
+#wtlModal .wtl-status-panel:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--vc-tool-wtl, #6768ff) 28%, transparent);
+    outline: none;
+}
+#wtlModal .wtl-status-panel:disabled {
+    cursor: wait;
+    opacity: 0.82;
+}
+#wtlModal .wtl-status-dot {
+    background: var(--vc-color-text-muted, #7a7a7a);
+    border-radius: 999px;
+    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent);
+    flex: 0 0 auto;
+    height: 0.55rem;
+    width: 0.55rem;
+}
+#wtlModal .wtl-status-panel[data-state="checking"] .wtl-status-dot {
+    animation: wtl-status-pulse 1s ease-in-out infinite;
+    background: var(--vc-color-warning, #f5b342);
+}
+#wtlModal .wtl-status-panel[data-state="online"] .wtl-status-dot {
+    background: var(--vc-color-success, #23d160);
+}
+#wtlModal .wtl-status-panel[data-state="offline"] .wtl-status-dot,
+#wtlModal .wtl-status-panel[data-state="limited"] .wtl-status-dot {
+    background: var(--vc-color-danger, #ff3860);
+}
+#wtlModal .wtl-status-text {
+    color: var(--vc-service-card-text, #363636);
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+#wtlModal .wtl-status-meta {
+    color: var(--vc-color-text-muted, #7a7a7a);
+    flex: 1 1 auto;
+    font-size: 0.78rem;
+    min-width: 0;
+}
+@keyframes wtl-status-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.58;
+        transform: scale(0.82);
+    }
+}
 #wtlModal .wtl-result-info {
     background: var(--vc-service-card-bg, #ffffff);
     border: 1px solid var(--vc-service-card-border, #dbdbdb);

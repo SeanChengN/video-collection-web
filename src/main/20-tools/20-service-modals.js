@@ -30,12 +30,14 @@ function closeThunderModal() {
 function openWtlModal() {
     if (ModalManager.minimizedModals.has('wtlModal')) {
         ModalManager.restoreModal('wtlModal');
+        if (typeof checkWtlStatus === 'function') checkWtlStatus();
     } else {
         ModalManager.open('wtlModal');
         document.getElementById('wtl-input').value = '';
         clearElement(document.getElementById('wtl-results'));
         if (typeof resetWtlSelection === 'function') resetWtlSelection();
         resetWtlModalHeight();
+        if (typeof checkWtlStatus === 'function') checkWtlStatus();
     }
 }
 
