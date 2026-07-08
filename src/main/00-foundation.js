@@ -132,6 +132,18 @@ function createNotification(type, message) {
     });
 }
 
+function createResultsCountSummary(count, unitText, extraClassName = '') {
+    const safeCount = Math.max(0, Number(count) || 0);
+    const className = ['results-count-summary', extraClassName]
+        .filter(Boolean)
+        .join(' ');
+    return createEl('div', {
+        className,
+        attrs: { role: 'status', 'aria-live': 'polite' },
+        text: `共 ${safeCount} ${unitText}`
+    });
+}
+
 function setNotification(container, type, message) {
     if (!container) return;
     clearElement(container);
@@ -408,6 +420,7 @@ function minimizeModal(modalId) {
 const itemsPerPage = 10; // 每页显示10条
 let currentPage = 1;
 let totalPages = 0;
+let searchResultTotal = 0;
 function buildImageUrl(filename) {
     const parts = String(filename || '')
         .trim()

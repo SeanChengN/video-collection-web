@@ -121,6 +121,7 @@ function clearSearchView() {
     searchRequestSequence += 1;
     allMovies = [];
     totalPages = 0;
+    searchResultTotal = 0;
     clearElement(document.getElementById('search-message'));
     clearElement(document.getElementById('search-results'));
     clearElement(document.getElementById('pagination'));

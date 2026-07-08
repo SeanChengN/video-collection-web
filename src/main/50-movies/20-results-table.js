@@ -254,6 +254,7 @@ function renderSearchLoadingSkeleton(rowCount = Math.min(itemsPerPage, 6)) {
 
     clearElement(resultsDiv);
     clearElement(paginationDiv);
+    searchResultTotal = 0;
 
     const tableContainer = createEl('div', { className: 'table-container search-skeleton' });
     const table = createEl('table', { className: 'table is-fullwidth is-striped movie-results-table' });
@@ -279,6 +280,8 @@ function displayCurrentPage() {
         clearElement(document.getElementById('pagination'));
         return;
     }
+
+    resultsDiv.appendChild(createResultsCountSummary(searchResultTotal, '部电影', 'movie-results-count'));
 
     const tableContainer = createEl('div', { className: 'table-container' });
     const table = createEl('table', { className: 'table is-fullwidth is-striped is-hoverable movie-results-table' });

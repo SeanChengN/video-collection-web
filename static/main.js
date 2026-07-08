@@ -196,6 +196,18 @@ function createNotification(type, message) {
     });
 }
 
+function createResultsCountSummary(count, unitText, extraClassName = '') {
+    const safeCount = Math.max(0, Number(count) || 0);
+    const className = ['results-count-summary', extraClassName]
+        .filter(Boolean)
+        .join(' ');
+    return createEl('div', {
+        className,
+        attrs: { role: 'status', 'aria-live': 'polite' },
+        text: `共 ${safeCount} ${unitText}`
+    });
+}
+
 function setNotification(container, type, message) {
     if (!container) return;
     clearElement(container);
@@ -472,6 +484,7 @@ function minimizeModal(modalId) {
 const itemsPerPage = 10; // 每页显示10条
 let currentPage = 1;
 let totalPages = 0;
+let searchResultTotal = 0;
 function buildImageUrl(filename) {
     const parts = String(filename || '')
         .trim()
@@ -1147,6 +1160,7 @@ function searchEmby() {
             }
             
             const fragment = document.createDocumentFragment();
+            fragment.appendChild(createResultsCountSummary(items.length, '个结果', 'emby-results-count'));
             const container = createEl('div', { className: 'columns is-multiline' });
             
             items.forEach(movie => {
@@ -2790,6 +2804,7 @@ function clearSearchView() {
     searchRequestSequence += 1;
     allMovies = [];
     totalPages = 0;
+    searchResultTotal = 0;
     clearElement(document.getElementById('search-message'));
     clearElement(document.getElementById('search-results'));
     clearElement(document.getElementById('pagination'));
@@ -2875,6 +2890,7 @@ function searchMovies(page = 1, options = {}) {
                 allMovies = Array.isArray(result.data) ? result.data : [];
                 currentPage = normalizeSearchPage(pagination.page, currentPage);
                 totalPages = Number(pagination.total_pages) || 0;
+                searchResultTotal = Math.max(0, Number(pagination.total) || 0);
 
                 if (
                     allMovies.length === 0 &&
@@ -2894,6 +2910,7 @@ function searchMovies(page = 1, options = {}) {
                     setNotification(messageDiv, 'info', '未找到电影');
                     clearElement(resultsDiv);
                     clearElement(paginationDiv);
+                    searchResultTotal = 0;
                     return;
                 }
 
@@ -2903,6 +2920,7 @@ function searchMovies(page = 1, options = {}) {
                 setNotification(messageDiv, 'warning', result.message || '搜索失败');
                 clearElement(resultsDiv);
                 clearElement(paginationDiv);
+                searchResultTotal = 0;
             }
         })
         .catch(error => {
@@ -2910,6 +2928,7 @@ function searchMovies(page = 1, options = {}) {
             setNotification(messageDiv, 'danger', `搜索出错: ${error.message}`);
             clearElement(resultsDiv);
             clearElement(paginationDiv);
+            searchResultTotal = 0;
         });
 }
 function displayPagination() {
@@ -3771,6 +3790,7 @@ function renderSearchLoadingSkeleton(rowCount = Math.min(itemsPerPage, 6)) {
 
     clearElement(resultsDiv);
     clearElement(paginationDiv);
+    searchResultTotal = 0;
 
     const tableContainer = createEl('div', { className: 'table-container search-skeleton' });
     const table = createEl('table', { className: 'table is-fullwidth is-striped movie-results-table' });
@@ -3796,6 +3816,8 @@ function displayCurrentPage() {
         clearElement(document.getElementById('pagination'));
         return;
     }
+
+    resultsDiv.appendChild(createResultsCountSummary(searchResultTotal, '部电影', 'movie-results-count'));
 
     const tableContainer = createEl('div', { className: 'table-container' });
     const table = createEl('table', { className: 'table is-fullwidth is-striped is-hoverable movie-results-table' });

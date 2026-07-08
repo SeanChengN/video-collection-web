@@ -148,6 +148,7 @@ function searchEmby() {
             }
             
             const fragment = document.createDocumentFragment();
+            fragment.appendChild(createResultsCountSummary(items.length, '个结果', 'emby-results-count'));
             const container = createEl('div', { className: 'columns is-multiline' });
             
             items.forEach(movie => {

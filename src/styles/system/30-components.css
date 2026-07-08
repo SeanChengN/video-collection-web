@@ -112,6 +112,30 @@
     min-width: 4rem;
 }
 
+.results-count-summary {
+    align-items: center;
+    background: var(--vc-result-section-bg);
+    border: 1px solid var(--vc-color-border);
+    border-radius: var(--vc-radius-md);
+    color: var(--vc-result-muted);
+    display: flex;
+    font-size: 0.86rem;
+    font-weight: 600;
+    gap: var(--vc-space-2);
+    justify-content: flex-start;
+    line-height: 1.35;
+    margin: 0 0 var(--vc-space-3);
+    padding: 0.45rem 0.7rem;
+}
+
+.movie-results-count {
+    margin-bottom: var(--vc-space-2);
+}
+
+.emby-results-count {
+    margin: 0 0 var(--vc-space-3);
+}
+
 .navbar-theme-switch {
     flex: 0 0 auto;
     margin-left: auto;

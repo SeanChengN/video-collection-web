@@ -47,6 +47,7 @@ function searchMovies(page = 1, options = {}) {
                 allMovies = Array.isArray(result.data) ? result.data : [];
                 currentPage = normalizeSearchPage(pagination.page, currentPage);
                 totalPages = Number(pagination.total_pages) || 0;
+                searchResultTotal = Math.max(0, Number(pagination.total) || 0);
 
                 if (
                     allMovies.length === 0 &&
@@ -66,6 +67,7 @@ function searchMovies(page = 1, options = {}) {
                     setNotification(messageDiv, 'info', '未找到电影');
                     clearElement(resultsDiv);
                     clearElement(paginationDiv);
+                    searchResultTotal = 0;
                     return;
                 }
 
@@ -75,6 +77,7 @@ function searchMovies(page = 1, options = {}) {
                 setNotification(messageDiv, 'warning', result.message || '搜索失败');
                 clearElement(resultsDiv);
                 clearElement(paginationDiv);
+                searchResultTotal = 0;
             }
         })
         .catch(error => {
@@ -82,5 +85,6 @@ function searchMovies(page = 1, options = {}) {
             setNotification(messageDiv, 'danger', `搜索出错: ${error.message}`);
             clearElement(resultsDiv);
             clearElement(paginationDiv);
+            searchResultTotal = 0;
         });
 }

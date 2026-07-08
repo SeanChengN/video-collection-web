@@ -23,6 +23,9 @@ THEME_CRITICAL_SELECTORS = (
     ".pagination-link",
     ".pagination-previous",
     ".pagination-next",
+    ".results-count-summary",
+    ".movie-results-count",
+    ".emby-results-count",
     ".button.settings-btn",
     ".button.search-btn",
     ".button.save-btn",
@@ -386,3 +389,24 @@ def test_wtl_result_sections_are_visually_separated():
     assert "#wtlModal .wtl-screenshots-panel" in styles
     assert "#wtlModal .wtl-screenshots-title" in styles
     assert "color-mix(in srgb, var(--vc-tool-wtl" in styles
+
+
+def test_search_result_counts_use_safe_dom_and_tokens():
+    foundation = (FRONTEND_SOURCE_DIR / "00-foundation.js").read_text(encoding="utf-8")
+    search_actions = (FRONTEND_SOURCE_DIR / "40-search" / "20-search-actions.js").read_text(encoding="utf-8")
+    movie_results = (FRONTEND_SOURCE_DIR / "50-movies" / "20-results-table.js").read_text(encoding="utf-8")
+    emby_results = (FRONTEND_SOURCE_DIR / "20-tools" / "10-emby-search-player.js").read_text(encoding="utf-8")
+    styles = (STYLE_SOURCE_DIR / "system" / "30-components.css").read_text(encoding="utf-8")
+
+    assert "function createResultsCountSummary" in foundation
+    assert "text: `共 ${safeCount} ${unitText}`" in foundation
+    assert "pagination.total" in search_actions
+    assert "searchResultTotal" in search_actions
+    assert "searchResultTotal = 0" in search_actions
+    assert "createResultsCountSummary(searchResultTotal, '部电影', 'movie-results-count')" in movie_results
+    assert "createResultsCountSummary(items.length, '个结果', 'emby-results-count')" in emby_results
+    assert ".results-count-summary" in styles
+    assert ".movie-results-count" in styles
+    assert ".emby-results-count" in styles
+    assert "var(--vc-result-section-bg)" in styles
+    assert "var(--vc-result-muted)" in styles
