@@ -1,4 +1,5 @@
 import re
+import threading
 
 import app as app_module
 
@@ -97,6 +98,23 @@ def test_auth_lock_expires_and_clears_failure_state(monkeypatch):
     assert app_module.auth_rate_limit_retry_after(key, now=1002) == 119
     assert app_module.auth_rate_limit_retry_after(key, now=1122) == 0
     assert key not in app_module.AUTH_RATE_LIMIT_FAILURES
+
+
+def test_auth_rate_limit_helpers_accept_legacy_record_signature():
+    failures = {}
+    lock = threading.Lock()
+
+    app_module.security.record_auth_failure(failures, lock, 60, 'legacy-client', 1000)
+    app_module.security.record_auth_failure(failures, lock, 60, 'legacy-client', 1001)
+
+    assert app_module.security.auth_rate_limit_exceeded(
+        failures,
+        lock,
+        2,
+        60,
+        'legacy-client',
+        1002
+    ) is True
 
 
 def test_safe_next_path_rejects_external_or_relative_paths():

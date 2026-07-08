@@ -64,8 +64,8 @@ def auth_rate_limit_exceeded(
     lock,
     attempts,
     window_seconds,
-    lock_seconds,
-    key,
+    lock_seconds=None,
+    key=None,
     now=None
 ):
     return auth_rate_limit_retry_after(
@@ -77,6 +77,12 @@ def auth_rate_limit_exceeded(
         key,
         now
     ) > 0
+
+
+def _coerce_auth_rate_limit_args(attempts, window_seconds, lock_seconds, key, now):
+    if key is None or not isinstance(lock_seconds, (int, float)):
+        return attempts, window_seconds, window_seconds, lock_seconds, key, True
+    return attempts, window_seconds, lock_seconds, key, now, False
 
 
 def _auth_rate_limit_entry(raw_entry, cutoff):
@@ -98,10 +104,17 @@ def auth_rate_limit_retry_after(
     lock,
     attempts,
     window_seconds,
-    lock_seconds,
-    key,
+    lock_seconds=None,
+    key=None,
     now=None
 ):
+    attempts, window_seconds, lock_seconds, key, now, legacy_window_mode = _coerce_auth_rate_limit_args(
+        attempts,
+        window_seconds,
+        lock_seconds,
+        key,
+        now
+    )
     now = now or time.monotonic()
     cutoff = now - window_seconds
     with lock:
@@ -109,6 +122,11 @@ def auth_rate_limit_retry_after(
         if entry['locked_until'] > now:
             failures_by_key[key] = entry
             return max(1, ceil(entry['locked_until'] - now))
+
+        if legacy_window_mode and len(entry['failures']) >= attempts:
+            failures_by_key[key] = entry
+            oldest_failure = min(entry['failures'])
+            return max(1, ceil(window_seconds - (now - oldest_failure)))
 
         if entry['locked_until']:
             failures_by_key.pop(key, None)
@@ -124,10 +142,18 @@ def record_auth_failure(
     lock,
     attempts,
     window_seconds,
-    lock_seconds,
-    key,
+    lock_seconds=None,
+    key=None,
     now=None
 ):
+    legacy_window_mode = False
+    if key is None or not isinstance(window_seconds, (int, float)):
+        legacy_window_mode = True
+        now = lock_seconds
+        key = window_seconds
+        window_seconds = attempts
+        lock_seconds = window_seconds
+
     now = now or time.monotonic()
     cutoff = now - window_seconds
     with lock:
@@ -137,7 +163,7 @@ def record_auth_failure(
             return
 
         entry['failures'].append(now)
-        if len(entry['failures']) >= attempts:
+        if not legacy_window_mode and len(entry['failures']) >= attempts:
             entry['locked_until'] = now + lock_seconds
         failures_by_key[key] = entry
 
