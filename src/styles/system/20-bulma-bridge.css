@@ -325,6 +325,9 @@ body {
 .table td {
     border-color: var(--vc-color-border);
     color: var(--vc-color-text);
+    overflow-wrap: anywhere;
+    white-space: normal;
+    word-break: break-word;
 }
 
 .table.is-striped tbody tr:not(.is-selected):nth-child(even) {

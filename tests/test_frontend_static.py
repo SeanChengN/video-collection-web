@@ -435,3 +435,54 @@ def test_movie_recommended_column_centers_chip():
     assert "display: inline-flex" in styles
     assert "justify-content: center" in styles
     assert "margin-inline: auto" in styles
+
+
+def test_mobile_movie_recommended_column_aligns_left():
+    styles = (STYLE_SOURCE_DIR / "50-modals-results.css").read_text(encoding="utf-8")
+
+    assert "#search-results .movie-results-table .movie-recommended-cell" in styles
+    assert "justify-content: flex-start" in styles
+    assert "#search-results .movie-results-table .movie-recommended-chip" in styles
+    assert "margin-inline: 0" in styles
+
+
+def test_movie_title_and_tags_wrap_like_review_text():
+    styles = (STYLE_SOURCE_DIR / "50-modals-results.css").read_text(encoding="utf-8")
+
+    assert "#search-results .movie-results-table .movie-title-cell" in styles
+    assert "#search-results .movie-results-table .tags-cell" in styles
+    assert "#search-results .movie-results-table .movie-title-with-image" in styles
+    assert "align-items: center" in styles
+    assert "#search-results .movie-results-table .movie-title-text" in styles
+    assert "#search-results .movie-results-table .movie-tags-text" in styles
+    assert "overflow-wrap: anywhere" in styles
+    assert "white-space: normal" in styles
+    assert "word-break: break-word" in styles
+
+
+def test_shared_table_cells_wrap_text_by_default():
+    bridge = (STYLE_SOURCE_DIR / "system" / "20-bulma-bridge.css").read_text(encoding="utf-8")
+    results_styles = (STYLE_SOURCE_DIR / "50-modals-results.css").read_text(encoding="utf-8")
+    settings_styles = (STYLE_SOURCE_DIR / "60-settings.css").read_text(encoding="utf-8")
+
+    assert ".table th,\n.table td" in bridge
+    assert "overflow-wrap: anywhere" in bridge
+    assert "white-space: normal" in bridge
+    assert "word-break: break-word" in bridge
+
+    assert ".table td {" in results_styles
+    assert "text-overflow: clip" in results_styles
+    assert "white-space: normal" in results_styles
+    assert ".table td.ellipsis" in results_styles
+    assert "white-space: nowrap" in results_styles
+    assert ".table td.settings-actions-column" in results_styles
+
+    assert ".maintenance-backups-table td:nth-child(2)" in settings_styles
+    assert "overflow-wrap: anywhere" in settings_styles
+
+
+def test_table_hover_tooltip_requires_title_attribute():
+    styles = (STYLE_SOURCE_DIR / "50-modals-results.css").read_text(encoding="utf-8")
+
+    assert ".table td.hoverable[title]:hover::after" in styles
+    assert ".table td.hoverable:hover::after" not in styles

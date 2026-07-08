@@ -491,9 +491,10 @@
 
 .table td {
     vertical-align: middle !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-word;
     padding: 0.5em !important;
     border-width: 1px !important;
 }
@@ -504,8 +505,37 @@
     max-width: 300px;
 }
 
+#search-results .movie-results-table .movie-title-cell,
+#search-results .movie-results-table .tags-cell {
+    white-space: normal;
+}
+
+#search-results .movie-results-table .movie-title-with-image {
+    align-items: center;
+    min-width: 0;
+}
+
+#search-results .movie-results-table .movie-title-text,
+#search-results .movie-results-table .movie-tags-text {
+    display: block;
+    max-width: 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-word;
+}
+
 .table td.tags-cell {
     max-width: 150px;
+}
+
+.table td:last-child,
+.table td.settings-actions-column,
+.table td.movie-action-cell {
+    overflow-wrap: normal;
+    white-space: nowrap;
+    word-break: normal;
 }
 
 /* 悬浮提示功能 */
@@ -535,7 +565,7 @@
 .table td.hoverable {
     position: relative;
 }
-.table td.hoverable:hover::after {
+.table td.hoverable[title]:hover::after {
     content: attr(title);
     position: absolute;
     left: 0;
@@ -828,7 +858,7 @@
         content: none;
     }
     #search-results .movie-results-table .movie-title-with-image {
-        align-items: flex-start;
+        align-items: center;
         gap: 0.8rem;
     }
     #search-results .movie-results-table .movie-preview-image {
@@ -857,7 +887,7 @@
         grid-area: recommended;
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-start;
     }
     #search-results .movie-results-table .movie-recommended-chip {
         min-height: 1.8rem;
@@ -866,6 +896,7 @@
         color: var(--vc-result-chip-text, #666);
         font-size: 0.78rem;
         font-weight: 700;
+        margin-inline: 0;
         padding: 0.25rem 0.55rem;
     }
     #search-results .movie-results-table .movie-recommended-chip.is-recommended {

@@ -349,7 +349,9 @@
 }
 
 .maintenance-backups-table td:nth-child(2) {
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    word-break: break-word;
 }
 
 .maintenance-backups-table .settings-actions-column {
