@@ -3721,8 +3721,8 @@ function createMovieRow(movie, movieIndex) {
 
 const MOVIE_RESULT_COLUMNS = [
     ['title', '电影名称', '23%'],
-    ['recommended', '推荐', '4.5%'],
-    ['review', '评价', '36%'],
+    ['recommended', '推荐', '7%'],
+    ['review', '评价', '33.5%'],
     ['tags', '标签', '15.5%'],
     ['ratings', '评分', '10.5%'],
     ['action', '操作', '10.5%']

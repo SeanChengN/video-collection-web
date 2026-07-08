@@ -51,6 +51,7 @@ THEME_CRITICAL_SELECTORS = (
     "#add-tags .tag",
     "#edit-tags .tag",
     "#search-results .movie-results-table",
+    "#search-results .movie-results-table thead th",
     ".settings-modal .table",
     "#tagsList tr:hover",
     "#ratingsList tr:hover",
@@ -410,3 +411,27 @@ def test_search_result_counts_use_safe_dom_and_tokens():
     assert ".emby-results-count" in styles
     assert "var(--vc-result-section-bg)" in styles
     assert "var(--vc-result-muted)" in styles
+
+
+def test_movie_results_table_header_uses_shared_table_tokens():
+    bridge = (STYLE_SOURCE_DIR / "system" / "20-bulma-bridge.css").read_text(encoding="utf-8")
+    results_styles = (STYLE_SOURCE_DIR / "50-modals-results.css").read_text(encoding="utf-8")
+
+    assert ".table thead th" in bridge
+    assert "background-color: var(--vc-table-head-bg)" in bridge
+    assert "#search-results .movie-results-table thead th" in results_styles
+    assert "background-color: var(--vc-table-head-bg" in results_styles
+    assert "border-color: var(--vc-color-border" in results_styles
+    assert "color: var(--vc-color-text" in results_styles
+
+
+def test_movie_recommended_column_centers_chip():
+    styles = (STYLE_SOURCE_DIR / "50-modals-results.css").read_text(encoding="utf-8")
+
+    assert "#search-results .movie-results-table .movie-recommended-cell" in styles
+    assert "text-align: center" in styles
+    assert "vertical-align: middle" in styles
+    assert "#search-results .movie-results-table .movie-recommended-chip" in styles
+    assert "display: inline-flex" in styles
+    assert "justify-content: center" in styles
+    assert "margin-inline: auto" in styles

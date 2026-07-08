@@ -788,7 +788,12 @@ body {
     color: var(--vc-color-text);
 }
 
-.table thead th,
+.table thead th {
+    background-color: var(--vc-table-head-bg);
+    border-color: var(--vc-color-border);
+    color: var(--vc-color-text);
+}
+
 .table th,
 .table td {
     border-color: var(--vc-color-border);
@@ -4500,8 +4505,26 @@ tr.is-duplicate:hover {
     pointer-events: none;
 }
 
+#search-results .movie-results-table thead th {
+    background-color: var(--vc-table-head-bg, #ffffff);
+    border-color: var(--vc-color-border, #dbdbdb);
+    color: var(--vc-color-text, #363636);
+}
+
 #search-results .movie-results-table tbody tr:hover {
     background-color: var(--vc-table-hover-bg, #f5faff);
+}
+
+#search-results .movie-results-table .movie-recommended-cell {
+    text-align: center;
+    vertical-align: middle;
+}
+
+#search-results .movie-results-table .movie-recommended-chip {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    margin-inline: auto;
 }
 
 .search-skeleton .movie-title-with-image {
@@ -4748,6 +4771,7 @@ tr.is-duplicate:hover {
         grid-area: recommended;
         display: flex;
         align-items: center;
+        justify-content: center;
     }
     #search-results .movie-results-table .movie-recommended-chip {
         min-height: 1.8rem;

@@ -315,7 +315,12 @@ body {
     color: var(--vc-color-text);
 }
 
-.table thead th,
+.table thead th {
+    background-color: var(--vc-table-head-bg);
+    border-color: var(--vc-color-border);
+    color: var(--vc-color-text);
+}
+
 .table th,
 .table td {
     border-color: var(--vc-color-border);
