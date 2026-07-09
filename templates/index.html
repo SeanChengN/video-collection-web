@@ -375,6 +375,29 @@
             gap: 0 5px;
             transform: none;
         }
+        @media screen and (max-width: 768px) {
+            .vc-rating-list {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.28rem 0.45rem;
+            }
+            .ratings-box .field.vc-rating-item,
+            .vc-rating-item {
+                gap: 0.16rem;
+            }
+            .ratings-box .field.vc-rating-item .vc-rating-name {
+                font-size: 1rem;
+            }
+            .vc-rating-stars .rating,
+            .collapsible-box .vc-rating-stars .rating {
+                gap: 0 5px !important;
+            }
+            .vc-rating-stars svg,
+            .vc-rating-stars .rating svg {
+                width: 15px;
+                height: 15px;
+                transform: none;
+            }
+        }
 
         /*----------------------------------------
         评分星星通用样式 - 必要样式

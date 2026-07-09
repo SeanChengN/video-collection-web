@@ -466,21 +466,35 @@ def test_movie_result_cards_show_recommend_badge_and_icon_edit_button():
     assert "movie-card-edit-btn edit-btn" not in content
     assert ".movie-result-card.is-recommended" in styles
     assert ".movie-result-card.is-recommended:hover" in styles
+    assert ".movie-result-card.is-recommended::before" in styles
+    assert ".movie-result-card.is-recommended::after" in styles
+    assert ".movie-result-card.is-recommended:hover::after" in styles
     assert "animation: movie-recommended-glow" in styles
+    assert "animation: movie-recommended-surface" in styles
+    assert "animation: movie-recommended-sheen" in styles
+    assert "@keyframes movie-recommended-surface" in styles
+    assert "@keyframes movie-recommended-sheen" in styles
     assert "border-width: 2px" in styles
     assert "transition: border-color 0.22s ease, box-shadow 0.32s ease" in styles
     assert ".movie-card-recommend-badge" in styles
+    assert "z-index: 4" in styles
     assert "width: 3.3rem" in styles
     assert "height: 3.3rem" in styles
     assert ".movie-card-edit-btn" in styles
     assert "background: transparent !important" in styles
+    assert "background: var(--vc-result-edit-hover-bg" in styles
+    assert "background: var(--vc-result-edit-active-bg" in styles
     assert "border: 0 !important" in styles
     assert "--vc-result-edit-shadow" in styles
+    assert "--vc-result-edit-hover-bg" in styles
+    assert "--vc-result-edit-active-bg" in styles
     assert "--vc-result-edit-icon-shadow" in styles
     assert "--vc-result-edit-icon" in styles
     assert "--vc-result-recommended-gold" in styles
     assert "--vc-result-recommended-bg" in styles
     assert "--vc-result-recommended-glow" in styles
+    assert "--vc-result-recommended-sheen" in styles
+    assert "--vc-result-recommended-surface-glow" in styles
     assert "--vc-result-recommended-icon" in styles
     assert "--vc-result-recommended-icon-shadow" in styles
     assert '<symbol id="edit-btn-icon"' in sprite
@@ -488,13 +502,28 @@ def test_movie_result_cards_show_recommend_badge_and_icon_edit_button():
     tokens = (STYLE_SOURCE_DIR / "system" / "00-tokens.css").read_text(encoding="utf-8")
     dark_theme = THEME_OVERRIDE_FILE.read_text(encoding="utf-8")
     assert "--vc-result-recommended-gold: #fbbf24" in tokens
-    assert "--vc-result-recommended-bg: rgba(251, 191, 36, 0.24)" in tokens
+    assert "--vc-result-recommended-bg: rgba(251, 191, 36, 0.34)" in tokens
     assert "--vc-result-recommended-glow: rgba(251, 191, 36, 0.78)" in tokens
+    assert "--vc-result-recommended-sheen: rgba(255, 255, 255, 0.72)" in tokens
+    assert "--vc-result-recommended-surface-glow: rgba(251, 191, 36, 0.46)" in tokens
     assert "--vc-result-recommended-icon: #ffffff" in tokens
     assert "--vc-result-edit-icon: #ffffff" in tokens
+    assert "--vc-result-edit-hover-bg: rgba(15, 23, 42, 0.32)" in tokens
+    assert "--vc-result-edit-active-bg: rgba(15, 23, 42, 0.48)" in tokens
     assert "--vc-result-recommended-gold:" not in dark_theme
     assert "--vc-result-recommended-bg:" not in dark_theme
+    assert "--vc-result-recommended-sheen:" not in dark_theme
+    assert "--vc-result-recommended-surface-glow:" not in dark_theme
     assert "--vc-result-recommended-text:" not in dark_theme
+
+    recommended_block = styles.split(".movie-result-card.is-recommended {", 1)[1].split("}", 1)[0]
+    recommended_surface_block = styles.split(".movie-result-card.is-recommended::before {", 1)[1].split("}", 1)[0]
+    assert "linear-gradient" not in recommended_block
+    assert "radial-gradient" not in recommended_block
+    assert "background: var(--vc-result-card-bg" in recommended_block
+    assert "background: var(--vc-result-recommended-surface-glow" in recommended_surface_block
+    assert "linear-gradient" not in recommended_surface_block
+    assert "radial-gradient" not in recommended_surface_block
 
 
 def test_movie_result_cards_wrap_text_and_use_tokens():
@@ -521,8 +550,10 @@ def test_movie_result_cards_wrap_text_and_use_tokens():
     assert "min-width: 2.2em" in rating_styles
     assert "gap: 0.22rem" in rating_styles
     assert "gap: 0.16rem" in rating_styles
-    assert "width: 12px" in rating_styles
-    assert "height: 12px" in rating_styles
+    assert "font-size: 1rem" in rating_styles
+    assert "gap: 0 5px !important" in rating_styles
+    assert "width: 15px" in rating_styles
+    assert "height: 15px" in rating_styles
     assert "text-overflow: ellipsis" in rating_styles
     assert "white-space: nowrap" in rating_styles
     assert "flex-shrink: 0" in rating_styles

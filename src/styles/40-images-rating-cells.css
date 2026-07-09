@@ -633,19 +633,19 @@
     }
 
     .ratings-box .field.vc-rating-item .vc-rating-name {
-        font-size: 0.82rem;
+        font-size: 1rem;
     }
 
     .vc-rating-stars .rating,
     #editModal .vc-rating-stars .rating,
     .collapsible-box .vc-rating-stars .rating {
-        gap: 0 3px !important;
+        gap: 0 5px !important;
     }
 
     .vc-rating-stars svg,
     .vc-rating-stars .rating svg {
-        width: 12px;
-        height: 12px;
+        width: 15px;
+        height: 15px;
         transform: none;
     }
 }

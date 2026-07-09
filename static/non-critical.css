@@ -175,12 +175,16 @@
     --vc-result-chip-bg: #f5f5f5;
     --vc-result-chip-text: #666666;
     --vc-result-recommended-gold: #fbbf24;
-    --vc-result-recommended-bg: rgba(251, 191, 36, 0.24);
+    --vc-result-recommended-bg: rgba(251, 191, 36, 0.34);
     --vc-result-recommended-text: #fbbf24;
     --vc-result-recommended-glow: rgba(251, 191, 36, 0.78);
+    --vc-result-recommended-sheen: rgba(255, 255, 255, 0.72);
+    --vc-result-recommended-surface-glow: rgba(251, 191, 36, 0.46);
     --vc-result-recommended-icon: #ffffff;
     --vc-result-recommended-icon-shadow: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.32));
     --vc-result-edit-icon: #ffffff;
+    --vc-result-edit-hover-bg: rgba(15, 23, 42, 0.32);
+    --vc-result-edit-active-bg: rgba(15, 23, 42, 0.48);
     --vc-service-card-bg: #ffffff;
     --vc-service-card-border: #dbdbdb;
     --vc-service-card-text: #363636;
@@ -3879,19 +3883,19 @@ tr.is-duplicate:hover {
     }
 
     .ratings-box .field.vc-rating-item .vc-rating-name {
-        font-size: 0.82rem;
+        font-size: 1rem;
     }
 
     .vc-rating-stars .rating,
     #editModal .vc-rating-stars .rating,
     .collapsible-box .vc-rating-stars .rating {
-        gap: 0 3px !important;
+        gap: 0 5px !important;
     }
 
     .vc-rating-stars svg,
     .vc-rating-stars .rating svg {
-        width: 12px;
-        height: 12px;
+        width: 15px;
+        height: 15px;
         transform: none;
     }
 }
@@ -4642,6 +4646,7 @@ tr.is-duplicate:hover {
 
 .movie-result-card {
     position: relative;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -4656,6 +4661,11 @@ tr.is-duplicate:hover {
     transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease, background-color 0.18s ease;
 }
 
+.movie-result-card > * {
+    position: relative;
+    z-index: 1;
+}
+
 .movie-result-card:hover {
     border-color: var(--vc-control-focus-border, #4a9dec);
     background: var(--vc-list-hover-bg, #f5faff);
@@ -4666,20 +4676,39 @@ tr.is-duplicate:hover {
 .movie-result-card.is-recommended {
     border-color: var(--vc-result-recommended-gold, #fbbf24);
     border-width: 2px;
-    background:
-        linear-gradient(135deg, color-mix(in srgb, var(--vc-result-recommended-bg, rgba(251, 191, 36, 0.24)) 100%, transparent), transparent 52%),
-        var(--vc-result-card-bg, var(--vc-panel-bg));
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--vc-result-recommended-gold, #fbbf24) 58%, transparent),
-        var(--vc-panel-shadow-compact, 0 2px 8px rgba(10, 10, 10, 0.08));
-    transition: border-color 0.22s ease, box-shadow 0.32s ease, transform 0.18s ease, background 0.32s ease;
+    background: var(--vc-result-card-bg, var(--vc-panel-bg));
+    transition: border-color 0.22s ease, box-shadow 0.32s ease, transform 0.18s ease, background-color 0.32s ease;
+}
+
+.movie-result-card.is-recommended::before,
+.movie-result-card.is-recommended::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.movie-result-card.is-recommended::before {
+    z-index: 0;
+    background: var(--vc-result-recommended-surface-glow, rgba(251, 191, 36, 0.46));
+    opacity: 0.22;
+    animation: movie-recommended-surface 5.6s ease-in-out infinite alternate;
+}
+
+.movie-result-card.is-recommended::after {
+    z-index: 2;
+    background: linear-gradient(105deg, transparent 0 34%, color-mix(in srgb, var(--vc-result-recommended-sheen, rgba(255, 255, 255, 0.72)) 72%, transparent) 48%, transparent 62% 100%);
+    opacity: 0;
+    transform: translateX(-130%) skewX(-12deg);
 }
 
 .movie-result-card.is-recommended:hover {
     border-color: var(--vc-result-recommended-gold, #fbbf24);
-    background:
-        linear-gradient(135deg, color-mix(in srgb, var(--vc-result-recommended-bg, rgba(251, 191, 36, 0.24)) 100%, transparent), transparent 52%),
-        var(--vc-result-card-bg, var(--vc-panel-bg));
     animation: movie-recommended-glow 1.35s ease-in-out infinite alternate;
+}
+
+.movie-result-card.is-recommended:hover::after {
+    animation: movie-recommended-sheen 0.88s ease-out;
 }
 
 .movie-card-recommend-badge {
@@ -4692,6 +4721,7 @@ tr.is-duplicate:hover {
     align-items: flex-start;
     justify-content: flex-start;
     padding: 0.3rem;
+    z-index: 4;
     border-top-left-radius: 7px;
     background: linear-gradient(135deg, var(--vc-result-recommended-gold, #fbbf24) 0 50%, transparent 50% 100%);
     color: var(--vc-result-recommended-icon, #ffffff);
@@ -4709,7 +4739,7 @@ tr.is-duplicate:hover {
     position: absolute !important;
     top: 0.25rem;
     right: 0.25rem;
-    z-index: 2;
+    z-index: 4;
     display: inline-flex;
     width: 2.1rem !important;
     min-width: 2.1rem !important;
@@ -4729,14 +4759,14 @@ tr.is-duplicate:hover {
 
 .movie-card-edit-btn:hover,
 .movie-card-edit-btn:focus-visible {
-    background: transparent !important;
+    background: var(--vc-result-edit-hover-bg, rgba(15, 23, 42, 0.32)) !important;
     color: var(--vc-result-edit-icon, #ffffff) !important;
     box-shadow: var(--vc-result-edit-hover-shadow, 0 10px 24px rgba(15, 23, 42, 0.34));
     transform: translateY(-1px);
 }
 
 .movie-card-edit-btn:active {
-    background: transparent !important;
+    background: var(--vc-result-edit-active-bg, rgba(15, 23, 42, 0.48)) !important;
     box-shadow: var(--vc-result-edit-active-shadow, 0 5px 12px rgba(15, 23, 42, 0.26));
     transform: translateY(0) scale(0.96);
 }
@@ -4907,6 +4937,31 @@ button.movie-card-cover {
     }
     100% {
         background-position: 0 50%;
+    }
+}
+
+@keyframes movie-recommended-surface {
+    0% {
+        opacity: 0.14;
+        filter: saturate(1);
+    }
+    100% {
+        opacity: 0.34;
+        filter: saturate(1.28);
+    }
+}
+
+@keyframes movie-recommended-sheen {
+    0% {
+        opacity: 0;
+        transform: translateX(-130%) skewX(-12deg);
+    }
+    30% {
+        opacity: 0.78;
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(130%) skewX(-12deg);
     }
 }
 
