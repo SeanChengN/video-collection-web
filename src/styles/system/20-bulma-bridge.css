@@ -335,7 +335,6 @@ body {
 }
 
 .table.is-hoverable tbody tr:not(.is-selected):hover,
-#search-results .movie-results-table tbody tr:hover,
 .settings-modal .table tbody tr:hover,
 #duplicate-table .table tbody tr:hover {
     background-color: var(--vc-table-hover-bg);
@@ -343,8 +342,6 @@ body {
 
 .table.is-hoverable tbody tr:not(.is-selected):hover > th,
 .table.is-hoverable tbody tr:not(.is-selected):hover > td,
-#search-results .movie-results-table tbody tr:hover > th,
-#search-results .movie-results-table tbody tr:hover > td,
 .settings-modal .table tbody tr:hover > th,
 .settings-modal .table tbody tr:hover > td,
 #duplicate-table .table tbody tr:hover > th,

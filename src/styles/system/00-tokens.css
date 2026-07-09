@@ -174,8 +174,13 @@
     --vc-result-preview-bg: #f5f5f5;
     --vc-result-chip-bg: #f5f5f5;
     --vc-result-chip-text: #666666;
-    --vc-result-recommended-bg: rgba(255, 123, 0, 0.12);
-    --vc-result-recommended-text: #b55300;
+    --vc-result-recommended-gold: #fbbf24;
+    --vc-result-recommended-bg: rgba(251, 191, 36, 0.24);
+    --vc-result-recommended-text: #fbbf24;
+    --vc-result-recommended-glow: rgba(251, 191, 36, 0.78);
+    --vc-result-recommended-icon: #ffffff;
+    --vc-result-recommended-icon-shadow: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.32));
+    --vc-result-edit-icon: #ffffff;
     --vc-service-card-bg: #ffffff;
     --vc-service-card-border: #dbdbdb;
     --vc-service-card-text: #363636;

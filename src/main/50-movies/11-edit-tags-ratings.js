@@ -43,6 +43,7 @@ async function loadEditRatings() {
             // 创建评分容器
             const ratingsContainer = document.createElement('div');
             ratingsContainer.id = 'edit-ratings-container';
+            ratingsContainer.className = 'vc-rating-list';
             
             // 添加评分维度
             result.dimensions.forEach(dimension => {
@@ -67,6 +68,7 @@ async function loadEditRatings() {
 
             // 插入到图片框之前
             form.insertBefore(fieldDiv, imageBox);
+            scheduleRatingNameScrollSync(ratingsContainer);
         }
     } catch (error) {
         showAlert({

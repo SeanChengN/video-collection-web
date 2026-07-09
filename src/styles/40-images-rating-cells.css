@@ -456,6 +456,96 @@
     transition: transform 0.3s ease, filter 0.3s ease;
 }
 
+#add-ratings-container,
+#edit-ratings-container,
+.vc-rating-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.3rem 0.65rem;
+    min-width: 0;
+}
+
+.ratings-box .field.vc-rating-item,
+.vc-rating-item {
+    display: grid;
+    grid-template-columns: minmax(2.2em, max-content) max-content;
+    align-items: center;
+    gap: 0.22rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.vc-rating-name {
+    display: block;
+    min-width: 2.2em;
+    overflow: hidden;
+    color: var(--vc-color-text, #4a4a4a);
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.3;
+    outline: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vc-rating-name:focus-visible {
+    border-radius: var(--vc-radius-sm, 4px);
+    box-shadow: var(--vc-focus-ring, 0 0 0 3px rgba(74, 157, 236, 0.24));
+}
+
+.vc-rating-name-text {
+    display: inline-block;
+    min-width: max-content;
+    transform: translateX(0);
+}
+
+.vc-rating-name[data-overflowing="true"]:hover .vc-rating-name-text,
+.vc-rating-name[data-overflowing="true"]:focus-visible .vc-rating-name-text {
+    animation: vc-rating-name-scroll var(--vc-rating-name-scroll-duration, 4.5s) ease-in-out infinite alternate;
+}
+
+@keyframes vc-rating-name-scroll {
+    to {
+        transform: translateX(var(--vc-rating-name-scroll-distance, 0));
+    }
+}
+
+.vc-rating-stars {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: max-content;
+    white-space: nowrap;
+}
+
+.vc-rating-stars .rating,
+#editModal .vc-rating-stars .rating,
+.collapsible-box .vc-rating-stars .rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 0 5px;
+    user-select: none;
+    transform: none;
+}
+
+.vc-rating-stars .stars,
+.vc-rating-stars.stars {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 0.08rem;
+    transform: none;
+}
+
+.vc-rating-stars svg,
+.vc-rating-stars .rating svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
 /*----------------------------------------
   编辑电影框中的星星样式
 ----------------------------------------*/
@@ -529,6 +619,35 @@
     .ratings-box .field label:first-child {
         font-size: 1rem;
     }
+
+    #add-ratings-container,
+    #edit-ratings-container,
+    .vc-rating-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.28rem 0.45rem;
+    }
+
+    .ratings-box .field.vc-rating-item,
+    .vc-rating-item {
+        gap: 0.16rem;
+    }
+
+    .ratings-box .field.vc-rating-item .vc-rating-name {
+        font-size: 0.82rem;
+    }
+
+    .vc-rating-stars .rating,
+    #editModal .vc-rating-stars .rating,
+    .collapsible-box .vc-rating-stars .rating {
+        gap: 0 3px !important;
+    }
+
+    .vc-rating-stars svg,
+    .vc-rating-stars .rating svg {
+        width: 12px;
+        height: 12px;
+        transform: none;
+    }
 }
 
 
@@ -553,7 +672,7 @@
 }
 
 /* 评分项样式 */
-.rating-item {
+.dropdown-content .rating-item:not(.vc-rating-item) {
     padding-right: 0.5rem;
     padding-bottom: 0.5rem;
     padding-left: 0.5rem;
@@ -562,12 +681,12 @@
     white-space: nowrap;
     color: var(--vc-dropdown-text, #363636);
 }
-.rating-item .stars  {
+.dropdown-content .rating-item:not(.vc-rating-item) .stars  {
     transform: translateY(2px);
 }
 
 /* 评分维度名称 */
-.dimension-name {
+.dropdown-content .dimension-name:not(.vc-rating-name) {
     font-weight: normal;
     min-width: 2.8rem;
     color: var(--vc-dropdown-text, #4a4a4a);
@@ -581,18 +700,18 @@
 /* 移动端适配 */
 @media screen and (max-width: 768px) {
     /* 评分项间距调整 */
-    .rating-item {
+    .dropdown-content .rating-item:not(.vc-rating-item) {
         padding: 0.1rem 0.3rem;
     }
 
     /* 维度名称字体调整 */
-    .dimension-name {
+    .dropdown-content .dimension-name:not(.vc-rating-name) {
         font-size: 1.4rem;
         min-width: 5rem;
     }
 
     /* 星星大小调整 */
-    .rating-item .stars {
+    .dropdown-content .rating-item:not(.vc-rating-item) .stars {
         transform: scale(1.4);
     }
 

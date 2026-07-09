@@ -417,7 +417,7 @@ function minimizeModal(modalId) {
     ModalManager.minimize(modalId);
 }
 
-const itemsPerPage = 10; // 每页显示10条
+const itemsPerPage = 9; // 每页显示9条
 let currentPage = 1;
 let totalPages = 0;
 let searchResultTotal = 0;

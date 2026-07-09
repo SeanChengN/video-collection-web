@@ -544,14 +544,14 @@ tr.is-duplicate:hover {
 }
 
 /* 评分维度三列布局 */
-#editModal #edit-ratings-container {
+#editModal #edit-ratings-container:not(.vc-rating-list) {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     padding-left: 0.1rem;
 }
 
-#editModal .ratings-box .field {
+#editModal .ratings-box .field:not(.vc-rating-item) {
     display: flex;
     align-items: center;
     padding-right: 1rem;
@@ -560,7 +560,7 @@ tr.is-duplicate:hover {
 }
 
 /* 维度名称样式 */
-#editModal .ratings-box .field label:first-child {
+#editModal .ratings-box .field:not(.vc-rating-item) label:first-child {
     transform: translateY(3px);
     min-width: 2.8em !important;
 }
@@ -587,7 +587,7 @@ tr.is-duplicate:hover {
 }
 
 /* 评分维度两列布局 */
-.collapsible-box .ratings-box .field {
+.collapsible-box .ratings-box .field:not(.vc-rating-item) {
     display: flex;
     align-items: center;
     padding: 0.2rem;

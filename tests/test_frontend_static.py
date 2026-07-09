@@ -43,15 +43,18 @@ THEME_CRITICAL_SELECTORS = (
     ".theme-switch-slider",
     ".navbar-theme-switch",
     ".runtime-badge",
-    ".movie-card",
+    ".movie-result-card",
     ".emby-playable-card",
     ".dupStart-btn",
     ".tags-filter .tag",
     ".tags-box .tag",
     "#add-tags .tag",
     "#edit-tags .tag",
-    "#search-results .movie-results-table",
-    "#search-results .movie-results-table thead th",
+    "#search-results .movie-results-grid",
+    "#search-results .movie-result-card",
+    ".movie-result-card.is-recommended",
+    ".movie-card-recommend-badge",
+    ".movie-card-edit-btn",
     ".settings-modal .table",
     "#tagsList tr:hover",
     "#ratingsList tr:hover",
@@ -77,6 +80,10 @@ THEME_CRITICAL_SELECTORS = (
     ".image-box-title",
     ".ratings-box-title",
     ".tags-box-title",
+    ".vc-rating-list",
+    ".vc-rating-item",
+    ".vc-rating-name",
+    ".vc-rating-stars",
     ".rating-item",
     ".dimension-name",
     ".wtl-result-info",
@@ -413,51 +420,142 @@ def test_search_result_counts_use_safe_dom_and_tokens():
     assert "var(--vc-result-muted)" in styles
 
 
-def test_movie_results_table_header_uses_shared_table_tokens():
-    bridge = (STYLE_SOURCE_DIR / "system" / "20-bulma-bridge.css").read_text(encoding="utf-8")
-    results_styles = (STYLE_SOURCE_DIR / "50-modals-results.css").read_text(encoding="utf-8")
-
-    assert ".table thead th" in bridge
-    assert "background-color: var(--vc-table-head-bg)" in bridge
-    assert "#search-results .movie-results-table thead th" in results_styles
-    assert "background-color: var(--vc-table-head-bg" in results_styles
-    assert "border-color: var(--vc-color-border" in results_styles
-    assert "color: var(--vc-color-text" in results_styles
-
-
-def test_movie_recommended_column_centers_chip():
+def test_movie_results_render_as_cards():
+    content = (FRONTEND_SOURCE_DIR / "50-movies" / "20-results-table.js").read_text(encoding="utf-8")
+    foundation = (FRONTEND_SOURCE_DIR / "00-foundation.js").read_text(encoding="utf-8")
+    search_actions = (FRONTEND_SOURCE_DIR / "40-search" / "20-search-actions.js").read_text(encoding="utf-8")
     styles = (STYLE_SOURCE_DIR / "50-modals-results.css").read_text(encoding="utf-8")
 
-    assert "#search-results .movie-results-table .movie-recommended-cell" in styles
-    assert "text-align: center" in styles
-    assert "vertical-align: middle" in styles
-    assert "#search-results .movie-results-table .movie-recommended-chip" in styles
-    assert "display: inline-flex" in styles
-    assert "justify-content: center" in styles
-    assert "margin-inline: auto" in styles
+    assert "const itemsPerPage = 9" in foundation
+    assert "per_page: itemsPerPage" in search_actions
+    assert "function renderSearchLoadingSkeleton(rowCount = itemsPerPage)" in content
+    assert "movie-results-grid" in content
+    assert "movie-result-card" in content
+    assert "movie-results-table" not in content
+    assert "createMovieCard(" in content
+    assert "createSearchSkeletonCard" in content
+    assert "createMovieCardTextBlock" in content
+    assert "movie-card-section-label" not in content
+    assert ".movie-results-grid" in styles
+    assert "@media screen and (min-width: 1024px)" in styles
+    assert "grid-template-columns: repeat(3, minmax(0, 1fr))" in styles
+    assert "@media screen and (min-width: 1600px)" not in styles
+    assert "grid-template-columns: repeat(4, minmax(0, 1fr))" not in styles
+    assert "@media screen and (max-width: 768px)" in styles
+    assert "grid-template-columns: 1fr" in styles
+    assert ".movie-result-card" in styles
+    assert "display: flex" in styles
+    assert "flex-direction: column" in styles
+    assert "aspect-ratio: 16 / 9" in styles
+    assert "movie-results-table" not in styles
+    assert "movie-card-section-label" not in styles
 
 
-def test_mobile_movie_recommended_column_aligns_left():
+def test_movie_result_cards_show_recommend_badge_and_icon_edit_button():
+    content = (FRONTEND_SOURCE_DIR / "50-movies" / "20-results-table.js").read_text(encoding="utf-8")
     styles = (STYLE_SOURCE_DIR / "50-modals-results.css").read_text(encoding="utf-8")
+    sprite = SPRITE_SVG.read_text(encoding="utf-8")
 
-    assert "#search-results .movie-results-table .movie-recommended-cell" in styles
-    assert "justify-content: flex-start" in styles
-    assert "#search-results .movie-results-table .movie-recommended-chip" in styles
-    assert "margin-inline: 0" in styles
+    assert "movie-card-recommend-badge" in content
+    assert "recommend-light-icon" in content
+    assert "movie-card-edit-btn" in content
+    assert "edit-btn-icon" in content
+    assert "aria-label': '编辑电影'" in content
+    assert "dataset: { action: 'edit-movie', movieIndex }" in content
+    assert "className: 'movie-card-edit-btn'" in content
+    assert "movie-card-edit-btn edit-btn" not in content
+    assert ".movie-result-card.is-recommended" in styles
+    assert ".movie-result-card.is-recommended:hover" in styles
+    assert "animation: movie-recommended-glow" in styles
+    assert "border-width: 2px" in styles
+    assert "transition: border-color 0.22s ease, box-shadow 0.32s ease" in styles
+    assert ".movie-card-recommend-badge" in styles
+    assert "width: 3.3rem" in styles
+    assert "height: 3.3rem" in styles
+    assert ".movie-card-edit-btn" in styles
+    assert "background: transparent !important" in styles
+    assert "border: 0 !important" in styles
+    assert "--vc-result-edit-shadow" in styles
+    assert "--vc-result-edit-icon-shadow" in styles
+    assert "--vc-result-edit-icon" in styles
+    assert "--vc-result-recommended-gold" in styles
+    assert "--vc-result-recommended-bg" in styles
+    assert "--vc-result-recommended-glow" in styles
+    assert "--vc-result-recommended-icon" in styles
+    assert "--vc-result-recommended-icon-shadow" in styles
+    assert '<symbol id="edit-btn-icon"' in sprite
+
+    tokens = (STYLE_SOURCE_DIR / "system" / "00-tokens.css").read_text(encoding="utf-8")
+    dark_theme = THEME_OVERRIDE_FILE.read_text(encoding="utf-8")
+    assert "--vc-result-recommended-gold: #fbbf24" in tokens
+    assert "--vc-result-recommended-bg: rgba(251, 191, 36, 0.24)" in tokens
+    assert "--vc-result-recommended-glow: rgba(251, 191, 36, 0.78)" in tokens
+    assert "--vc-result-recommended-icon: #ffffff" in tokens
+    assert "--vc-result-edit-icon: #ffffff" in tokens
+    assert "--vc-result-recommended-gold:" not in dark_theme
+    assert "--vc-result-recommended-bg:" not in dark_theme
+    assert "--vc-result-recommended-text:" not in dark_theme
 
 
-def test_movie_title_and_tags_wrap_like_review_text():
-    styles = (STYLE_SOURCE_DIR / "50-modals-results.css").read_text(encoding="utf-8")
+def test_movie_result_cards_wrap_text_and_use_tokens():
+    movie_results = (FRONTEND_SOURCE_DIR / "50-movies" / "20-results-table.js").read_text(encoding="utf-8")
+    result_styles = (STYLE_SOURCE_DIR / "50-modals-results.css").read_text(encoding="utf-8")
+    rating_styles = (STYLE_SOURCE_DIR / "40-images-rating-cells.css").read_text(encoding="utf-8")
 
-    assert "#search-results .movie-results-table .movie-title-cell" in styles
-    assert "#search-results .movie-results-table .tags-cell" in styles
-    assert "#search-results .movie-results-table .movie-title-with-image" in styles
-    assert "align-items: center" in styles
-    assert "#search-results .movie-results-table .movie-title-text" in styles
-    assert "#search-results .movie-results-table .movie-tags-text" in styles
-    assert "overflow-wrap: anywhere" in styles
-    assert "white-space: normal" in styles
-    assert "word-break: break-word" in styles
+    assert "text: `${dimension.name}:`" not in movie_results
+    assert "createRatingNameElement(dimension.name" in movie_results
+    assert "movie-card-ratings-list vc-rating-list" in movie_results
+    assert "rating-item vc-rating-item" in movie_results
+    assert "stars vc-rating-stars" in movie_results
+    assert ".movie-card-title" in result_styles
+    assert ".movie-card-section-text" in result_styles
+    assert ".movie-card-tag" in result_styles
+    assert ".movie-card-ratings-list" in result_styles
+    assert "overflow-wrap: anywhere" in result_styles
+    assert "word-break: break-word" in result_styles
+    assert "var(--vc-result-card-bg" in result_styles
+    assert "var(--vc-result-card-border" in result_styles
+    assert "var(--vc-result-section-border" in result_styles
+    assert "grid-template-columns: repeat(2, minmax(0, 1fr))" in rating_styles
+    assert "grid-template-columns: minmax(2.2em, max-content) max-content" in rating_styles
+    assert "min-width: 2.2em" in rating_styles
+    assert "gap: 0.22rem" in rating_styles
+    assert "gap: 0.16rem" in rating_styles
+    assert "width: 12px" in rating_styles
+    assert "height: 12px" in rating_styles
+    assert "text-overflow: ellipsis" in rating_styles
+    assert "white-space: nowrap" in rating_styles
+    assert "flex-shrink: 0" in rating_styles
+    assert "--vc-rating-name-scroll-distance" in rating_styles
+    assert "@keyframes vc-rating-name-scroll" in rating_styles
+
+
+def test_shared_rating_layout_is_used_in_add_edit_and_results():
+    add_ratings = (FRONTEND_SOURCE_DIR / "50-movies" / "00-ratings-and-drag.js").read_text(encoding="utf-8")
+    edit_ratings = (FRONTEND_SOURCE_DIR / "50-movies" / "11-edit-tags-ratings.js").read_text(encoding="utf-8")
+    movie_results = (FRONTEND_SOURCE_DIR / "50-movies" / "20-results-table.js").read_text(encoding="utf-8")
+    rating_styles = (STYLE_SOURCE_DIR / "40-images-rating-cells.css").read_text(encoding="utf-8")
+    template = INDEX_TEMPLATE.read_text(encoding="utf-8")
+
+    for source in (add_ratings, edit_ratings, movie_results, rating_styles, template):
+        assert "vc-rating-list" in source
+    for source in (add_ratings, rating_styles, template):
+        assert "vc-rating-item" in source
+        assert "vc-rating-name" in source
+        assert "vc-rating-name-text" in source
+        assert "vc-rating-stars" in source
+    assert "createRatingNameElement(dimension.name" in movie_results
+    assert "vc-rating-item" in movie_results
+    assert "vc-rating-stars" in movie_results
+
+    assert "attrs: {\n            tabindex: '0',\n            title: safeName" in add_ratings
+    assert "data-overflowing" in add_ratings
+    assert "--vc-rating-name-scroll-distance" in add_ratings
+    assert "scheduleRatingNameScrollSync(addRatingsContainer)" in add_ratings
+    assert "scheduleRatingNameScrollSync(ratingsContainer)" in edit_ratings
+    assert "scheduleRatingNameScrollSync(grid)" in movie_results
+    assert "text: `${dimension.name}:`" not in movie_results
+    assert not re.search(r"(?m)^\.dimension-name\s*\{[\s\S]*?min-width:\s*5rem", rating_styles)
 
 
 def test_shared_table_cells_wrap_text_by_default():

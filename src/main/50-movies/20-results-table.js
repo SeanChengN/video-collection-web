@@ -14,9 +14,9 @@ function createRatingItem(rating) {
     const dimension = ratingsDimensions.find(d => d.id.toString() === rating.dimensionId);
     if (!dimension) return null;
 
-    return createEl('div', { className: 'rating-item' }, [
-        createEl('span', { className: 'dimension-name', text: `${dimension.name}:` }),
-        createEl('span', { className: 'stars' }, [createStarsFragment(rating.value)])
+    return createEl('div', { className: 'rating-item vc-rating-item' }, [
+        createRatingNameElement(dimension.name, 'span', 'dimension-name'),
+        createEl('span', { className: 'stars vc-rating-stars' }, [createStarsFragment(rating.value)])
     ]);
 }
 
@@ -27,227 +27,136 @@ function appendRatingItems(container, ratings) {
     });
 }
 
-function createRatingsCell(movie) {
-    const ratingsCell = createEl('td', {
-        className: 'ratings-cell',
-        attrs: { 'data-label': '评分' }
-    });
-    const movieRatings = parseMovieRatings(movie);
-
-    if (movieRatings.length > 0) {
-        const dropdownContent = createEl('div', { className: 'dropdown-content' });
-        appendRatingItems(dropdownContent, movieRatings);
-
-        const dropdown = createEl('div', { className: 'dropdown is-hoverable desktop-ratings-dropdown' }, [
-            createEl('div', { className: 'dropdown-trigger' }, [
-                createEl('button', {
-                    className: 'button is-small',
-                    attrs: { type: 'button' }
-                }, [createEl('span', { text: '查看评分' })])
-            ]),
-            createEl('div', { className: 'dropdown-menu', attrs: { role: 'menu' } }, [dropdownContent])
-        ]);
-
-        const mobileRatings = createEl('div', { className: 'mobile-ratings-list' });
-        appendRatingItems(mobileRatings, movieRatings);
-        appendChildren(ratingsCell, [dropdown, mobileRatings]);
-    } else {
-        appendChildren(ratingsCell, [
-            createEl('button', {
-                className: 'button is-small desktop-ratings-empty',
-                attrs: { type: 'button', disabled: true }
-            }, ['暂无评分']),
-            createEl('div', { className: 'mobile-ratings-list is-empty', text: '暂无评分' })
-        ]);
-    }
-
-    return ratingsCell;
+function createMovieCardTextBlock(value, className, emptyText) {
+    const text = value || '';
+    return createEl('section', { className: `movie-card-section ${className}${text ? '' : ' is-empty'}` }, [
+        createEl('p', {
+            className: 'movie-card-section-text',
+            text: text || emptyText,
+            attrs: text ? { title: text } : {}
+        })
+    ]);
 }
 
-function createMovieTitleCell(movie, movieIndex) {
-    const cell = createEl('td', {
-        className: 'movie-title-cell hoverable',
-        attrs: { 'data-label': '电影名称' }
+function createMovieCardTags(tagNames) {
+    const tags = (tagNames || '')
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(Boolean);
+    const content = tags.length
+        ? tags.map(tag => createEl('span', { className: 'movie-card-tag', text: tag }))
+        : [createEl('span', { className: 'movie-card-empty-text', text: '暂无标签' })];
+
+    return createEl('section', { className: `movie-card-section movie-card-tags${tags.length ? '' : ' is-empty'}` }, [
+        createEl('div', { className: 'movie-card-tags-list' }, content)
+    ]);
+}
+
+function createMovieCardRatings(movie) {
+    const ratings = parseMovieRatings(movie);
+    const content = createEl('div', {
+        className: `movie-card-ratings-list vc-rating-list${ratings.length ? '' : ' is-empty'}`
     });
+
+    if (ratings.length > 0) {
+        appendRatingItems(content, ratings);
+    } else {
+        content.appendChild(createEl('span', { className: 'movie-card-empty-text', text: '暂无评分' }));
+    }
+
+    return createEl('section', { className: `movie-card-section movie-card-ratings${ratings.length ? '' : ' is-empty'}` }, [
+        content
+    ]);
+}
+
+function createMovieCardCover(movie) {
     const title = movie.title || '';
     const imageFilename = movie.image_filename || '';
+    const firstImageFilename = imageFilename ? imageFilename.split(',')[0].trim() : '';
+    const firstImageUrl = firstImageFilename ? buildImageUrl(firstImageFilename) : '';
 
-    if (imageFilename) {
-        const firstImageFilename = imageFilename.split(',')[0].trim();
-        const firstImageUrl = firstImageFilename ? buildImageUrl(firstImageFilename) : '';
-        const preview = createEl('div', {
-            className: 'movie-preview-image',
-            attrs: { role: 'button', tabindex: '0', 'aria-label': `预览 ${title}` },
-            dataset: {
-                action: 'open-image-viewer',
-                images: imageFilename,
-                title
-            }
-        });
-
-        if (firstImageUrl) {
-            preview.appendChild(createEl('img', {
-                attrs: { src: firstImageUrl, alt: '预览图' }
-            }));
-        }
-
-        cell.appendChild(createEl('div', { className: 'movie-title-with-image' }, [
-            preview,
-            createEl('span', {
-                className: 'movie-title-text',
-                text: title,
-                attrs: { title }
-            })
-        ]));
-    } else {
-        cell.appendChild(createEl('span', {
-            className: 'movie-title-text',
-            text: title,
-            attrs: { title }
-        }));
+    if (!firstImageUrl) {
+        return createEl('div', { className: 'movie-card-cover is-empty' }, [
+            createSpriteSvg('thumbnail-icon', { width: 34, height: 34, ariaLabel: '暂无封面' }),
+            createEl('span', { text: '暂无封面' })
+        ]);
     }
 
-    return cell;
-}
-
-function createRecommendedCell(movie) {
-    const recommended = Boolean(movie.recommended);
-    return createEl('td', {
-        className: 'movie-recommended-cell',
-        attrs: { 'data-label': '推荐' }
-    }, [
-        createEl('span', {
-            className: `movie-recommended-chip${recommended ? ' is-recommended' : ''}`
-        }, [
-            createSpriteSvg(recommended ? 'recommend-light-icon' : 'recommend-icon', {
-                width: 20,
-                height: 20,
-                fill: recommended ? '#ff7b00' : '#515151',
-                ariaLabel: recommended ? '推荐' : '未推荐'
-            }),
-            createEl('span', {
-                className: 'movie-recommended-text',
-                text: recommended ? '推荐' : '未推荐'
-            })
-        ])
-    ]);
-}
-
-function createMovieTextCell({ className, label, value, textClass }) {
-    const text = value || '';
-    return createEl('td', {
-        className,
-        attrs: { 'data-label': label, title: text }
-    }, [
-        createEl('span', {
-            className: `${textClass}${text ? '' : ' is-empty'}`,
-            text
-        })
-    ]);
-}
-
-function createMovieActionCell(movieIndex) {
-    return createEl('td', {
-        className: 'movie-action-cell',
-        attrs: { 'data-label': '操作' }
-    }, [
-        createActionButton({
-            className: 'button is-small is-info edit-btn',
-            text: '编辑',
-            action: 'edit-movie',
-            dataset: { movieIndex }
-        })
-    ]);
-}
-
-function createMovieRow(movie, movieIndex) {
-    const tr = createEl('tr');
-    appendChildren(tr, [
-        createMovieTitleCell(movie, movieIndex),
-        createRecommendedCell(movie),
-        createMovieTextCell({
-            className: 'hoverable review-cell',
-            label: '评价',
-            value: movie.review,
-            textClass: 'movie-review-text'
-        }),
-        createMovieTextCell({
-            className: 'hoverable tags-cell',
-            label: '标签',
-            value: movie.tag_names,
-            textClass: 'movie-tags-text'
-        }),
-        createRatingsCell(movie),
-        createMovieActionCell(movieIndex)
-    ]);
-    return tr;
-}
-
-const MOVIE_RESULT_COLUMNS = [
-    ['title', '电影名称', '23%'],
-    ['recommended', '推荐', '7%'],
-    ['review', '评价', '33.5%'],
-    ['tags', '标签', '15.5%'],
-    ['ratings', '评分', '10.5%'],
-    ['action', '操作', '10.5%']
-];
-
-function createMovieResultsHeaderRow() {
-    const headerRow = createEl('tr');
-    MOVIE_RESULT_COLUMNS.forEach(([column, label, width]) => {
-        headerRow.appendChild(createEl('th', {
-            text: label,
-            attrs: { 'data-column': column, style: `width: ${width}` }
-        }));
+    const cover = createEl('button', {
+        className: 'movie-card-cover',
+        attrs: { type: 'button', 'aria-label': `预览 ${title}` },
+        dataset: {
+            action: 'open-image-viewer',
+            images: imageFilename,
+            title
+        }
     });
-    return headerRow;
+    cover.appendChild(createEl('img', {
+        attrs: { src: firstImageUrl, alt: title || '电影封面' }
+    }));
+    return cover;
+}
+
+function createMovieCardEditButton(movieIndex) {
+    return createEl('button', {
+        className: 'movie-card-edit-btn',
+        attrs: { type: 'button', 'aria-label': '编辑电影', title: '编辑电影' },
+        dataset: { action: 'edit-movie', movieIndex }
+    }, [
+        createSpriteSvg('edit-btn-icon', { width: 16, height: 16, ariaLabel: '编辑电影' })
+    ]);
 }
 
 function createSkeletonBlock(className) {
     return createEl('span', { className: `skeleton-block ${className}` });
 }
 
-function createSearchSkeletonRow() {
-    return createEl('tr', { className: 'search-skeleton-row' }, [
-        createEl('td', {
-            className: 'movie-title-cell skeleton-cell',
-            attrs: { 'data-label': '电影名称' }
-        }, [
-            createEl('div', { className: 'movie-title-with-image' }, [
-                createSkeletonBlock('skeleton-thumb'),
-                createEl('div', { className: 'skeleton-title-lines' }, [
-                    createSkeletonBlock('skeleton-line skeleton-line-wide'),
-                    createSkeletonBlock('skeleton-line skeleton-line-medium')
-                ])
-            ])
-        ]),
-        createEl('td', {
-            className: 'movie-recommended-cell skeleton-cell',
-            attrs: { 'data-label': '推荐' }
-        }, [createSkeletonBlock('skeleton-pill')]),
-        createEl('td', {
-            className: 'review-cell skeleton-cell',
-            attrs: { 'data-label': '评价' }
-        }, [
-            createSkeletonBlock('skeleton-line skeleton-line-wide'),
-            createSkeletonBlock('skeleton-line skeleton-line-medium')
-        ]),
-        createEl('td', {
-            className: 'tags-cell skeleton-cell',
-            attrs: { 'data-label': '标签' }
-        }, [createSkeletonBlock('skeleton-line skeleton-line-short')]),
-        createEl('td', {
-            className: 'ratings-cell skeleton-cell',
-            attrs: { 'data-label': '评分' }
-        }, [createSkeletonBlock('skeleton-line skeleton-line-medium')]),
-        createEl('td', {
-            className: 'movie-action-cell skeleton-cell',
-            attrs: { 'data-label': '操作' }
-        }, [createSkeletonBlock('skeleton-button')])
+function createMovieRecommendBadge() {
+    return createEl('div', { className: 'movie-card-recommend-badge', attrs: { 'aria-label': '推荐' } }, [
+        createSpriteSvg('recommend-light-icon', { width: 18, height: 18, ariaLabel: '推荐' })
     ]);
 }
 
-function renderSearchLoadingSkeleton(rowCount = Math.min(itemsPerPage, 6)) {
+function createMovieCard(movie, movieIndex) {
+    const title = movie.title || '未命名电影';
+    const recommended = Boolean(movie.recommended);
+    const card = createEl('article', {
+        className: `movie-result-card${recommended ? ' is-recommended' : ''}`,
+        dataset: { movieIndex }
+    });
+
+    if (recommended) {
+        card.appendChild(createMovieRecommendBadge());
+    }
+
+    appendChildren(card, [
+        createMovieCardEditButton(movieIndex),
+        createMovieCardCover(movie),
+        createEl('div', { className: 'movie-card-body' }, [
+            createEl('h3', { className: 'movie-card-title', text: title, attrs: { title } }),
+            createMovieCardTextBlock(movie.review, 'movie-card-review', '暂无评价'),
+            createMovieCardTags(movie.tag_names),
+            createMovieCardRatings(movie)
+        ])
+    ]);
+
+    return card;
+}
+
+function createSearchSkeletonCard() {
+    return createEl('article', { className: 'movie-result-card search-skeleton-card' }, [
+        createEl('span', { className: 'skeleton-button movie-card-edit-placeholder' }),
+        createSkeletonBlock('skeleton-cover'),
+        createEl('div', { className: 'movie-card-body' }, [
+            createSkeletonBlock('skeleton-line skeleton-line-wide'),
+            createSkeletonBlock('skeleton-panel'),
+            createSkeletonBlock('skeleton-panel skeleton-panel-small'),
+            createSkeletonBlock('skeleton-panel skeleton-panel-small')
+        ])
+    ]);
+}
+
+function renderSearchLoadingSkeleton(rowCount = itemsPerPage) {
     const resultsDiv = document.getElementById('search-results');
     const paginationDiv = document.getElementById('pagination');
     if (!resultsDiv) return;
@@ -256,25 +165,19 @@ function renderSearchLoadingSkeleton(rowCount = Math.min(itemsPerPage, 6)) {
     clearElement(paginationDiv);
     searchResultTotal = 0;
 
-    const tableContainer = createEl('div', { className: 'table-container search-skeleton' });
-    const table = createEl('table', { className: 'table is-fullwidth is-striped movie-results-table' });
-    table.appendChild(createEl('thead', {}, [createMovieResultsHeaderRow()]));
-
-    const tbody = createEl('tbody');
+    const grid = createEl('div', { className: 'movie-results-grid search-skeleton' });
     for (let index = 0; index < rowCount; index++) {
-        tbody.appendChild(createSearchSkeletonRow());
+        grid.appendChild(createSearchSkeletonCard());
     }
 
-    table.appendChild(tbody);
-    tableContainer.appendChild(table);
-    resultsDiv.appendChild(tableContainer);
+    resultsDiv.appendChild(grid);
 }
 
 // 搜索结果显示
 function displayCurrentPage() {
     const resultsDiv = document.getElementById('search-results');
     clearElement(resultsDiv);
-    
+
     if (allMovies.length === 0) {
         resultsDiv.appendChild(createNotification('info', '没有找到电影'));
         clearElement(document.getElementById('pagination'));
@@ -283,21 +186,18 @@ function displayCurrentPage() {
 
     resultsDiv.appendChild(createResultsCountSummary(searchResultTotal, '部电影', 'movie-results-count'));
 
-    const tableContainer = createEl('div', { className: 'table-container' });
-    const table = createEl('table', { className: 'table is-fullwidth is-striped is-hoverable movie-results-table' });
-    table.appendChild(createEl('thead', {}, [createMovieResultsHeaderRow()]));
-    const tbody = createEl('tbody');
+    const grid = createEl('div', { className: 'movie-results-grid' });
     allMovies.forEach((movie, index) => {
-        tbody.appendChild(createMovieRow(movie, index));
+        grid.appendChild(createMovieCard(movie, index));
     });
 
-    table.appendChild(tbody);
-    tableContainer.appendChild(table);
-    resultsDiv.appendChild(tableContainer);
+    resultsDiv.appendChild(grid);
+    scheduleRatingNameScrollSync(grid);
 
     updatePagination();
     setupDropdownPositioning();
 }
+
 function setupDropdownPositioning() {
     document.addEventListener('mouseover', function(e) {
         const dropdown = e.target.closest('.dropdown');
@@ -306,34 +206,25 @@ function setupDropdownPositioning() {
         const menu = dropdown.querySelector('.dropdown-menu');
         if (!menu) return;
 
-        // 获取视口和元素位置信息
         const viewportHeight = window.innerHeight;
         const dropdownRect = dropdown.getBoundingClientRect();
         const menuHeight = menu.offsetHeight;
-
-        // 计算下方剩余空间
         const spaceBelow = viewportHeight - dropdownRect.bottom;
-        
-        // 重置之前的样式
+
         menu.style.bottom = 'auto';
         menu.style.top = 'auto';
 
-        // 根据可用空间决定显示位置
         if (spaceBelow < menuHeight && dropdownRect.top > menuHeight) {
-            // 如果下方空间不足且上方空间足够，向上显示
             menu.style.bottom = '100%';
             menu.style.marginBottom = '5px';
         } else {
-            // 否则向下显示
             menu.style.top = '100%';
             menu.style.marginTop = '5px';
         }
 
-        // 确保水平对齐
         menu.style.left = '0';
         menu.style.right = 'auto';
-        
-        // 防止菜单超出右侧边界
+
         const menuRect = menu.getBoundingClientRect();
         if (menuRect.right > window.innerWidth) {
             menu.style.left = 'auto';
