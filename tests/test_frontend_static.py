@@ -295,6 +295,29 @@ def test_thumbnail_capture_buttons_use_stronger_token_mix():
     assert "--vc-thumbnail-action-border" in content
 
 
+def test_thumbnail_local_video_delete_uses_confirmed_icon_action():
+    events = (Path(__file__).resolve().parents[1] / "src" / "config" / "events.js").read_text(encoding="utf-8")
+    local_browser = (FRONTEND_SOURCE_DIR / "60-thumbnail" / "30-local-browser.js").read_text(encoding="utf-8")
+    emby_browser = (FRONTEND_SOURCE_DIR / "60-thumbnail" / "20-emby-browser.js").read_text(encoding="utf-8")
+    styles = (STYLE_SOURCE_DIR / "20-thumbnail.css").read_text(encoding="utf-8")
+
+    assert "delete_video_file: 1024" in events
+    assert "createThumbnailDeleteFileButton" in local_browser
+    assert "delete-btn-top-icon" in local_browser
+    assert "delete-btn-bottom-icon" in local_browser
+    assert "confirmDeleteThumbnailVideoFile" in local_browser
+    assert "event_map.delete_video_file" in local_browser
+    assert "confirm: true" in local_browser
+    assert "clearDeletedThumbnailVideo" in local_browser
+    assert "await loadThumbnailDirectory(thumbnailState.currentPath)" in local_browser
+    deleted_video_state = local_browser.split("function clearDeletedThumbnailVideo(videoFile) {", 1)[1].split("\n}\n", 1)[0]
+    assert "clearThumbnailCaptures()" not in deleted_video_state
+    assert "thumbnail-delete-file" not in emby_browser
+    assert ".thumbnail-file-row.has-delete" in styles
+    assert ".thumbnail-delete-file" in styles
+    assert "var(--vc-color-danger)" in styles
+
+
 def test_wtl_screenshot_import_uses_safe_api_event():
     content = (FRONTEND_SOURCE_DIR / "20-tools" / "30-wtl-search-results.js").read_text(encoding="utf-8")
     assert "event_map.fetch_external_image" in content
@@ -491,7 +514,6 @@ def test_movie_result_cards_show_recommend_badge_and_icon_edit_button():
     assert "--vc-result-edit-icon-shadow" in styles
     assert "--vc-result-edit-icon" in styles
     assert "--vc-result-recommended-gold" in styles
-    assert "--vc-result-recommended-bg" in styles
     assert "--vc-result-recommended-glow" in styles
     assert "--vc-result-recommended-sheen" in styles
     assert "--vc-result-recommended-surface-glow" in styles

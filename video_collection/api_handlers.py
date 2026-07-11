@@ -49,6 +49,7 @@ class ApiHandlerDependencies:
     get_video_library_abs_path: Any
     allowed_video_file: Any
     format_video_file_item: Any
+    delete_video_file: Any
     allowed_file: Any
     process_image: Any
     get_upload_file_path: Any

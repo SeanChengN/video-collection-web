@@ -63,7 +63,7 @@ def test_backend_api_events_match_frontend_event_map():
     backend_events = {
         event_id: event['name']
         for event_id, event in app_module.API_EVENTS.items()
-        if 1001 <= event_id <= 1023
+        if 1001 <= event_id <= 1024
     }
 
     assert backend_events == frontend_events
@@ -291,6 +291,53 @@ def test_video_files_wrapper_rejects_traversal_path():
 
     assert status == 400
     assert response.get_json()['message'] == 'Invalid video directory'
+
+
+def test_delete_video_file_wrapper_requires_confirmation(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, 'VIDEO_LIBRARY_ROOT', str(tmp_path))
+    video_path = tmp_path / 'sample.mp4'
+    video_path.write_bytes(b'video')
+
+    with app_module.app.test_request_context('/api'):
+        response, status = unpack_response(
+            app_module.delete_video_file_handler({'path': 'sample.mp4'}, 'DELETE')
+        )
+
+    assert status == 400
+    assert response.get_json()['message'] == 'Video deletion requires confirmation'
+    assert video_path.exists()
+
+
+def test_delete_video_file_wrapper_deletes_confirmed_local_video(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, 'VIDEO_LIBRARY_ROOT', str(tmp_path))
+    video_path = tmp_path / 'sample.mp4'
+    video_path.write_bytes(b'video')
+
+    with app_module.app.test_request_context('/api'):
+        response, status = unpack_response(
+            app_module.delete_video_file_handler({'path': 'sample.mp4', 'confirm': True}, 'DELETE')
+        )
+
+    assert status == 200
+    assert response.get_json() == {'success': True, 'path': 'sample.mp4'}
+    assert not video_path.exists()
+
+
+def test_delete_video_file_wrapper_rejects_missing_and_traversal_paths(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, 'VIDEO_LIBRARY_ROOT', str(tmp_path))
+
+    with app_module.app.test_request_context('/api'):
+        missing_response, missing_status = unpack_response(
+            app_module.delete_video_file_handler({'path': 'missing.mp4', 'confirm': True}, 'DELETE')
+        )
+        traversal_response, traversal_status = unpack_response(
+            app_module.delete_video_file_handler({'path': '../escape.mp4', 'confirm': True}, 'DELETE')
+        )
+
+    assert missing_status == 404
+    assert missing_response.get_json()['message'] == 'Video file was not found'
+    assert traversal_status == 400
+    assert traversal_response.get_json()['message'] == 'Invalid video file path'
 
 
 def test_search_emby_wrapper_rejects_empty_query():

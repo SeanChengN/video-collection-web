@@ -4328,7 +4328,7 @@ function loadThumbnailDirectory(path = '') {
     syncThumbnailSourceControls();
     const requestToken = ++thumbnailState.directoryRequestToken;
     setThumbnailFileListLoading();
-    callApi(event_map.list_video_files, { path: safePath })
+    return callApi(event_map.list_video_files, { path: safePath })
         .then(result => {
             if (requestToken !== thumbnailState.directoryRequestToken) return;
             if (!result.success) {
@@ -4440,7 +4440,7 @@ function createThumbnailFileRow(file) {
         source: file.source || 'local'
     };
     const row = document.createElement('div');
-    row.className = 'thumbnail-file-row has-copy';
+    row.className = 'thumbnail-file-row has-copy has-delete';
     row.setAttribute('role', 'button');
     row.tabIndex = 0;
     if (videoFile.name.length > 18) {
@@ -4457,7 +4457,8 @@ function createThumbnailFileRow(file) {
             className: 'thumbnail-file-meta',
             text: formatThumbnailBytes(videoFile.size)
         }),
-        createThumbnailCopyNameButton('复制文件名')
+        createThumbnailCopyNameButton('复制文件名'),
+        createThumbnailDeleteFileButton()
     ]);
     row.title = videoFile.name;
     row.addEventListener('click', () => selectThumbnailVideo(videoFile));
@@ -4472,6 +4473,11 @@ function createThumbnailFileRow(file) {
         event.stopPropagation();
         copyThumbnailVideoFileName(videoFile.name, event.currentTarget);
     });
+    row.querySelector('.thumbnail-delete-file')?.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        confirmDeleteThumbnailVideoFile(videoFile);
+    });
     return row;
 }
 
@@ -4485,6 +4491,92 @@ function createThumbnailCopyNameButton(ariaLabel) {
             ariaLabel: '复制'
         })
     ]);
+}
+
+function createThumbnailDeleteFileButton() {
+    return createEl('button', {
+        className: 'thumbnail-delete-file',
+        attrs: {
+            type: 'button',
+            'aria-label': '删除视频文件',
+            title: '删除视频文件'
+        }
+    }, [
+        createEl('span', {
+            className: 'thumbnail-delete-file-icon',
+            attrs: { 'aria-hidden': 'true' }
+        }, [
+            createSpriteSvg('delete-btn-top-icon', { fill: 'currentColor' }),
+            createSpriteSvg('delete-btn-bottom-icon', { fill: 'currentColor' })
+        ])
+    ]);
+}
+
+function confirmDeleteThumbnailVideoFile(videoFile) {
+    showAlert({
+        title: '删除视频文件',
+        message: `确认永久删除“${videoFile.name}”吗？此操作无法恢复。`,
+        type: 'warning',
+        confirmText: '删除',
+        cancelText: '取消',
+        onConfirm: () => deleteThumbnailVideoFile(videoFile)
+    });
+}
+
+async function deleteThumbnailVideoFile(videoFile) {
+    setThumbnailStatus(`正在删除：${videoFile.name}`);
+
+    try {
+        const result = await callApi(event_map.delete_video_file, {
+            path: videoFile.path,
+            confirm: true
+        }, 'DELETE');
+        if (!result.success) {
+            throw new Error(result.message || '删除视频文件失败');
+        }
+
+        clearDeletedThumbnailVideo(videoFile);
+        await loadThumbnailDirectory(thumbnailState.currentPath);
+        setThumbnailStatus(`已删除视频文件：${videoFile.name}`);
+    } catch (error) {
+        setThumbnailStatus(error.message || '删除视频文件失败');
+        showAlert({
+            title: '删除失败',
+            message: error.message || '删除视频文件失败，请稍后重试。',
+            type: 'error',
+            showCancel: false
+        });
+    }
+}
+
+function clearDeletedThumbnailVideo(videoFile) {
+    if (!thumbnailState.selectedVideo
+        || thumbnailState.selectedVideo.source !== 'local'
+        || thumbnailState.selectedVideo.path !== videoFile.path) {
+        return;
+    }
+
+    thumbnailState.abortBatch = true;
+    thumbnailState.isBatchRunning = false;
+    thumbnailState.sessionToken += 1;
+    thumbnailState.seekToken += 1;
+    thumbnailState.stepSeekToken += 1;
+    clearTimeout(thumbnailState.stepSeekTimer);
+    thumbnailState.stepSeekTimer = null;
+    thumbnailState.pendingStepTarget = null;
+    thumbnailState.pendingStepShouldResume = false;
+    thumbnailState.selectedVideo = null;
+
+    const video = document.getElementById('thumbnail-video');
+    if (video) {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+    }
+
+    updateThumbnailProgress(0);
+    setThumbnailBatchControls(false);
+    updateThumbnailBatchSummary();
 }
 
 async function copyThumbnailVideoFileName(fileName, button) {

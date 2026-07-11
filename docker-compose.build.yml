@@ -36,7 +36,7 @@ services:
       DB_BACKUP_RETENTION_COUNT: ${DB_BACKUP_RETENTION_COUNT:-7}
     volumes:
       - ./images:/images
-      - ./videos:/videos:ro
+      - ./videos:/videos
       - ./backups:/backups
     healthcheck:
       test: ["CMD", "python", "/app/healthcheck.py"]

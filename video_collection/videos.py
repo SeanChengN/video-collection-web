@@ -1,5 +1,6 @@
 import os
 import re
+import stat
 from urllib.parse import quote
 
 
@@ -97,3 +98,19 @@ def format_video_file_item(directory_relative_path, filename, video_library_root
         'url': f"/videos/{quote(relative_path, safe='/')}"
     }
 
+
+def delete_video_file(relative_path, video_library_root='/videos'):
+    safe_relative_path = normalize_video_relative_path(relative_path)
+    if not safe_relative_path or not allowed_video_file(os.path.basename(safe_relative_path)):
+        raise ValueError('Invalid video file path')
+
+    abs_path = get_video_library_abs_path(safe_relative_path, video_library_root)
+    if not abs_path:
+        raise ValueError('Invalid video file path')
+
+    stat_result = os.lstat(abs_path)
+    if not stat.S_ISREG(stat_result.st_mode):
+        raise ValueError('Video path is not a regular file')
+
+    os.remove(abs_path)
+    return safe_relative_path

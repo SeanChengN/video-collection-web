@@ -681,6 +681,10 @@ def stream_file_slice(abs_path, start, end):
 def format_video_file_item(directory_relative_path, filename):
     return video_helpers.format_video_file_item(directory_relative_path, filename, VIDEO_LIBRARY_ROOT)
 
+
+def delete_video_file(relative_path):
+    return video_helpers.delete_video_file(relative_path, VIDEO_LIBRARY_ROOT)
+
 @app.route('/videos/<path:filename>')
 def serve_video(filename):
     return _media_routes.serve_video(filename)
@@ -777,6 +781,7 @@ _api_handlers = ApiHandlers(ApiHandlerDependencies(
     get_video_library_abs_path=get_video_library_abs_path,
     allowed_video_file=allowed_video_file,
     format_video_file_item=format_video_file_item,
+    delete_video_file=delete_video_file,
     allowed_file=allowed_file,
     process_image=process_image,
     get_upload_file_path=get_upload_file_path,
@@ -882,6 +887,10 @@ def list_video_files_handler(data, method='POST'):
     return _api_handlers.list_video_files_handler(data, method)
 
 
+def delete_video_file_handler(data, method='DELETE'):
+    return _api_handlers.delete_video_file_handler(data, method)
+
+
 def upload_image_handler(data, method='POST'):
     return _api_handlers.upload_image_handler(data, method)
 
@@ -908,7 +917,8 @@ API_EVENTS.update({
     1020: api_event('restore_db_backup', restore_db_backup_handler, methods=('POST',)),
     1021: api_event('delete_db_backup', delete_db_backup_handler, methods=('DELETE', 'POST')),
     1022: api_event('fetch_external_image', fetch_external_image_handler, methods=('POST',)),
-    1023: api_event('check_wtl_status', check_wtl_status_handler, methods=('GET', 'POST'))
+    1023: api_event('check_wtl_status', check_wtl_status_handler, methods=('GET', 'POST')),
+    1024: api_event('delete_video_file', delete_video_file_handler, methods=('DELETE',))
 })
 
 APP_INITIALIZATION_LOCK = threading.Lock()

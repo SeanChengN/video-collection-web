@@ -21,7 +21,8 @@ const event_map = {
     restore_db_backup: 1020,
     delete_db_backup: 1021,
     fetch_external_image: 1022,
-    check_wtl_status: 1023
+    check_wtl_status: 1023,
+    delete_video_file: 1024
 };
 
 window.event_map = event_map;

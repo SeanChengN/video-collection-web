@@ -55,6 +55,37 @@ class ApiMediaHandlersMixin:
         except Exception as e:
             return self.dependencies.json_exception('List video files', e, 'Unable to list video files')
 
+    def delete_video_file_handler(self, data, method='DELETE'):
+        if (data or {}).get('confirm') is not True:
+            return self.dependencies.jsonify({
+                'success': False,
+                'message': 'Video deletion requires confirmation'
+            }), 400
+
+        try:
+            deleted_path = self.dependencies.delete_video_file((data or {}).get('path', ''))
+        except ValueError:
+            return self.dependencies.jsonify({
+                'success': False,
+                'message': 'Invalid video file path'
+            }), 400
+        except FileNotFoundError:
+            return self.dependencies.jsonify({
+                'success': False,
+                'message': 'Video file was not found'
+            }), 404
+        except OSError as exc:
+            self.dependencies.logger.warning('Unable to delete video file: %s', exc)
+            return self.dependencies.jsonify({
+                'success': False,
+                'message': 'Unable to delete video file'
+            }), 500
+
+        return self.dependencies.jsonify({
+            'success': True,
+            'path': deleted_path
+        })
+
     def upload_image_handler(self, data, method='POST'):
         if 'image' not in request.files:
             return self.dependencies.jsonify({'success': False, 'message': '没有文件'}), 400

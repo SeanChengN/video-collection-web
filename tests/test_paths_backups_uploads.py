@@ -1,12 +1,15 @@
 import io
+import stat
 import tarfile
 import ast
 from pathlib import Path
+from types import SimpleNamespace
 
 from PIL import Image
 
 import app as app_module
 import video_collection.backups as backups_module
+import video_collection.videos as video_helpers
 from video_collection.backup_archive_ops import BackupArchiveOpsMixin
 from video_collection.backup_database_ops import BackupDatabaseOpsMixin
 from video_collection.backup_scheduler import BackupSchedulerMixin
@@ -42,6 +45,41 @@ def test_video_path_normalization_rejects_traversal():
     assert app_module.normalize_video_relative_path('movies/sample.mp4') == 'movies/sample.mp4'
     assert app_module.normalize_video_relative_path('../sample.mp4') is None
     assert app_module.normalize_video_relative_path('movies/../../sample.mp4') is None
+
+
+def test_video_file_deletion_rejects_non_video_and_directory_paths(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, 'VIDEO_LIBRARY_ROOT', str(tmp_path))
+    (tmp_path / 'notes.txt').write_text('not a video', encoding='utf-8')
+    (tmp_path / 'folder.mp4').mkdir()
+
+    for path in ('notes.txt', 'folder.mp4', '../escape.mp4', ''):
+        try:
+            app_module.delete_video_file(path)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f'Expected ValueError for {path!r}')
+
+
+def test_video_file_deletion_rejects_symbolic_links(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, 'VIDEO_LIBRARY_ROOT', str(tmp_path))
+    video_path = tmp_path / 'sample.mp4'
+    video_path.write_bytes(b'video')
+    monkeypatch.setattr(video_helpers, 'get_video_library_abs_path', lambda *args: str(video_path))
+    monkeypatch.setattr(
+        video_helpers.os,
+        'lstat',
+        lambda path: SimpleNamespace(st_mode=stat.S_IFLNK)
+    )
+
+    try:
+        app_module.delete_video_file('sample.mp4')
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('Expected symbolic link deletion to be rejected')
+
+    assert video_path.exists()
 
 
 def test_video_route_serves_full_file_with_range_support(monkeypatch, tmp_path):
