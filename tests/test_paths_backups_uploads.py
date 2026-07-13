@@ -1,4 +1,5 @@
 import io
+import os
 import stat
 import tarfile
 import ast
@@ -27,6 +28,11 @@ BACKUP_MODULES = [
 def make_client():
     app_module.app.config.update(TESTING=True)
     return app_module.app.test_client()
+
+
+def assert_shared_image_mode(path):
+    if os.name != 'nt':
+        assert stat.S_IMODE(os.stat(path).st_mode) == 0o644
 
 
 def test_upload_filename_normalization_accepts_supported_shapes():
@@ -203,6 +209,14 @@ def test_full_backup_member_validation_accepts_only_expected_files():
 def test_image_upload_creates_webp_file(monkeypatch, tmp_path):
     monkeypatch.setenv('APP_ACCESS_TOKEN', '')
     monkeypatch.setitem(app_module.app.config, 'UPLOAD_FOLDER', str(tmp_path))
+    chmod_calls = []
+    real_chmod = uploads_module.os.chmod
+
+    def track_chmod(path, mode):
+        chmod_calls.append((os.fspath(path), mode))
+        real_chmod(path, mode)
+
+    monkeypatch.setattr(uploads_module.os, 'chmod', track_chmod)
     client = make_client()
 
     image_bytes = io.BytesIO()
@@ -225,12 +239,24 @@ def test_image_upload_creates_webp_file(monkeypatch, tmp_path):
     cover_filename = app_module.get_image_variant_filename(payload['filename'], 'cover')
     assert cover_filename
     assert (tmp_path / cover_filename).is_file()
+    for image_path in (tmp_path / payload['filename'], tmp_path / cover_filename):
+        assert (os.fspath(image_path), 0o644) in chmod_calls
+        assert_shared_image_mode(image_path)
 
 
-def test_image_variants_limit_cover_size_and_cleanup_together(tmp_path):
+def test_image_variants_limit_cover_size_and_cleanup_together(monkeypatch, tmp_path):
     image_bytes = io.BytesIO()
     Image.new('RGB', (1600, 800), color='red').save(image_bytes, format='PNG')
     image_bytes.seek(0)
+
+    chmod_calls = []
+    real_chmod = uploads_module.os.chmod
+
+    def track_chmod(path, mode):
+        chmod_calls.append((os.fspath(path), mode))
+        real_chmod(path, mode)
+
+    monkeypatch.setattr(uploads_module.os, 'chmod', track_chmod)
 
     variants = uploads_module.process_image_variants(SimpleNamespace(stream=image_bytes))
     uploads_module.save_image_variants('2026/cover.webp', variants, str(tmp_path))
@@ -240,6 +266,76 @@ def test_image_variants_limit_cover_size_and_cleanup_together(tmp_path):
     with Image.open(tmp_path / cover_filename) as cover:
         assert max(cover.size) == 480
 
+    for image_path in (tmp_path / '2026/cover.webp', tmp_path / cover_filename):
+        assert (os.fspath(image_path), 0o644) in chmod_calls
+        assert_shared_image_mode(image_path)
+
     assert uploads_module.delete_uploaded_image('2026/cover.webp', str(tmp_path)) is True
     assert not (tmp_path / '2026/cover.webp').exists()
     assert not (tmp_path / cover_filename).exists()
+
+
+def test_normalize_uploaded_image_permissions_repairs_only_valid_regular_images(monkeypatch, tmp_path):
+    primary_path = tmp_path / 'cover.webp'
+    primary_path.write_bytes(b'primary')
+    year_path = tmp_path / '2026'
+    year_path.mkdir()
+    cover_path = year_path / 'cover.cover.webp'
+    cover_path.write_bytes(b'cover')
+    non_image_path = tmp_path / 'notes.txt'
+    non_image_path.write_text('notes', encoding='utf-8')
+    nested_path = year_path / 'nested'
+    nested_path.mkdir()
+    unsupported_path = nested_path / 'skip.webp'
+    unsupported_path.write_bytes(b'skip')
+    symlink_like_path = tmp_path / 'linked.webp'
+    symlink_like_path.write_bytes(b'linked')
+    for path in (primary_path, cover_path, non_image_path, unsupported_path, symlink_like_path):
+        os.chmod(path, 0o600)
+
+    real_lstat = uploads_module.os.lstat
+
+    def lstat_with_linked_file(path):
+        if os.fspath(path) == os.fspath(symlink_like_path):
+            return SimpleNamespace(st_mode=stat.S_IFLNK)
+        return real_lstat(path)
+
+    monkeypatch.setattr(uploads_module.os, 'lstat', lstat_with_linked_file)
+
+    assert uploads_module.normalize_uploaded_image_permissions(str(tmp_path)) == 2
+    assert_shared_image_mode(primary_path)
+    assert_shared_image_mode(cover_path)
+    assert stat.S_IMODE(os.stat(non_image_path).st_mode) != 0o644
+    assert stat.S_IMODE(os.stat(unsupported_path).st_mode) != 0o644
+    assert stat.S_IMODE(os.stat(symlink_like_path).st_mode) != 0o644
+
+
+def test_normalize_uploaded_image_permissions_logs_chmod_failures(monkeypatch, tmp_path, caplog):
+    failing_path = tmp_path / 'failing.webp'
+    good_path = tmp_path / 'good.webp'
+    for path in (failing_path, good_path):
+        path.write_bytes(b'image')
+        os.chmod(path, 0o600)
+
+    real_chmod = uploads_module.os.chmod
+
+    def chmod_with_failure(path, mode):
+        if os.fspath(path) == os.fspath(failing_path):
+            raise OSError('permission denied')
+        real_chmod(path, mode)
+
+    monkeypatch.setattr(uploads_module.os, 'chmod', chmod_with_failure)
+
+    assert uploads_module.normalize_uploaded_image_permissions(str(tmp_path), app_module.logger) == 1
+    assert stat.S_IMODE(os.stat(failing_path).st_mode) != 0o644
+    assert_shared_image_mode(good_path)
+    assert 'Unable to normalize uploaded image permissions' in caplog.text
+
+
+def test_initialize_application_normalizes_uploaded_image_permissions(monkeypatch):
+    monkeypatch.setattr(app_module, 'APP_INITIALIZED', False)
+    monkeypatch.setattr(app_module, 'init_db', lambda: True)
+    monkeypatch.setattr(app_module, 'normalize_upload_image_permissions', lambda: 2)
+    monkeypatch.setattr(app_module, 'start_scheduled_backup_thread', lambda enabled: None)
+
+    assert app_module.initialize_application(startup_debug_enabled=False) is True

@@ -1,5 +1,6 @@
 import io
 import os
+import stat
 import tempfile
 import threading
 
@@ -12,6 +13,7 @@ IMAGE_COVER_VARIANT = 'cover'
 IMAGE_PRIMARY_TARGET_HEIGHT = 720
 IMAGE_COVER_MAX_DIMENSION = 480
 IMAGE_COVER_SUFFIX = '.cover.webp'
+IMAGE_FILE_MODE = 0o644
 _COVER_GENERATION_LOCK = threading.Lock()
 
 
@@ -144,12 +146,48 @@ def _write_bytes_atomically(file_path, content):
         with os.fdopen(descriptor, 'wb') as output:
             output.write(content)
         os.replace(temporary_path, file_path)
+        os.chmod(file_path, IMAGE_FILE_MODE)
     except Exception:
         try:
             os.remove(temporary_path)
         except OSError:
             pass
         raise
+
+
+def normalize_uploaded_image_permissions(upload_folder, logger=None, allowed_extensions=ALLOWED_STORED_IMAGE_EXTENSIONS):
+    """Restore shared read permissions for valid image files in the upload directory."""
+    root_path = os.path.realpath(upload_folder)
+    if not os.path.isdir(root_path):
+        return 0
+
+    normalized_count = 0
+    for current_path, directory_names, filenames in os.walk(root_path, followlinks=False):
+        directory_names[:] = [
+            directory_name
+            for directory_name in directory_names
+            if not os.path.islink(os.path.join(current_path, directory_name))
+        ]
+        for filename in filenames:
+            file_path = os.path.join(current_path, filename)
+            relative_path = os.path.relpath(file_path, root_path).replace(os.sep, '/')
+            if not normalize_upload_filename(relative_path, allowed_extensions):
+                continue
+            try:
+                file_stat = os.lstat(file_path)
+            except OSError as error:
+                if logger:
+                    logger.warning("Unable to inspect uploaded image permissions: %s", error)
+                continue
+            if not stat.S_ISREG(file_stat.st_mode) or stat.S_IMODE(file_stat.st_mode) == IMAGE_FILE_MODE:
+                continue
+            try:
+                os.chmod(file_path, IMAGE_FILE_MODE)
+                normalized_count += 1
+            except OSError as error:
+                if logger:
+                    logger.warning("Unable to normalize uploaded image permissions for %r: %s", relative_path, error)
+    return normalized_count
 
 
 def save_image_variants(filename, variants, upload_folder, allowed_extensions=ALLOWED_STORED_IMAGE_EXTENSIONS):

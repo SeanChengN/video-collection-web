@@ -1,6 +1,13 @@
 import app as app_module
 from PIL import Image
 import io
+import os
+import stat
+
+
+def assert_shared_image_mode(path):
+    if os.name != 'nt':
+        assert stat.S_IMODE(os.stat(path).st_mode) == 0o644
 
 
 class FakeUpstream:
@@ -46,6 +53,15 @@ def test_image_cover_variant_is_generated_on_demand_and_cached(monkeypatch, tmp_
     image_dir.mkdir()
     primary_path = image_dir / 'cover.webp'
     Image.new('RGB', (1600, 800), color='blue').save(primary_path, format='WEBP')
+    chmod_calls = []
+    from video_collection import uploads as uploads_module
+    real_chmod = uploads_module.os.chmod
+
+    def track_chmod(path, mode):
+        chmod_calls.append((os.fspath(path), mode))
+        real_chmod(path, mode)
+
+    monkeypatch.setattr(uploads_module.os, 'chmod', track_chmod)
     monkeypatch.setitem(app_module.app.config, 'UPLOAD_FOLDER', str(image_dir))
     client = make_client()
 
@@ -55,6 +71,8 @@ def test_image_cover_variant_is_generated_on_demand_and_cached(monkeypatch, tmp_
     assert response.status_code == 200
     assert response.headers['Cache-Control'] == 'private, max-age=31536000, immutable'
     assert cover_path.is_file()
+    assert (os.fspath(cover_path), 0o644) in chmod_calls
+    assert_shared_image_mode(cover_path)
     with Image.open(cover_path) as cover:
         assert max(cover.size) == 480
 

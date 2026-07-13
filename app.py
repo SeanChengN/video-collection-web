@@ -303,6 +303,14 @@ def save_uploaded_image_variants(filename, variants):
         ALLOWED_STORED_IMAGE_EXTENSIONS
     )
 
+
+def normalize_upload_image_permissions():
+    return upload_helpers.normalize_uploaded_image_permissions(
+        app.config['UPLOAD_FOLDER'],
+        logger,
+        ALLOWED_STORED_IMAGE_EXTENSIONS
+    )
+
 def delete_uploaded_image(filename):
     return upload_helpers.delete_uploaded_image(
         filename,
@@ -970,6 +978,9 @@ def initialize_application(startup_debug_enabled=None):
         if not init_db():
             logger.error("Database initialization failed; application startup aborted")
             return False
+        normalized_count = normalize_upload_image_permissions()
+        if normalized_count:
+            logger.info("Normalized permissions for %d uploaded image file(s)", normalized_count)
         start_scheduled_backup_thread(startup_debug_enabled)
         APP_INITIALIZED = True
         return True
