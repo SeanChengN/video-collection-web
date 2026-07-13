@@ -228,20 +228,44 @@ function createStarsFragment(rating) {
     return fragment;
 }
 
-const imageObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            const img = entry.target;
-            if (!img.src || img.src === 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') {
-                img.src = img.dataset.src;
-                observer.unobserve(img);
+const IMAGE_LAZY_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+const imageObserver = typeof IntersectionObserver === 'function'
+    ? new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                loadDeferredImage(entry.target);
+                observer.unobserve(entry.target);
             }
-        }
-    });
-}, {
-    rootMargin: '50px 0px', // 提前50px加载
-    threshold: 0.1
-});
+        });
+    }, {
+        rootMargin: '240px 0px',
+        threshold: 0.01
+    })
+    : null;
+
+function loadDeferredImage(image) {
+    if (!image?.dataset.src) return;
+    if (!image.src || image.src === IMAGE_LAZY_PLACEHOLDER) {
+        image.src = image.dataset.src;
+    }
+    delete image.dataset.src;
+}
+
+function prepareDeferredImage(image, source, { eager = false, fetchPriority = 'auto' } = {}) {
+    if (!image || !source) return image;
+    image.decoding = 'async';
+    image.loading = eager ? 'eager' : 'lazy';
+    image.fetchPriority = fetchPriority;
+    if (eager || !imageObserver) {
+        image.src = source;
+        return image;
+    }
+
+    image.src = IMAGE_LAZY_PLACEHOLDER;
+    image.dataset.src = source;
+    imageObserver.observe(image);
+    return image;
+}
 
 // alert弹窗封装
 function showAlert(options = {}) {
@@ -485,7 +509,7 @@ const itemsPerPage = 9; // 每页显示9条
 let currentPage = 1;
 let totalPages = 0;
 let searchResultTotal = 0;
-function buildImageUrl(filename) {
+function buildImageUrl(filename, variant = '') {
     const parts = String(filename || '')
         .trim()
         .split('/')
@@ -493,7 +517,8 @@ function buildImageUrl(filename) {
     if (parts.length === 0) {
         return '';
     }
-    return `../images/${parts.map(part => encodeURIComponent(part)).join('/')}`;
+    const imageUrl = `../images/${parts.map(part => encodeURIComponent(part)).join('/')}`;
+    return variant ? `${imageUrl}?variant=${encodeURIComponent(variant)}` : imageUrl;
 }
 let allMovies = []; // 存储所有搜索结果
 
@@ -1198,9 +1223,7 @@ function searchEmby() {
                 
                 // 为新加载的图片添加懒加载观察
                 const img = column.querySelector('img');
-                if (img && imageUrl) {
-                    imageObserver.observe(img);
-                }
+                prepareDeferredImage(img, imageUrl);
                 const movieCard = column.querySelector('.movie-card');
                 if (movieCard && streamUrl) {
                     const playMovie = () => openEmbyPlayer(streamUrl, movieName);
@@ -3226,13 +3249,15 @@ function openModal(movie) {
         images.forEach((filename, index) => {
             if (filename.trim()) {
                 const trimmedFilename = filename.trim();
-                const imageUrl = buildImageUrl(trimmedFilename);
+                const imageUrl = buildImageUrl(trimmedFilename, 'cover');
                 const imageWrapper = document.createElement('div');
                 imageWrapper.className = 'existing-image-item';
                 imageWrapper.draggable = true; // 添加可拖拽属性
                 imageWrapper.dataset.index = index; // 添加索引用于排序
+                const previewImage = createEl('img', { attrs: { alt: '预览图' } });
+                prepareDeferredImage(previewImage, imageUrl);
                 appendChildren(imageWrapper, [
-                    createEl('img', { attrs: { src: imageUrl, alt: '预览图' } }),
+                    previewImage,
                     createEl('button', {
                         className: 'delete-existing-image',
                         attrs: { type: 'button' },
@@ -3651,11 +3676,11 @@ function createMovieCardRatings(movie) {
     ]);
 }
 
-function createMovieCardCover(movie) {
+function createMovieCardCover(movie, movieIndex) {
     const title = movie.title || '';
     const imageFilename = movie.image_filename || '';
     const firstImageFilename = imageFilename ? imageFilename.split(',')[0].trim() : '';
-    const firstImageUrl = firstImageFilename ? buildImageUrl(firstImageFilename) : '';
+    const firstImageUrl = firstImageFilename ? buildImageUrl(firstImageFilename, 'cover') : '';
 
     if (!firstImageUrl) {
         return createEl('div', { className: 'movie-card-cover is-empty' }, [
@@ -3673,9 +3698,12 @@ function createMovieCardCover(movie) {
             title
         }
     });
-    cover.appendChild(createEl('img', {
-        attrs: { src: firstImageUrl, alt: title || '电影封面' }
-    }));
+    const image = createEl('img', { attrs: { alt: title || '电影封面' } });
+    prepareDeferredImage(image, firstImageUrl, {
+        eager: movieIndex < 3,
+        fetchPriority: movieIndex < 3 ? 'high' : 'auto'
+    });
+    cover.appendChild(image);
     return cover;
 }
 
@@ -3713,7 +3741,7 @@ function createMovieCard(movie, movieIndex) {
 
     appendChildren(card, [
         createMovieCardEditButton(movieIndex),
-        createMovieCardCover(movie),
+        createMovieCardCover(movie, movieIndex),
         createEl('div', { className: 'movie-card-body' }, [
             createEl('h3', { className: 'movie-card-title', text: title, attrs: { title } }),
             createMovieCardTextBlock(movie.review, 'movie-card-review', '暂无评价'),
@@ -5745,6 +5773,8 @@ function renderImageViewerStrip() {
 
     currentImages.forEach((filename, index) => {
         const isActive = index === currentImageIndex;
+        const thumbnailImage = createEl('img', { attrs: { alt: `Image ${index + 1}` } });
+        prepareDeferredImage(thumbnailImage, buildImageUrl(filename, 'cover'));
         const button = createEl('button', {
             className: `image-viewer-thumb${isActive ? ' is-active' : ''}`,
             attrs: {
@@ -5753,9 +5783,7 @@ function renderImageViewerStrip() {
                 'aria-current': isActive ? 'true' : 'false'
             },
             dataset: { index: String(index) }
-        }, [
-            createEl('img', { attrs: { src: buildImageUrl(filename), alt: `Image ${index + 1}` } })
-        ]);
+        }, [thumbnailImage]);
         button.addEventListener('click', () => setImageViewerIndex(index));
         strip.appendChild(button);
     });

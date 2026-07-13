@@ -10,6 +10,7 @@ from PIL import Image
 import app as app_module
 import video_collection.backups as backups_module
 import video_collection.videos as video_helpers
+import video_collection.uploads as uploads_module
 from video_collection.backup_archive_ops import BackupArchiveOpsMixin
 from video_collection.backup_database_ops import BackupDatabaseOpsMixin
 from video_collection.backup_scheduler import BackupSchedulerMixin
@@ -221,3 +222,24 @@ def test_image_upload_creates_webp_file(monkeypatch, tmp_path):
     stored_path = app_module.get_upload_file_path(payload['filename'])
     assert stored_path
     assert (tmp_path / payload['filename']).is_file()
+    cover_filename = app_module.get_image_variant_filename(payload['filename'], 'cover')
+    assert cover_filename
+    assert (tmp_path / cover_filename).is_file()
+
+
+def test_image_variants_limit_cover_size_and_cleanup_together(tmp_path):
+    image_bytes = io.BytesIO()
+    Image.new('RGB', (1600, 800), color='red').save(image_bytes, format='PNG')
+    image_bytes.seek(0)
+
+    variants = uploads_module.process_image_variants(SimpleNamespace(stream=image_bytes))
+    uploads_module.save_image_variants('2026/cover.webp', variants, str(tmp_path))
+    cover_filename = uploads_module.get_image_variant_filename('2026/cover.webp', 'cover')
+    assert cover_filename == '2026/cover.cover.webp'
+
+    with Image.open(tmp_path / cover_filename) as cover:
+        assert max(cover.size) == 480
+
+    assert uploads_module.delete_uploaded_image('2026/cover.webp', str(tmp_path)) is True
+    assert not (tmp_path / '2026/cover.webp').exists()
+    assert not (tmp_path / cover_filename).exists()

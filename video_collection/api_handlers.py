@@ -52,6 +52,8 @@ class ApiHandlerDependencies:
     delete_video_file: Any
     allowed_file: Any
     process_image: Any
+    process_image_variants: Any
+    save_image_variants: Any
     get_upload_file_path: Any
     get_upload_folder: Any
     external_image_get: Any

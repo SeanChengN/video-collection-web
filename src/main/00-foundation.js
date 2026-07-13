@@ -164,20 +164,44 @@ function createStarsFragment(rating) {
     return fragment;
 }
 
-const imageObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            const img = entry.target;
-            if (!img.src || img.src === 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7') {
-                img.src = img.dataset.src;
-                observer.unobserve(img);
+const IMAGE_LAZY_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+const imageObserver = typeof IntersectionObserver === 'function'
+    ? new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                loadDeferredImage(entry.target);
+                observer.unobserve(entry.target);
             }
-        }
-    });
-}, {
-    rootMargin: '50px 0px', // 提前50px加载
-    threshold: 0.1
-});
+        });
+    }, {
+        rootMargin: '240px 0px',
+        threshold: 0.01
+    })
+    : null;
+
+function loadDeferredImage(image) {
+    if (!image?.dataset.src) return;
+    if (!image.src || image.src === IMAGE_LAZY_PLACEHOLDER) {
+        image.src = image.dataset.src;
+    }
+    delete image.dataset.src;
+}
+
+function prepareDeferredImage(image, source, { eager = false, fetchPriority = 'auto' } = {}) {
+    if (!image || !source) return image;
+    image.decoding = 'async';
+    image.loading = eager ? 'eager' : 'lazy';
+    image.fetchPriority = fetchPriority;
+    if (eager || !imageObserver) {
+        image.src = source;
+        return image;
+    }
+
+    image.src = IMAGE_LAZY_PLACEHOLDER;
+    image.dataset.src = source;
+    imageObserver.observe(image);
+    return image;
+}
 
 // alert弹窗封装
 function showAlert(options = {}) {
@@ -421,7 +445,7 @@ const itemsPerPage = 9; // 每页显示9条
 let currentPage = 1;
 let totalPages = 0;
 let searchResultTotal = 0;
-function buildImageUrl(filename) {
+function buildImageUrl(filename, variant = '') {
     const parts = String(filename || '')
         .trim()
         .split('/')
@@ -429,7 +453,8 @@ function buildImageUrl(filename) {
     if (parts.length === 0) {
         return '';
     }
-    return `../images/${parts.map(part => encodeURIComponent(part)).join('/')}`;
+    const imageUrl = `../images/${parts.map(part => encodeURIComponent(part)).join('/')}`;
+    return variant ? `${imageUrl}?variant=${encodeURIComponent(variant)}` : imageUrl;
 }
 let allMovies = []; // 存储所有搜索结果
 

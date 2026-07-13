@@ -1,4 +1,6 @@
 import app as app_module
+from PIL import Image
+import io
 
 
 class FakeUpstream:
@@ -34,7 +36,34 @@ def test_image_route_serves_valid_file_and_rejects_unsafe_path(monkeypatch, tmp_
 
     assert response.status_code == 200
     assert response.data == b'image-bytes'
+    assert response.headers['Cache-Control'] == 'private, max-age=31536000, immutable'
     assert client.get('/images/2026/../cover.webp').status_code == 404
+    assert client.get('/images/cover.webp?variant=unknown').status_code == 404
+
+
+def test_image_cover_variant_is_generated_on_demand_and_cached(monkeypatch, tmp_path):
+    image_dir = tmp_path / 'images'
+    image_dir.mkdir()
+    primary_path = image_dir / 'cover.webp'
+    Image.new('RGB', (1600, 800), color='blue').save(primary_path, format='WEBP')
+    monkeypatch.setitem(app_module.app.config, 'UPLOAD_FOLDER', str(image_dir))
+    client = make_client()
+
+    response = client.get('/images/cover.webp?variant=cover')
+
+    cover_path = image_dir / 'cover.cover.webp'
+    assert response.status_code == 200
+    assert response.headers['Cache-Control'] == 'private, max-age=31536000, immutable'
+    assert cover_path.is_file()
+    with Image.open(cover_path) as cover:
+        assert max(cover.size) == 480
+
+    primary_response = client.get('/images/cover.webp')
+    conditional_response = client.get(
+        '/images/cover.webp',
+        headers={'If-None-Match': primary_response.headers['ETag']}
+    )
+    assert conditional_response.status_code == 304
 
 
 def test_emby_image_route_streams_headers_and_closes_upstream(monkeypatch):

@@ -23,8 +23,12 @@ from video_collection.uploads import (
     ALLOWED_STORED_IMAGE_EXTENSIONS,
     allowed_file,
     allowed_stored_image_file,
+    ensure_image_cover,
+    get_image_variant_filename,
     normalize_upload_filename,
     process_image,
+    process_image_variants,
+    save_image_variants,
 )
 from video_collection.videos import ALLOWED_VIDEO_EXTENSIONS
 from video_collection.api_registry import (
@@ -274,6 +278,31 @@ def get_upload_file_path(filename):
         ALLOWED_STORED_IMAGE_EXTENSIONS
     )
 
+
+def get_image_variant_filename(filename, variant):
+    return upload_helpers.get_image_variant_filename(
+        filename,
+        variant,
+        ALLOWED_STORED_IMAGE_EXTENSIONS
+    )
+
+
+def ensure_upload_image_cover(filename):
+    return ensure_image_cover(
+        filename,
+        app.config['UPLOAD_FOLDER'],
+        ALLOWED_STORED_IMAGE_EXTENSIONS
+    )
+
+
+def save_uploaded_image_variants(filename, variants):
+    return save_image_variants(
+        filename,
+        variants,
+        app.config['UPLOAD_FOLDER'],
+        ALLOWED_STORED_IMAGE_EXTENSIONS
+    )
+
 def delete_uploaded_image(filename):
     return upload_helpers.delete_uploaded_image(
         filename,
@@ -342,6 +371,9 @@ def emby_request(method, path, params=None, headers=None, stream=False, timeout=
 _media_routes = MediaRouteHandlers(MediaRouteDependencies(
     normalize_upload_filename=normalize_upload_filename,
     get_upload_folder=lambda: app.config['UPLOAD_FOLDER'],
+    get_upload_file_path=get_upload_file_path,
+    get_image_variant_filename=get_image_variant_filename,
+    ensure_image_cover=ensure_upload_image_cover,
     normalize_video_relative_path=video_helpers.normalize_video_relative_path,
     get_video_library_abs_path=lambda relative_path='': video_helpers.get_video_library_abs_path(
         relative_path,
@@ -784,6 +816,8 @@ _api_handlers = ApiHandlers(ApiHandlerDependencies(
     delete_video_file=delete_video_file,
     allowed_file=allowed_file,
     process_image=process_image,
+    process_image_variants=process_image_variants,
+    save_image_variants=save_uploaded_image_variants,
     get_upload_file_path=get_upload_file_path,
     get_upload_folder=lambda: app.config['UPLOAD_FOLDER'],
     external_image_get=lambda *args, **kwargs: requests.get(*args, **kwargs),

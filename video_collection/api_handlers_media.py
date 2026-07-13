@@ -102,15 +102,8 @@ class ApiMediaHandlersMixin:
         os.makedirs(self.dependencies.get_upload_folder(), exist_ok=True)
 
         try:
-            processed_image = self.dependencies.process_image(file)
-            file_path = self.dependencies.get_upload_file_path(filename)
-            if not file_path:
-                self.dependencies.logger.error("Generated upload filename was rejected: %s", filename)
-                return self.dependencies.jsonify({'success': False, 'message': '图片保存失败'}), 500
-
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            with open(file_path, 'wb') as f:
-                f.write(processed_image)
+            processed_images = self.dependencies.process_image_variants(file)
+            self.dependencies.save_image_variants(filename, processed_images)
             return self.dependencies.jsonify({
                 'success': True,
                 'filename': filename

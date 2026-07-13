@@ -57,6 +57,8 @@ function renderImageViewerStrip() {
 
     currentImages.forEach((filename, index) => {
         const isActive = index === currentImageIndex;
+        const thumbnailImage = createEl('img', { attrs: { alt: `Image ${index + 1}` } });
+        prepareDeferredImage(thumbnailImage, buildImageUrl(filename, 'cover'));
         const button = createEl('button', {
             className: `image-viewer-thumb${isActive ? ' is-active' : ''}`,
             attrs: {
@@ -65,9 +67,7 @@ function renderImageViewerStrip() {
                 'aria-current': isActive ? 'true' : 'false'
             },
             dataset: { index: String(index) }
-        }, [
-            createEl('img', { attrs: { src: buildImageUrl(filename), alt: `Image ${index + 1}` } })
-        ]);
+        }, [thumbnailImage]);
         button.addEventListener('click', () => setImageViewerIndex(index));
         strip.appendChild(button);
     });

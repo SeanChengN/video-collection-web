@@ -69,11 +69,11 @@ function createMovieCardRatings(movie) {
     ]);
 }
 
-function createMovieCardCover(movie) {
+function createMovieCardCover(movie, movieIndex) {
     const title = movie.title || '';
     const imageFilename = movie.image_filename || '';
     const firstImageFilename = imageFilename ? imageFilename.split(',')[0].trim() : '';
-    const firstImageUrl = firstImageFilename ? buildImageUrl(firstImageFilename) : '';
+    const firstImageUrl = firstImageFilename ? buildImageUrl(firstImageFilename, 'cover') : '';
 
     if (!firstImageUrl) {
         return createEl('div', { className: 'movie-card-cover is-empty' }, [
@@ -91,9 +91,12 @@ function createMovieCardCover(movie) {
             title
         }
     });
-    cover.appendChild(createEl('img', {
-        attrs: { src: firstImageUrl, alt: title || '电影封面' }
-    }));
+    const image = createEl('img', { attrs: { alt: title || '电影封面' } });
+    prepareDeferredImage(image, firstImageUrl, {
+        eager: movieIndex < 3,
+        fetchPriority: movieIndex < 3 ? 'high' : 'auto'
+    });
+    cover.appendChild(image);
     return cover;
 }
 
@@ -131,7 +134,7 @@ function createMovieCard(movie, movieIndex) {
 
     appendChildren(card, [
         createMovieCardEditButton(movieIndex),
-        createMovieCardCover(movie),
+        createMovieCardCover(movie, movieIndex),
         createEl('div', { className: 'movie-card-body' }, [
             createEl('h3', { className: 'movie-card-title', text: title, attrs: { title } }),
             createMovieCardTextBlock(movie.review, 'movie-card-review', '暂无评价'),

@@ -186,9 +186,7 @@ function searchEmby() {
                 
                 // 为新加载的图片添加懒加载观察
                 const img = column.querySelector('img');
-                if (img && imageUrl) {
-                    imageObserver.observe(img);
-                }
+                prepareDeferredImage(img, imageUrl);
                 const movieCard = column.querySelector('.movie-card');
                 if (movieCard && streamUrl) {
                     const playMovie = () => openEmbyPlayer(streamUrl, movieName);

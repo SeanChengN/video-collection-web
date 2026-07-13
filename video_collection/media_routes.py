@@ -10,6 +10,9 @@ from flask import Response, request, send_from_directory, stream_with_context
 class MediaRouteDependencies:
     normalize_upload_filename: Any
     get_upload_folder: Any
+    get_upload_file_path: Any
+    get_image_variant_filename: Any
+    ensure_image_cover: Any
     normalize_video_relative_path: Any
     get_video_library_abs_path: Any
     allowed_video_file: Any
@@ -28,11 +31,29 @@ class MediaRouteHandlers:
         safe_filename = self.dependencies.normalize_upload_filename(filename)
         if not safe_filename:
             return Response(status=404)
-        return send_from_directory(
+
+        variant = request.args.get('variant', '').strip()
+        served_filename = safe_filename
+        cache_control = 'private, max-age=31536000, immutable'
+        if variant:
+            if variant != 'cover':
+                return Response(status=404)
+            cover_filename = self.dependencies.get_image_variant_filename(safe_filename, variant)
+            cover_path = self.dependencies.get_upload_file_path(cover_filename) if cover_filename else None
+            if not cover_path or not os.path.isfile(cover_path):
+                cover_path = self.dependencies.ensure_image_cover(safe_filename)
+            if cover_path and os.path.isfile(cover_path):
+                served_filename = cover_filename
+            else:
+                cache_control = 'private, max-age=60'
+
+        response = send_from_directory(
             self.dependencies.get_upload_folder(),
-            safe_filename,
+            served_filename,
             conditional=True
         )
+        response.headers['Cache-Control'] = cache_control
+        return response
 
     def serve_video(self, filename):
         safe_relative = self.dependencies.normalize_video_relative_path(filename)

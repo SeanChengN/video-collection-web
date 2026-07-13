@@ -72,13 +72,15 @@ function openModal(movie) {
         images.forEach((filename, index) => {
             if (filename.trim()) {
                 const trimmedFilename = filename.trim();
-                const imageUrl = buildImageUrl(trimmedFilename);
+                const imageUrl = buildImageUrl(trimmedFilename, 'cover');
                 const imageWrapper = document.createElement('div');
                 imageWrapper.className = 'existing-image-item';
                 imageWrapper.draggable = true; // 添加可拖拽属性
                 imageWrapper.dataset.index = index; // 添加索引用于排序
+                const previewImage = createEl('img', { attrs: { alt: '预览图' } });
+                prepareDeferredImage(previewImage, imageUrl);
                 appendChildren(imageWrapper, [
-                    createEl('img', { attrs: { src: imageUrl, alt: '预览图' } }),
+                    previewImage,
                     createEl('button', {
                         className: 'delete-existing-image',
                         attrs: { type: 'button' },

@@ -443,6 +443,25 @@ def test_search_result_counts_use_safe_dom_and_tokens():
     assert "var(--vc-result-muted)" in styles
 
 
+def test_local_image_variants_use_shared_deferred_loading():
+    foundation = (FRONTEND_SOURCE_DIR / "00-foundation.js").read_text(encoding="utf-8")
+    movie_results = (FRONTEND_SOURCE_DIR / "50-movies" / "20-results-table.js").read_text(encoding="utf-8")
+    edit_modal = (FRONTEND_SOURCE_DIR / "50-movies" / "10-edit-open-modal.js").read_text(encoding="utf-8")
+    viewer_navigation = (FRONTEND_SOURCE_DIR / "70-images" / "20-viewer-navigation.js").read_text(encoding="utf-8")
+    emby_results = (FRONTEND_SOURCE_DIR / "20-tools" / "10-emby-search-player.js").read_text(encoding="utf-8")
+
+    assert "function buildImageUrl(filename, variant = '')" in foundation
+    assert "?variant=${encodeURIComponent(variant)}" in foundation
+    assert "function prepareDeferredImage" in foundation
+    assert "rootMargin: '240px 0px'" in foundation
+    assert "buildImageUrl(firstImageFilename, 'cover')" in movie_results
+    assert "eager: movieIndex < 3" in movie_results
+    assert "fetchPriority: movieIndex < 3 ? 'high' : 'auto'" in movie_results
+    assert "buildImageUrl(trimmedFilename, 'cover')" in edit_modal
+    assert "buildImageUrl(filename, 'cover')" in viewer_navigation
+    assert "prepareDeferredImage" in emby_results
+
+
 def test_movie_results_render_as_cards():
     content = (FRONTEND_SOURCE_DIR / "50-movies" / "20-results-table.js").read_text(encoding="utf-8")
     foundation = (FRONTEND_SOURCE_DIR / "00-foundation.js").read_text(encoding="utf-8")
