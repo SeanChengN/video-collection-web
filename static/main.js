@@ -3295,6 +3295,7 @@ function changePage(page) {
 const debouncedSearchFromInput = debounce(searchFromControls, 350);
 
 function closeModal() {
+    endEditMovieDirtyTracking();
     ModalManager.close('editModal');
     updateThumbnailSelectionControls();
 }
@@ -3445,7 +3446,7 @@ function createRatingField(dimension, isEdit) {
             const input = this.previousElementSibling;
             if (input) {
                 input.checked = true;
-                input.dispatchEvent(new Event('change'));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
             }
         });
     });
@@ -3534,6 +3535,7 @@ function syncEditMovieEmbyState(movieTitle, itemId, options = {}) {
 function openModal(movie) {
     document.querySelector('.modal-card-title').textContent = `编辑电影：${movie.title}`;
     const modal = document.getElementById('editModal');
+    const dirtyTrackingSession = beginEditMovieDirtyTracking();
     
     // 清除旧的日期显示
     const oldDateField = document.querySelector('#edit-movie-form div:has(> p.has-text-grey)');
@@ -3571,17 +3573,20 @@ function openModal(movie) {
     document.getElementById('edit-review').value = movie.review || '';
     
     // 加载标签
-    loadEditTags().then(() => {
+    const tagsReady = loadEditTags().then(() => {
         // 设置已选中的标签
         const tagElements = document.querySelectorAll('#edit-tags .tag');
-        const movieTags = movie.tag_names ? movie.tag_names.split(', ') : [];
+        const movieTags = String(movie.tag_names || '')
+            .split(',')
+            .map(tag => tag.trim())
+            .filter(Boolean);
         tagElements.forEach(tag => {
             tag.classList.toggle('is-selected', movieTags.includes(tag.textContent.trim()));
         });
     });
     
     // 加载评分维度
-    loadEditRatings().then(() => {
+    const ratingsReady = loadEditRatings().then(() => {
         // 设置评分
         if (movie.ratings) {
             const ratings = movie.ratings.split(',');
@@ -3755,6 +3760,9 @@ function openModal(movie) {
     // 显示模态框
     ModalManager.open('editModal');
     updateThumbnailSelectionControls();
+    Promise.allSettled([tagsReady, ratingsReady]).then(() => {
+        completeEditMovieDirtyTracking(dirtyTrackingSession, movie);
+    });
 }
 async function loadEditTags() {
     try {
@@ -3894,6 +3902,8 @@ function restoreSearchState() {
     applySearchControlsState(searchState);
 }
 async function updateMovie() {
+    if (!isEditMovieDirty()) return;
+    setEditMovieSavePending(true);
     try {
         const form = document.getElementById('edit-movie-form');
         const title = document.getElementById('edit-title').value;
@@ -3903,9 +3913,7 @@ async function updateMovie() {
         saveSearchState();
 
         // 获取当前保留的现有图片
-        const currentImages = Array.from(modal.querySelectorAll('.existing-image-item'))
-            .sort((a, b) => parseInt(a.dataset.index) - parseInt(b.dataset.index))
-            .map(item => item.querySelector('.delete-existing-image').dataset.filename);
+        const currentImages = getEditExistingImageFilenames();
 
         // 处理新上传的图片
         const uploadedFiles = window[`getedit-image-upload-areaFiles`]() || [];
@@ -3941,6 +3949,7 @@ async function updateMovie() {
 
         const result = await callApi(event_map.update_movie, data, 'PUT');
         if (result.message) {
+            endEditMovieDirtyTracking();
             ModalManager.close('editModal');
             updateThumbnailSelectionControls();
             // 恢复搜索状态并重新搜索
@@ -3949,6 +3958,7 @@ async function updateMovie() {
                 searchCurrentPage();
             }
         } else {
+            setEditMovieSavePending(false);
             showAlert({
                 title: '更新失败',
                 message: result.error,
@@ -3957,6 +3967,7 @@ async function updateMovie() {
             });
         }
     } catch (error) {
+        setEditMovieSavePending(false);
         showAlert({
             title: '更新失败',
             message: error.message || String(error),
@@ -3965,6 +3976,172 @@ async function updateMovie() {
         });
     }
 }
+let editMovieDirtySession = 0;
+let editMovieBaselineSnapshot = null;
+let editMovieDirtyTrackingReady = false;
+let editMovieSavePending = false;
+let editMovieDirtyCheckFrame = null;
+let editMovieDirtyObserver = null;
+
+function getEditMovieSaveButton() {
+    return document.querySelector('#editModal [data-action="update-movie"]');
+}
+
+function setEditMovieSaveDisabled(disabled) {
+    const button = getEditMovieSaveButton();
+    if (!button) return;
+    button.disabled = disabled;
+    button.setAttribute('aria-disabled', String(disabled));
+}
+
+function getEditExistingImageFilenames() {
+    return Array.from(document.querySelectorAll('#editModal .existing-image-item'))
+        .map(item => item.querySelector('.delete-existing-image')?.dataset.filename || '')
+        .filter(Boolean);
+}
+
+function getEditUploadedFileState() {
+    const files = window['getedit-image-upload-areaFiles']?.() || [];
+    return files.map(file => ({
+        name: file.name || '',
+        size: Number(file.size) || 0,
+        type: file.type || '',
+        lastModified: Number(file.lastModified) || 0,
+        captureTimestamp: Number.isFinite(Number(file.captureTimestamp))
+            ? Number(file.captureTimestamp)
+            : null
+    }));
+}
+
+function getEditRatingState() {
+    return Array.from(document.querySelectorAll('#edit-ratings-container .rating'))
+        .map(rating => {
+            const dimensionId = String(rating.dataset.dimensionId || '');
+            const checked = rating.querySelector('input[type="radio"]:checked');
+            return `${dimensionId}:${checked ? checked.value : DEFAULT_RATING_VALUE}`;
+        })
+        .sort();
+}
+
+function getCurrentEditMovieState() {
+    return {
+        recommended: Boolean(document.getElementById('edit-recommended')?.checked),
+        review: document.getElementById('edit-review')?.value || '',
+        tags: Array.from(document.querySelectorAll('#edit-tags .tag.is-selected'))
+            .map(tag => tag.textContent.trim())
+            .sort(),
+        ratings: getEditRatingState(),
+        existingImages: getEditExistingImageFilenames(),
+        uploadedFiles: getEditUploadedFileState()
+    };
+}
+
+function getInitialEditMovieState(movie) {
+    const ratingValues = new Map();
+    String(movie.ratings || '').split(',').forEach(pair => {
+        const [dimensionId, value] = pair.split(':');
+        if (dimensionId && value) ratingValues.set(String(dimensionId), String(value));
+    });
+
+    const ratings = Array.from(document.querySelectorAll('#edit-ratings-container .rating'))
+        .map(rating => {
+            const dimensionId = String(rating.dataset.dimensionId || '');
+            return `${dimensionId}:${ratingValues.get(dimensionId) || DEFAULT_RATING_VALUE}`;
+        })
+        .sort();
+
+    return {
+        recommended: movie.recommended === 1 || movie.recommended === true,
+        review: movie.review || '',
+        tags: String(movie.tag_names || '')
+            .split(',')
+            .map(tag => tag.trim())
+            .filter(Boolean)
+            .sort(),
+        ratings,
+        existingImages: String(movie.image_filename || '')
+            .split(',')
+            .map(filename => filename.trim())
+            .filter(Boolean),
+        uploadedFiles: []
+    };
+}
+
+function serializeEditMovieState(state) {
+    return JSON.stringify(state);
+}
+
+function isEditMovieDirty() {
+    if (!editMovieDirtyTrackingReady || editMovieBaselineSnapshot === null) return false;
+    return serializeEditMovieState(getCurrentEditMovieState()) !== editMovieBaselineSnapshot;
+}
+
+function updateEditMovieSaveState() {
+    editMovieDirtyCheckFrame = null;
+    setEditMovieSaveDisabled(editMovieSavePending || !isEditMovieDirty());
+}
+
+function scheduleEditMovieDirtyCheck() {
+    if (!editMovieDirtyTrackingReady || editMovieDirtyCheckFrame !== null) return;
+    editMovieDirtyCheckFrame = requestAnimationFrame(updateEditMovieSaveState);
+}
+
+function beginEditMovieDirtyTracking() {
+    editMovieDirtySession += 1;
+    editMovieBaselineSnapshot = null;
+    editMovieDirtyTrackingReady = false;
+    editMovieSavePending = false;
+    if (editMovieDirtyCheckFrame !== null) {
+        cancelAnimationFrame(editMovieDirtyCheckFrame);
+        editMovieDirtyCheckFrame = null;
+    }
+    setEditMovieSaveDisabled(true);
+    return editMovieDirtySession;
+}
+
+function completeEditMovieDirtyTracking(session, movie) {
+    if (session !== editMovieDirtySession) return;
+    requestAnimationFrame(() => {
+        if (session !== editMovieDirtySession) return;
+        editMovieBaselineSnapshot = serializeEditMovieState(getInitialEditMovieState(movie));
+        editMovieDirtyTrackingReady = true;
+        updateEditMovieSaveState();
+    });
+}
+
+function endEditMovieDirtyTracking() {
+    editMovieDirtySession += 1;
+    editMovieBaselineSnapshot = null;
+    editMovieDirtyTrackingReady = false;
+    editMovieSavePending = false;
+    if (editMovieDirtyCheckFrame !== null) {
+        cancelAnimationFrame(editMovieDirtyCheckFrame);
+        editMovieDirtyCheckFrame = null;
+    }
+    setEditMovieSaveDisabled(true);
+}
+
+function setEditMovieSavePending(pending) {
+    editMovieSavePending = Boolean(pending);
+    updateEditMovieSaveState();
+}
+
+function initEditMovieDirtyTracking() {
+    const form = document.getElementById('edit-movie-form');
+    if (!form || editMovieDirtyObserver) return;
+
+    form.addEventListener('input', scheduleEditMovieDirtyCheck);
+    form.addEventListener('change', scheduleEditMovieDirtyCheck);
+    editMovieDirtyObserver = new MutationObserver(scheduleEditMovieDirtyCheck);
+    editMovieDirtyObserver.observe(form, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        attributeFilter: ['class', 'data-index']
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initEditMovieDirtyTracking);
 function parseMovieRatings(movie) {
     return movie.ratings
         ? movie.ratings.split(',').map(ratingPair => {

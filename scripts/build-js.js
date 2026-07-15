@@ -23,6 +23,7 @@ const sourceFiles = [
   'src/main/50-movies/11-edit-tags-ratings.js',
   'src/main/50-movies/12-edit-delete-state.js',
   'src/main/50-movies/13-edit-update-submit.js',
+  'src/main/50-movies/14-edit-dirty-state.js',
   'src/main/50-movies/20-results-table.js',
   'src/main/50-movies/30-pagination-formatting.js',
   'src/main/60-thumbnail/00-state-lifecycle.js',

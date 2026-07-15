@@ -636,8 +636,8 @@
         }
         .search-btn:hover,
         .search-btn:active,
-        .save-btn:hover,
-        .save-btn:active,
+        .save-btn:not(:disabled):not([disabled]):hover,
+        .save-btn:not(:disabled):not([disabled]):active,
         .save-btn-small:hover,
         .save-btn-small:active,
         .add-btn:hover,
@@ -661,6 +661,27 @@
             display: block;
             transform-origin: center center;
             transition: transform 0.3s ease-in-out;
+        }
+        #editModal .save-btn:disabled,
+        #editModal .save-btn[disabled] {
+            color: var(--vc-button-disabled-text, #8a94a6) !important;
+            cursor: not-allowed;
+            opacity: 0.58;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        #editModal .save-btn:disabled::before,
+        #editModal .save-btn[disabled]::before {
+            filter: grayscale(25%) saturate(55%) brightness(78%) !important;
+        }
+        #editModal .save-btn:disabled .icon,
+        #editModal .save-btn[disabled] .icon,
+        #editModal .save-btn:disabled svg,
+        #editModal .save-btn[disabled] svg,
+        #editModal .save-btn:disabled span,
+        #editModal .save-btn[disabled] span {
+            animation: none !important;
+            transform: none !important;
         }
         /* 工具栏按钮特效 */
         .function-tools {
@@ -1264,7 +1285,7 @@
         </section>
         <footer class="modal-card-foot">
             <div class="btn-group-left">
-                <button class="button is-success save-btn" data-action="update-movie">
+                <button class="button is-success save-btn" data-action="update-movie" disabled aria-disabled="true">
                     <span class="icon">
                         <svg width="14" height="14" fill="currentColor" stroke="none" aria-label="保存">
                             <use href="../static/sprite.svg#save-btn-icon"></use>

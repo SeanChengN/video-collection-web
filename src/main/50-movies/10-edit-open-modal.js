@@ -32,6 +32,7 @@ function syncEditMovieEmbyState(movieTitle, itemId, options = {}) {
 function openModal(movie) {
     document.querySelector('.modal-card-title').textContent = `编辑电影：${movie.title}`;
     const modal = document.getElementById('editModal');
+    const dirtyTrackingSession = beginEditMovieDirtyTracking();
     
     // 清除旧的日期显示
     const oldDateField = document.querySelector('#edit-movie-form div:has(> p.has-text-grey)');
@@ -69,17 +70,20 @@ function openModal(movie) {
     document.getElementById('edit-review').value = movie.review || '';
     
     // 加载标签
-    loadEditTags().then(() => {
+    const tagsReady = loadEditTags().then(() => {
         // 设置已选中的标签
         const tagElements = document.querySelectorAll('#edit-tags .tag');
-        const movieTags = movie.tag_names ? movie.tag_names.split(', ') : [];
+        const movieTags = String(movie.tag_names || '')
+            .split(',')
+            .map(tag => tag.trim())
+            .filter(Boolean);
         tagElements.forEach(tag => {
             tag.classList.toggle('is-selected', movieTags.includes(tag.textContent.trim()));
         });
     });
     
     // 加载评分维度
-    loadEditRatings().then(() => {
+    const ratingsReady = loadEditRatings().then(() => {
         // 设置评分
         if (movie.ratings) {
             const ratings = movie.ratings.split(',');
@@ -253,4 +257,7 @@ function openModal(movie) {
     // 显示模态框
     ModalManager.open('editModal');
     updateThumbnailSelectionControls();
+    Promise.allSettled([tagsReady, ratingsReady]).then(() => {
+        completeEditMovieDirtyTracking(dirtyTrackingSession, movie);
+    });
 }

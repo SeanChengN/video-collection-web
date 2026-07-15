@@ -106,7 +106,7 @@ function createRatingField(dimension, isEdit) {
             const input = this.previousElementSibling;
             if (input) {
                 input.checked = true;
-                input.dispatchEvent(new Event('change'));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
             }
         });
     });

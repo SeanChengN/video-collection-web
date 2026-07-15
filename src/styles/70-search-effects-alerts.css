@@ -215,8 +215,8 @@
 
 .button.search-btn:hover,
 .button.search-btn:active,
-.button.save-btn:hover,
-.button.save-btn:active,
+.button.save-btn:not(:disabled):not([disabled]):hover,
+.button.save-btn:not(:disabled):not([disabled]):active,
 .button.save-btn-small:hover,
 .button.save-btn-small:active,
 .button.add-btn:hover,

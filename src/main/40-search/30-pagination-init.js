@@ -14,6 +14,7 @@ function changePage(page) {
 const debouncedSearchFromInput = debounce(searchFromControls, 350);
 
 function closeModal() {
+    endEditMovieDirtyTracking();
     ModalManager.close('editModal');
     updateThumbnailSelectionControls();
 }

@@ -470,6 +470,60 @@ def test_edit_modal_can_bind_emby_without_starting_playback():
     assert "var(--vc-service-card-bg" in styles
 
 
+def test_edit_movie_save_tracks_actual_content_changes():
+    root = Path(__file__).resolve().parents[1]
+    template = INDEX_TEMPLATE.read_text(encoding="utf-8")
+    build_script = (root / "scripts" / "build-js.js").read_text(encoding="utf-8")
+    ratings = (FRONTEND_SOURCE_DIR / "50-movies" / "00-ratings-and-drag.js").read_text(encoding="utf-8")
+    open_modal = (FRONTEND_SOURCE_DIR / "50-movies" / "10-edit-open-modal.js").read_text(encoding="utf-8")
+    update_submit = (FRONTEND_SOURCE_DIR / "50-movies" / "13-edit-update-submit.js").read_text(encoding="utf-8")
+    dirty_state = (FRONTEND_SOURCE_DIR / "50-movies" / "14-edit-dirty-state.js").read_text(encoding="utf-8")
+    button_effects = (STYLE_SOURCE_DIR / "30-controls-ratings.css").read_text(encoding="utf-8")
+
+    save_button = re.search(
+        r'<button[^>]+data-action="update-movie"[^>]*>',
+        template,
+    )
+    assert save_button
+    assert "disabled" in save_button.group(0)
+    assert 'aria-disabled="true"' in save_button.group(0)
+    assert "src/main/50-movies/14-edit-dirty-state.js" in build_script
+
+    for state_key in (
+        "recommended",
+        "review",
+        "tags",
+        "ratings",
+        "existingImages",
+        "uploadedFiles",
+    ):
+        assert state_key in dirty_state
+
+    current_state_block = dirty_state[
+        dirty_state.index("function getCurrentEditMovieState"):
+        dirty_state.index("function getInitialEditMovieState")
+    ]
+    assert "emby" not in current_state_block.lower()
+    assert "MutationObserver" in dirty_state
+    assert "form.addEventListener('input', scheduleEditMovieDirtyCheck)" in dirty_state
+    assert "form.addEventListener('change', scheduleEditMovieDirtyCheck)" in dirty_state
+    assert "serializeEditMovieState(getCurrentEditMovieState()) !== editMovieBaselineSnapshot" in dirty_state
+    assert "session !== editMovieDirtySession" in dirty_state
+    assert "Promise.allSettled([tagsReady, ratingsReady])" in open_modal
+    assert "completeEditMovieDirtyTracking(dirtyTrackingSession, movie)" in open_modal
+    assert "if (!isEditMovieDirty()) return;" in update_submit
+    assert "setEditMovieSavePending(false)" in update_submit
+    assert "new Event('change', { bubbles: true })" in ratings
+    assert ".save-btn:not(:disabled):not([disabled]):hover" in template
+    assert ".save-btn:not(:disabled):not([disabled]):hover" in button_effects
+    assert "#editModal .save-btn:disabled" in template
+    assert "#editModal .save-btn:disabled" in button_effects
+    disabled_effects = button_effects[button_effects.index("#editModal .save-btn:disabled"):]
+    assert "animation: none !important" in disabled_effects
+    assert "transform: none !important" in disabled_effects
+    assert "box-shadow: none !important" in disabled_effects
+
+
 def test_wtl_screenshot_import_uses_safe_api_event():
     content = (FRONTEND_SOURCE_DIR / "20-tools" / "30-wtl-search-results.js").read_text(encoding="utf-8")
     assert "event_map.fetch_external_image" in content

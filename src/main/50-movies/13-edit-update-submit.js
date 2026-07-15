@@ -1,4 +1,6 @@
 async function updateMovie() {
+    if (!isEditMovieDirty()) return;
+    setEditMovieSavePending(true);
     try {
         const form = document.getElementById('edit-movie-form');
         const title = document.getElementById('edit-title').value;
@@ -8,9 +10,7 @@ async function updateMovie() {
         saveSearchState();
 
         // 获取当前保留的现有图片
-        const currentImages = Array.from(modal.querySelectorAll('.existing-image-item'))
-            .sort((a, b) => parseInt(a.dataset.index) - parseInt(b.dataset.index))
-            .map(item => item.querySelector('.delete-existing-image').dataset.filename);
+        const currentImages = getEditExistingImageFilenames();
 
         // 处理新上传的图片
         const uploadedFiles = window[`getedit-image-upload-areaFiles`]() || [];
@@ -46,6 +46,7 @@ async function updateMovie() {
 
         const result = await callApi(event_map.update_movie, data, 'PUT');
         if (result.message) {
+            endEditMovieDirtyTracking();
             ModalManager.close('editModal');
             updateThumbnailSelectionControls();
             // 恢复搜索状态并重新搜索
@@ -54,6 +55,7 @@ async function updateMovie() {
                 searchCurrentPage();
             }
         } else {
+            setEditMovieSavePending(false);
             showAlert({
                 title: '更新失败',
                 message: result.error,
@@ -62,6 +64,7 @@ async function updateMovie() {
             });
         }
     } catch (error) {
+        setEditMovieSavePending(false);
         showAlert({
             title: '更新失败',
             message: error.message || String(error),

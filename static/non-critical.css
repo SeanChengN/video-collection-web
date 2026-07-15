@@ -2984,14 +2984,14 @@ tr.is-duplicate:hover {
 .search-btn:hover {
     box-shadow: 0 6px 16px var(--vc-action-primary-shadow, rgba(67, 97, 238, 0.4)) !important;
 }
-.save-btn:hover,
+.save-btn:not(:disabled):not([disabled]):hover,
 .save-btn-small:hover,
 .add-btn:hover {
     box-shadow: 0 6px 16px var(--vc-action-success-shadow, rgba(34, 197, 94, 0.4)) !important;
 }
 .delete-btn:hover::before,
 .search-btn:hover::before,
-.save-btn:hover::before,
+.save-btn:not(:disabled):not([disabled]):hover::before,
 .save-btn-small:hover::before,
 .add-btn:hover::before {
     filter: brightness(90%);
@@ -3000,7 +3000,7 @@ tr.is-duplicate:hover {
     transform: scale(0.95);
     box-shadow: 0 2px 8px rgba(67, 97, 238, 0.2) !important;
 }
-.save-btn:active,
+.save-btn:not(:disabled):not([disabled]):active,
 .save-btn-small:active,
 .add-btn:active {
     transform: scale(0.95);
@@ -3008,14 +3008,14 @@ tr.is-duplicate:hover {
 }
 .delete-btn:active::before,
 .search-btn:active::before,
-.save-btn:active::before,
+.save-btn:not(:disabled):not([disabled]):active::before,
 .save-btn-small:active::before,
 .add-btn:active::before {
     filter: brightness(80%);
 }
 .delete-btn:hover .icon,
 .search-btn:hover .icon,
-.save-btn:hover .icon,
+.save-btn:not(:disabled):not([disabled]):hover .icon,
 .save-btn-small:hover .icon,
 .add-btn:hover .icon {
     animation: fly-1 0.6s ease-in-out infinite alternate;
@@ -3023,7 +3023,7 @@ tr.is-duplicate:hover {
 .search-btn:hover svg {
     transform: translateX(1.4em) rotate(90deg) scale(1.5);
 }
-.save-btn:hover svg {
+.save-btn:not(:disabled):not([disabled]):hover svg {
     transform: translateX(1.4em) rotate(20deg) scale(1.4);
 }
 .save-btn-small:hover svg {
@@ -3034,10 +3034,31 @@ tr.is-duplicate:hover {
 }
 .delete-btn:hover span:not(.icon),
 .search-btn:hover span,
-.save-btn:hover span,
+.save-btn:not(:disabled):not([disabled]):hover span,
 .save-btn-small:hover span,
 .add-btn:hover span {
     transform: translateX(5em);
+}
+#editModal .save-btn:disabled,
+#editModal .save-btn[disabled] {
+    color: var(--vc-button-disabled-text, #8a94a6) !important;
+    cursor: not-allowed;
+    opacity: 0.58;
+    transform: none !important;
+    box-shadow: none !important;
+}
+#editModal .save-btn:disabled::before,
+#editModal .save-btn[disabled]::before {
+    filter: grayscale(25%) saturate(55%) brightness(78%) !important;
+}
+#editModal .save-btn:disabled .icon,
+#editModal .save-btn[disabled] .icon,
+#editModal .save-btn:disabled svg,
+#editModal .save-btn[disabled] svg,
+#editModal .save-btn:disabled span,
+#editModal .save-btn[disabled] span {
+    animation: none !important;
+    transform: none !important;
 }
 @keyframes fly-1 {
     from {transform: translateY(0.1em);}
@@ -6376,8 +6397,8 @@ button.movie-card-cover {
 
 .button.search-btn:hover,
 .button.search-btn:active,
-.button.save-btn:hover,
-.button.save-btn:active,
+.button.save-btn:not(:disabled):not([disabled]):hover,
+.button.save-btn:not(:disabled):not([disabled]):active,
 .button.save-btn-small:hover,
 .button.save-btn-small:active,
 .button.add-btn:hover,
