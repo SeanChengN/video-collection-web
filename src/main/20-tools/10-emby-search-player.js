@@ -92,12 +92,18 @@ function resizeEmbyModalForResults() {
 }
 
 function rememberMovieEmbyLink(movieTitle, itemId) {
+    const normalizedItemId = itemId || null;
     const movie = Array.isArray(allMovies)
         ? allMovies.find(candidate => candidate.title === movieTitle)
         : null;
-    if (!movie || movie.emby_item_id === itemId) return;
-    movie.emby_item_id = itemId || null;
-    if (document.getElementById('search-results')) {
+    const movieChanged = Boolean(movie && movie.emby_item_id !== normalizedItemId);
+    if (movieChanged) {
+        movie.emby_item_id = normalizedItemId;
+    }
+    if (typeof syncEditMovieEmbyState === 'function') {
+        syncEditMovieEmbyState(movieTitle, normalizedItemId, { preserveFeedback: true });
+    }
+    if (movieChanged && document.getElementById('search-results')) {
         displayCurrentPage();
     }
 }
@@ -240,7 +246,8 @@ function openEmbyLinkSelection(movieTitle, startTimestamp, candidates = [], opti
     embyLinkSelectionContext = {
         movieTitle,
         startTimestamp: Math.max(0, Number(startTimestamp) || 0),
-        playbackTarget: options.playbackTarget === 'viewer' ? 'viewer' : 'modal'
+        playbackTarget: options.playbackTarget === 'viewer' ? 'viewer' : 'modal',
+        linkMode: options.linkMode === 'save-only' ? 'save-only' : 'play'
     };
     openEmbyModal();
     const input = document.getElementById('emby-search-input');
@@ -313,8 +320,13 @@ async function linkMovieEmby(movie) {
         const playback = result.data.playback;
         const startTimestamp = context.startTimestamp;
         const playbackTarget = context.playbackTarget;
+        const saveOnly = context.linkMode === 'save-only';
         rememberMovieEmbyLink(context.movieTitle, playback.id);
         closeEmbyModal();
+        if (saveOnly) {
+            setEditMovieEmbyFeedback('绑定成功', 'success');
+            return;
+        }
         startEmbyPlayback(playback.streamUrl, playback.name || context.movieTitle, startTimestamp, {
             target: playbackTarget,
             movieTitle: context.movieTitle,
@@ -327,6 +339,54 @@ async function linkMovieEmby(movie) {
             type: 'error',
             showCancel: false
         });
+    }
+}
+
+async function handleEditMovieEmbyAction() {
+    const modal = document.getElementById('editModal');
+    const title = document.getElementById('edit-title')?.value.trim();
+    const itemId = String(modal?.dataset.embyItemId || '').trim();
+    const button = document.querySelector('#edit-emby-link-field .edit-emby-link-action');
+    if (!title || !button) return;
+
+    if (itemId) {
+        await playMovieEmbyFromSearch({ title, emby_item_id: itemId });
+        return;
+    }
+
+    button.disabled = true;
+    button.classList.add('is-loading');
+    setEditMovieEmbyFeedback('正在查找 Emby 电影…', 'pending');
+    try {
+        const result = await callApi(event_map.resolve_movie_emby_playback, { title });
+        if (!result.success) throw new Error(result.message || '无法查找 Emby 电影');
+
+        const data = result.data || {};
+        if (data.status === 'linked' && data.playback?.id) {
+            rememberMovieEmbyLink(title, data.playback.id);
+            setEditMovieEmbyFeedback('绑定成功', 'success');
+            return;
+        }
+        if (data.status === 'candidates') {
+            setEditMovieEmbyFeedback('请选择对应的 Emby 电影', 'pending');
+            openEmbyLinkSelection(title, 0, data.candidates || [], {
+                playbackTarget: 'modal',
+                linkMode: 'save-only'
+            });
+            return;
+        }
+        throw new Error('未找到可绑定的 Emby 电影');
+    } catch (error) {
+        setEditMovieEmbyFeedback('绑定失败', 'error');
+        showAlert({
+            title: 'Emby',
+            message: error.message || '无法绑定 Emby 电影',
+            type: 'warning',
+            showCancel: false
+        });
+    } finally {
+        button.disabled = false;
+        button.classList.remove('is-loading');
     }
 }
 

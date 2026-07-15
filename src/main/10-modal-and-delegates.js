@@ -22,6 +22,7 @@ function initStaticEventDelegates() {
         'close-edit-modal': closeModal,
         'update-movie': updateMovie,
         'delete-movie': deleteMovie,
+        'edit-movie-emby': handleEditMovieEmbyAction,
         'close-wtl-modal': closeWtlModal,
         'search-wtl': searchWtl,
         'refresh-wtl-status': refreshWtlStatus,

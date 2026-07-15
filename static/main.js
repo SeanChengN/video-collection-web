@@ -556,6 +556,7 @@ function initStaticEventDelegates() {
         'close-edit-modal': closeModal,
         'update-movie': updateMovie,
         'delete-movie': deleteMovie,
+        'edit-movie-emby': handleEditMovieEmbyAction,
         'close-wtl-modal': closeWtlModal,
         'search-wtl': searchWtl,
         'refresh-wtl-status': refreshWtlStatus,
@@ -1145,12 +1146,18 @@ function resizeEmbyModalForResults() {
 }
 
 function rememberMovieEmbyLink(movieTitle, itemId) {
+    const normalizedItemId = itemId || null;
     const movie = Array.isArray(allMovies)
         ? allMovies.find(candidate => candidate.title === movieTitle)
         : null;
-    if (!movie || movie.emby_item_id === itemId) return;
-    movie.emby_item_id = itemId || null;
-    if (document.getElementById('search-results')) {
+    const movieChanged = Boolean(movie && movie.emby_item_id !== normalizedItemId);
+    if (movieChanged) {
+        movie.emby_item_id = normalizedItemId;
+    }
+    if (typeof syncEditMovieEmbyState === 'function') {
+        syncEditMovieEmbyState(movieTitle, normalizedItemId, { preserveFeedback: true });
+    }
+    if (movieChanged && document.getElementById('search-results')) {
         displayCurrentPage();
     }
 }
@@ -1293,7 +1300,8 @@ function openEmbyLinkSelection(movieTitle, startTimestamp, candidates = [], opti
     embyLinkSelectionContext = {
         movieTitle,
         startTimestamp: Math.max(0, Number(startTimestamp) || 0),
-        playbackTarget: options.playbackTarget === 'viewer' ? 'viewer' : 'modal'
+        playbackTarget: options.playbackTarget === 'viewer' ? 'viewer' : 'modal',
+        linkMode: options.linkMode === 'save-only' ? 'save-only' : 'play'
     };
     openEmbyModal();
     const input = document.getElementById('emby-search-input');
@@ -1366,8 +1374,13 @@ async function linkMovieEmby(movie) {
         const playback = result.data.playback;
         const startTimestamp = context.startTimestamp;
         const playbackTarget = context.playbackTarget;
+        const saveOnly = context.linkMode === 'save-only';
         rememberMovieEmbyLink(context.movieTitle, playback.id);
         closeEmbyModal();
+        if (saveOnly) {
+            setEditMovieEmbyFeedback('绑定成功', 'success');
+            return;
+        }
         startEmbyPlayback(playback.streamUrl, playback.name || context.movieTitle, startTimestamp, {
             target: playbackTarget,
             movieTitle: context.movieTitle,
@@ -1380,6 +1393,54 @@ async function linkMovieEmby(movie) {
             type: 'error',
             showCancel: false
         });
+    }
+}
+
+async function handleEditMovieEmbyAction() {
+    const modal = document.getElementById('editModal');
+    const title = document.getElementById('edit-title')?.value.trim();
+    const itemId = String(modal?.dataset.embyItemId || '').trim();
+    const button = document.querySelector('#edit-emby-link-field .edit-emby-link-action');
+    if (!title || !button) return;
+
+    if (itemId) {
+        await playMovieEmbyFromSearch({ title, emby_item_id: itemId });
+        return;
+    }
+
+    button.disabled = true;
+    button.classList.add('is-loading');
+    setEditMovieEmbyFeedback('正在查找 Emby 电影…', 'pending');
+    try {
+        const result = await callApi(event_map.resolve_movie_emby_playback, { title });
+        if (!result.success) throw new Error(result.message || '无法查找 Emby 电影');
+
+        const data = result.data || {};
+        if (data.status === 'linked' && data.playback?.id) {
+            rememberMovieEmbyLink(title, data.playback.id);
+            setEditMovieEmbyFeedback('绑定成功', 'success');
+            return;
+        }
+        if (data.status === 'candidates') {
+            setEditMovieEmbyFeedback('请选择对应的 Emby 电影', 'pending');
+            openEmbyLinkSelection(title, 0, data.candidates || [], {
+                playbackTarget: 'modal',
+                linkMode: 'save-only'
+            });
+            return;
+        }
+        throw new Error('未找到可绑定的 Emby 电影');
+    } catch (error) {
+        setEditMovieEmbyFeedback('绑定失败', 'error');
+        showAlert({
+            title: 'Emby',
+            message: error.message || '无法绑定 Emby 电影',
+            type: 'warning',
+            showCancel: false
+        });
+    } finally {
+        button.disabled = false;
+        button.classList.remove('is-loading');
     }
 }
 
@@ -3439,6 +3500,37 @@ function getDragAfterElement(container, x, y) {
     
     return draggableElements[targetIndex];
 }
+function setEditMovieEmbyFeedback(message = '', state = '') {
+    const feedback = document.getElementById('edit-emby-link-feedback');
+    if (!feedback) return;
+    feedback.textContent = message;
+    feedback.hidden = !message;
+    feedback.dataset.state = state;
+}
+
+function syncEditMovieEmbyState(movieTitle, itemId, options = {}) {
+    const modal = document.getElementById('editModal');
+    const titleInput = document.getElementById('edit-title');
+    const panel = document.querySelector('#edit-emby-link-field .edit-emby-link-panel');
+    const status = document.getElementById('edit-emby-link-status');
+    const button = document.querySelector('#edit-emby-link-field .edit-emby-link-action');
+    const buttonText = button?.querySelector('.edit-emby-link-action-text');
+    if (!modal || !panel || !status || !button || !buttonText) return;
+    if (movieTitle && titleInput?.value && movieTitle !== titleInput.value) return;
+
+    const normalizedItemId = String(itemId || '').trim();
+    const isLinked = Boolean(normalizedItemId);
+    modal.dataset.embyItemId = normalizedItemId;
+    panel.dataset.linked = String(isLinked);
+    status.textContent = isLinked ? '已绑定' : '未绑定';
+    buttonText.textContent = isLinked ? '播放' : '绑定';
+    button.setAttribute('aria-label', isLinked ? '播放 Emby' : '绑定 Emby');
+    button.title = isLinked ? '播放 Emby' : '绑定 Emby';
+    button.classList.toggle('is-success', isLinked);
+    button.classList.toggle('is-info', !isLinked);
+    if (!options.preserveFeedback) setEditMovieEmbyFeedback();
+}
+
 function openModal(movie) {
     document.querySelector('.modal-card-title').textContent = `编辑电影：${movie.title}`;
     const modal = document.getElementById('editModal');
@@ -3465,6 +3557,9 @@ function openModal(movie) {
     // 将日期字段插入到表单开头
     const form = document.getElementById('edit-movie-form');
     form.insertBefore(dateField, form.firstChild);
+    const embyLinkField = document.getElementById('edit-emby-link-field');
+    if (embyLinkField) dateField.before(embyLinkField);
+    syncEditMovieEmbyState(movie.title, movie.emby_item_id);
     
     // 设置推荐状态
     const recommendedRadio = document.getElementById('edit-recommended').checked = movie.recommended === 1;

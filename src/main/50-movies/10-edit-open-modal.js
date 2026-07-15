@@ -1,3 +1,34 @@
+function setEditMovieEmbyFeedback(message = '', state = '') {
+    const feedback = document.getElementById('edit-emby-link-feedback');
+    if (!feedback) return;
+    feedback.textContent = message;
+    feedback.hidden = !message;
+    feedback.dataset.state = state;
+}
+
+function syncEditMovieEmbyState(movieTitle, itemId, options = {}) {
+    const modal = document.getElementById('editModal');
+    const titleInput = document.getElementById('edit-title');
+    const panel = document.querySelector('#edit-emby-link-field .edit-emby-link-panel');
+    const status = document.getElementById('edit-emby-link-status');
+    const button = document.querySelector('#edit-emby-link-field .edit-emby-link-action');
+    const buttonText = button?.querySelector('.edit-emby-link-action-text');
+    if (!modal || !panel || !status || !button || !buttonText) return;
+    if (movieTitle && titleInput?.value && movieTitle !== titleInput.value) return;
+
+    const normalizedItemId = String(itemId || '').trim();
+    const isLinked = Boolean(normalizedItemId);
+    modal.dataset.embyItemId = normalizedItemId;
+    panel.dataset.linked = String(isLinked);
+    status.textContent = isLinked ? '已绑定' : '未绑定';
+    buttonText.textContent = isLinked ? '播放' : '绑定';
+    button.setAttribute('aria-label', isLinked ? '播放 Emby' : '绑定 Emby');
+    button.title = isLinked ? '播放 Emby' : '绑定 Emby';
+    button.classList.toggle('is-success', isLinked);
+    button.classList.toggle('is-info', !isLinked);
+    if (!options.preserveFeedback) setEditMovieEmbyFeedback();
+}
+
 function openModal(movie) {
     document.querySelector('.modal-card-title').textContent = `编辑电影：${movie.title}`;
     const modal = document.getElementById('editModal');
@@ -24,6 +55,9 @@ function openModal(movie) {
     // 将日期字段插入到表单开头
     const form = document.getElementById('edit-movie-form');
     form.insertBefore(dateField, form.firstChild);
+    const embyLinkField = document.getElementById('edit-emby-link-field');
+    if (embyLinkField) dateField.before(embyLinkField);
+    syncEditMovieEmbyState(movie.title, movie.emby_item_id);
     
     // 设置推荐状态
     const recommendedRadio = document.getElementById('edit-recommended').checked = movie.recommended === 1;

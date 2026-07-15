@@ -1198,6 +1198,23 @@
                 <div class="field">
                     <input type="hidden" id="edit-title">
                 </div>
+                <div class="field edit-emby-link-field" id="edit-emby-link-field">
+                    <div class="edit-emby-link-panel" data-linked="false">
+                        <div class="edit-emby-link-info">
+                            <svg class="edit-emby-link-icon" width="20" height="20" fill="currentColor" stroke="none" aria-hidden="true">
+                                <use href="../static/sprite.svg#emby-icon"></use>
+                            </svg>
+                            <div class="edit-emby-link-copy">
+                                <span class="edit-emby-link-label">Emby</span>
+                                <span class="edit-emby-link-status" id="edit-emby-link-status">未绑定</span>
+                                <span class="edit-emby-link-feedback" id="edit-emby-link-feedback" aria-live="polite" hidden></span>
+                            </div>
+                        </div>
+                        <button type="button" class="button is-small is-info edit-emby-link-action" data-action="edit-movie-emby" aria-label="绑定 Emby">
+                            <span class="edit-emby-link-action-text">绑定</span>
+                        </button>
+                    </div>
+                </div>
                 <div class="field recommend-field">
                     <input type="checkbox" id="edit-recommended" name="recommended" value="1">
                     <label for="edit-recommended">

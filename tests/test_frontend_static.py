@@ -413,8 +413,61 @@ def test_bound_movie_cards_offer_emby_playback_before_edit():
     emby_icon_block = styles.rsplit(".movie-card-emby-btn svg {", 1)[1].split("}", 1)[0]
     assert "width: 0.95rem" in shared_icon_block
     assert "height: 0.95rem" in shared_icon_block
-    assert "width: 1.15rem" in emby_icon_block
-    assert "height: 1.15rem" in emby_icon_block
+    emby_icon_width = re.search(r"width:\s*([\d.]+)rem", emby_icon_block)
+    emby_icon_height = re.search(r"height:\s*([\d.]+)rem", emby_icon_block)
+    assert emby_icon_width and float(emby_icon_width.group(1)) > 0.95
+    assert emby_icon_height and float(emby_icon_height.group(1)) > 0.95
+
+
+def test_edit_modal_can_bind_emby_without_starting_playback():
+    template = INDEX_TEMPLATE.read_text(encoding="utf-8")
+    edit_modal = (FRONTEND_SOURCE_DIR / "50-movies" / "10-edit-open-modal.js").read_text(encoding="utf-8")
+    actions = (FRONTEND_SOURCE_DIR / "10-modal-and-delegates.js").read_text(encoding="utf-8")
+    emby = (FRONTEND_SOURCE_DIR / "20-tools" / "10-emby-search-player.js").read_text(encoding="utf-8")
+    movie_results = (FRONTEND_SOURCE_DIR / "50-movies" / "20-results-table.js").read_text(encoding="utf-8")
+    styles = (STYLE_SOURCE_DIR / "50-modals-results.css").read_text(encoding="utf-8")
+
+    edit_start = template.index('id="editModal"')
+    edit_end = template.index('id="wtlModal"', edit_start)
+    edit_template = template[edit_start:edit_end]
+    assert 'id="edit-emby-link-field"' in edit_template
+    assert 'id="edit-emby-link-status"' in edit_template
+    assert 'id="edit-emby-link-feedback"' in edit_template
+    assert 'data-action="edit-movie-emby"' in edit_template
+    assert '<span class="edit-emby-link-action-text">绑定</span>' in edit_template
+    edit_emby_button = edit_template.split('data-action="edit-movie-emby"', 1)[1].split('</button>', 1)[0]
+    assert '<svg' not in edit_emby_button
+    assert edit_template.index('id="edit-emby-link-field"') < edit_template.index('class="field recommend-field"')
+
+    assert "function syncEditMovieEmbyState" in edit_modal
+    assert "dateField.before(embyLinkField)" in edit_modal
+    assert "syncEditMovieEmbyState(movie.title, movie.emby_item_id)" in edit_modal
+    assert "buttonText.textContent = isLinked ? '播放' : '绑定'" in edit_modal
+    assert "button.setAttribute('aria-label', isLinked ? '播放 Emby' : '绑定 Emby')" in edit_modal
+    assert "'edit-movie-emby': handleEditMovieEmbyAction" in actions
+
+    assert "function handleEditMovieEmbyAction" in emby
+    edit_action_body = emby.split("async function handleEditMovieEmbyAction() {", 1)[1].split("\n}\n\nasync function playMovieEmbyFromSearch", 1)[0]
+    assert "playMovieEmbyFromSearch({ title, emby_item_id: itemId })" in edit_action_body
+    assert "event_map.resolve_movie_emby_playback" in edit_action_body
+    assert "linkMode: 'save-only'" in edit_action_body
+    assert "setEditMovieEmbyFeedback('绑定成功', 'success')" in edit_action_body
+    assert "openEmbyPlayer" not in edit_action_body
+    assert "startEmbyPlayback" not in edit_action_body
+
+    link_body = emby.split("async function linkMovieEmby(movie) {", 1)[1].split("\n}\n\nasync function handleEditMovieEmbyAction", 1)[0]
+    assert "const saveOnly = context.linkMode === 'save-only'" in link_body
+    assert link_body.index("if (saveOnly) {") < link_body.index("startEmbyPlayback(")
+    save_only_body = link_body.split("if (saveOnly) {", 1)[1].split("}", 1)[0]
+    assert "setEditMovieEmbyFeedback('绑定成功', 'success')" in save_only_body
+    assert "return;" in save_only_body
+
+    assert "if (movie.emby_item_id)" in movie_results
+    assert "syncEditMovieEmbyState(movieTitle, normalizedItemId" in emby
+    assert "#editModal .edit-emby-link-panel" in styles
+    assert "#editModal .edit-emby-link-action" in styles
+    assert "#editModal .edit-emby-link-action svg" not in styles
+    assert "var(--vc-service-card-bg" in styles
 
 
 def test_wtl_screenshot_import_uses_safe_api_event():

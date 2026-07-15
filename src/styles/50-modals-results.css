@@ -254,6 +254,72 @@
     resize: vertical;
 }
 
+#editModal .edit-emby-link-panel {
+    align-items: center;
+    background: color-mix(in srgb, var(--vc-service-card-bg, #ffffff) 92%, var(--vc-color-accent, #3273dc));
+    border: 1px solid var(--vc-service-card-border, var(--vc-color-border, #dbdbdb));
+    border-radius: var(--vc-radius-md, 8px);
+    display: flex;
+    gap: var(--vc-space-3, 0.75rem);
+    justify-content: space-between;
+    min-width: 0;
+    padding: var(--vc-space-2, 0.5rem) var(--vc-space-3, 0.75rem);
+}
+
+#editModal .edit-emby-link-info,
+#editModal .edit-emby-link-action {
+    align-items: center;
+    display: inline-flex;
+}
+
+#editModal .edit-emby-link-info {
+    gap: var(--vc-space-2, 0.5rem);
+    min-width: 0;
+}
+
+#editModal .edit-emby-link-icon {
+    color: var(--vc-tool-emby, var(--vc-color-accent, #3273dc));
+    flex: 0 0 auto;
+}
+
+#editModal .edit-emby-link-copy {
+    align-items: baseline;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.45rem;
+    min-width: 0;
+}
+
+#editModal .edit-emby-link-label {
+    color: var(--vc-color-text, #363636);
+    font-weight: 600;
+}
+
+#editModal .edit-emby-link-status {
+    color: var(--vc-result-muted, var(--vc-color-text-muted, #6b7280));
+    font-size: 0.82rem;
+}
+
+#editModal .edit-emby-link-feedback {
+    color: var(--vc-result-muted, var(--vc-color-text-muted, #6b7280));
+    flex-basis: 100%;
+    font-size: 0.75rem;
+}
+
+#editModal .edit-emby-link-feedback[data-state="success"] {
+    color: var(--vc-action-success, #22c55e);
+}
+
+#editModal .edit-emby-link-feedback[data-state="error"] {
+    color: var(--vc-color-danger, #f14668);
+}
+
+#editModal .edit-emby-link-action {
+    flex: 0 0 auto;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
 /*----------------------------------------
   3. 响应式样式
 ----------------------------------------*/
@@ -472,6 +538,16 @@
     }
     #editModal .modal-card .textarea {
         min-height: 8rem;
+    }
+
+    #editModal .edit-emby-link-panel {
+        gap: 0.5rem;
+        padding: 0.5rem 0.6rem;
+    }
+
+    #editModal .edit-emby-link-action {
+        min-height: 2.25rem !important;
+        padding-inline: 0.65rem !important;
     }
 }
 
