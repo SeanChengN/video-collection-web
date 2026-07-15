@@ -676,6 +676,10 @@ def migrate_movie_images_schema(conn, cursor):
     return movie_metadata.migrate_movie_images_schema(conn, cursor, logger, normalize_upload_filename)
 
 
+def migrate_movie_emby_link_schema(conn, cursor):
+    return movie_metadata.migrate_movie_emby_link_schema(conn, cursor, logger)
+
+
 # Database initialization
 def init_db():
     try:
@@ -684,7 +688,8 @@ def init_db():
             logger,
             ensure_index,
             migrate_movie_metadata_schema,
-            migrate_movie_images_schema
+            migrate_movie_images_schema,
+            migrate_movie_emby_link_schema
         )
     except Exception as e:
         log_exception('Database initialization', e)
@@ -802,6 +807,7 @@ _api_handlers = ApiHandlers(ApiHandlerDependencies(
     api_event_metadata=api_event_metadata,
     get_service_url=get_service_url,
     emby_request=emby_request,
+    get_emby_user_id=lambda: authenticate_emby()[1],
     get_movie_image_filenames=get_movie_image_filenames,
     get_database_upgrade_diagnostics=get_database_upgrade_diagnostics,
     check_database_connection=check_database_connection,
@@ -863,6 +869,14 @@ def get_services_config_handler(data, method='GET'):
 
 def search_emby_handler(data, method='POST'):
     return _api_handlers.search_emby_handler(data, method)
+
+
+def resolve_movie_emby_playback_handler(data, method='POST'):
+    return _api_handlers.resolve_movie_emby_playback_handler(data, method)
+
+
+def link_movie_emby_handler(data, method='POST'):
+    return _api_handlers.link_movie_emby_handler(data, method)
 
 
 def fetch_external_image_handler(data, method='POST'):
@@ -960,7 +974,9 @@ API_EVENTS.update({
     1021: api_event('delete_db_backup', delete_db_backup_handler, methods=('DELETE', 'POST')),
     1022: api_event('fetch_external_image', fetch_external_image_handler, methods=('POST',)),
     1023: api_event('check_wtl_status', check_wtl_status_handler, methods=('GET', 'POST')),
-    1024: api_event('delete_video_file', delete_video_file_handler, methods=('DELETE',))
+    1024: api_event('delete_video_file', delete_video_file_handler, methods=('DELETE',)),
+    1025: api_event('resolve_movie_emby_playback', resolve_movie_emby_playback_handler, methods=('POST',)),
+    1026: api_event('link_movie_emby', link_movie_emby_handler, methods=('POST',))
 })
 
 APP_INITIALIZATION_LOCK = threading.Lock()

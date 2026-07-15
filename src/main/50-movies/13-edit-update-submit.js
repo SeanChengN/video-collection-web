@@ -17,6 +17,7 @@ async function updateMovie() {
         const uploadResults = await Promise.all(uploadedFiles.map(async file => {
             const formData = new FormData();
             formData.append('image', file);
+            appendCaptureTimestampToUpload(formData, file);
             const response = await fetch('/api', { 
                 method: 'POST', 
                 headers: window.getCsrfHeaders ? window.getCsrfHeaders() : {},

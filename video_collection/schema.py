@@ -155,7 +155,8 @@ def initialize_database(
     logger,
     ensure_index,
     migrate_metadata_schema,
-    migrate_images_schema
+    migrate_images_schema,
+    migrate_emby_link_schema=None
 ):
     with connection_factory() as conn:
         cursor = conn.cursor()
@@ -164,5 +165,7 @@ def initialize_database(
         seed_default_metadata(cursor)
         migrate_metadata_schema(conn, cursor)
         migrate_images_schema(conn, cursor)
+        if migrate_emby_link_schema:
+            migrate_emby_link_schema(conn, cursor)
         conn.commit()
         return True

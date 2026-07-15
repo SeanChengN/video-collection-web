@@ -22,7 +22,9 @@ const event_map = {
     delete_db_backup: 1021,
     fetch_external_image: 1022,
     check_wtl_status: 1023,
-    delete_video_file: 1024
+    delete_video_file: 1024,
+    resolve_movie_emby_playback: 1025,
+    link_movie_emby: 1026
 };
 
 window.event_map = event_map;

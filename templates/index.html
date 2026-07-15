@@ -1738,6 +1738,13 @@
         <section class="modal-card-body">
             <div class="image-viewer-container">
                 <div class="image-viewer-scroll">
+                    <button type="button" class="image-viewer-timecode" data-action="play-image-timecode" hidden aria-label="在 Emby 中播放"></button>
+                    <button type="button" class="image-viewer-video-return" data-action="exit-image-viewer-video" hidden aria-label="返回当前截图" title="返回当前截图">
+                        <svg width="16" height="16" fill="currentColor" stroke="none" aria-label="返回当前截图">
+                            <use href="../static/sprite.svg#thumbnail-icon"></use>
+                        </svg>
+                    </button>
+                    <video class="image-viewer-emby-video" controls playsinline preload="metadata" hidden></video>
                     <img src=" " alt="大图预览" class="viewer-image">
                 </div>
                 <div class="nav-buttons">

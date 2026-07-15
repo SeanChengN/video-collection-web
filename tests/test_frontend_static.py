@@ -318,6 +318,105 @@ def test_thumbnail_local_video_delete_uses_confirmed_icon_action():
     assert "var(--vc-color-danger)" in styles
 
 
+def test_capture_timestamp_upload_and_emby_viewer_linking_are_wired():
+    events = (Path(__file__).resolve().parents[1] / "src" / "config" / "events.js").read_text(encoding="utf-8")
+    foundation = (FRONTEND_SOURCE_DIR / "00-foundation.js").read_text(encoding="utf-8")
+    capture = (FRONTEND_SOURCE_DIR / "60-thumbnail" / "50-capture-batch.js").read_text(encoding="utf-8")
+    add_movie = (FRONTEND_SOURCE_DIR / "70-images" / "20-viewer-navigation.js").read_text(encoding="utf-8")
+    edit_movie = (FRONTEND_SOURCE_DIR / "50-movies" / "13-edit-update-submit.js").read_text(encoding="utf-8")
+    emby = (FRONTEND_SOURCE_DIR / "20-tools" / "10-emby-search-player.js").read_text(encoding="utf-8")
+    template = INDEX_TEMPLATE.read_text(encoding="utf-8")
+    styles = (STYLE_SOURCE_DIR / "40-images-rating-cells.css").read_text(encoding="utf-8")
+
+    assert "resolve_movie_emby_playback: 1025" in events
+    assert "link_movie_emby: 1026" in events
+    assert "appendCaptureTimestampToUpload" in foundation
+    assert "file.captureTimestamp = currentTime" in capture
+    assert "appendCaptureTimestampToUpload(imageFormData, file)" in add_movie
+    assert "appendCaptureTimestampToUpload(formData, file)" in edit_movie
+    assert "image-viewer-timecode" in template
+    assert "parseImageCaptureTimestamp" in add_movie
+    assert "playImageCaptureInEmby" in add_movie
+    assert "openEmbyLinkSelection" in emby
+    assert "handleEmbyPlaybackError" in emby
+    assert "recoveryAttempted" in emby
+    assert ".image-viewer-timecode" in styles
+
+
+def test_capture_timecode_uses_hours_and_viewer_embeds_emby_video():
+    navigation = (FRONTEND_SOURCE_DIR / "70-images" / "20-viewer-navigation.js").read_text(encoding="utf-8")
+    layout = (FRONTEND_SOURCE_DIR / "70-images" / "10-viewer-layout.js").read_text(encoding="utf-8")
+    emby = (FRONTEND_SOURCE_DIR / "20-tools" / "10-emby-search-player.js").read_text(encoding="utf-8")
+    actions = (FRONTEND_SOURCE_DIR / "10-modal-and-delegates.js").read_text(encoding="utf-8")
+    template = INDEX_TEMPLATE.read_text(encoding="utf-8")
+    styles = (STYLE_SOURCE_DIR / "40-images-rating-cells.css").read_text(encoding="utf-8")
+
+    assert "Math.floor(totalSeconds / 3600)" in navigation
+    assert "Math.floor((totalSeconds % 3600) / 60)" in navigation
+    assert ".map(value => String(value).padStart(2, '0'))" in navigation
+    assert ".join(':')" in navigation
+    assert "image-viewer-emby-video" in template
+    assert "exit-image-viewer-video" in template
+    assert "'exit-image-viewer-video': exitImageViewerVideoMode" in actions
+    assert "openImageViewerEmbyPlayer" in navigation
+    assert "seekImageViewerEmbyPlayback(captureTimestamp)" in navigation
+    assert "stopImageViewerEmbyPlayback()" in navigation
+    assert "currentImageMovieTitle = ''" in navigation
+    assert "target === 'viewer'" in emby
+    assert "playbackTarget: context.target" in emby
+    assert "playbackTarget: 'viewer'" in navigation
+    assert "const isVideoMode" in layout
+    assert "displayWidth * 9 / 16" in layout
+    assert ".image-viewer-container.is-video-mode" in styles
+    assert ".image-viewer-emby-video" in styles
+    assert ".image-viewer-video-return" in styles
+
+    timecode_block = styles.split("#imageViewerModal .image-viewer-timecode {", 1)[1].split("}", 1)[0]
+    return_block = styles.split("#imageViewerModal .image-viewer-video-return {", 1)[1].split("}", 1)[0]
+    assert "top: 0.7rem" in timecode_block
+    assert "left: 0.7rem" in timecode_block
+    assert "bottom: auto" in timecode_block
+    assert "opacity: 0.65" in timecode_block
+    assert "opacity 160ms ease" in timecode_block
+    assert "top: 0.7rem" in return_block
+    assert "left: 0.7rem" in return_block
+    assert "opacity: 0.65" in return_block
+    assert "opacity 160ms ease" in return_block
+    assert "#imageViewerModal .image-viewer-timecode:focus-visible" in styles
+    assert "#imageViewerModal .image-viewer-video-return:focus-visible" in styles
+    assert "opacity: 1" in styles
+    assert "opacity: 0.45" in styles
+
+
+def test_bound_movie_cards_offer_emby_playback_before_edit():
+    movie_handlers = (Path(__file__).resolve().parents[1] / "video_collection" / "api_handlers_movies.py").read_text(encoding="utf-8")
+    movie_results = (FRONTEND_SOURCE_DIR / "50-movies" / "20-results-table.js").read_text(encoding="utf-8")
+    actions = (FRONTEND_SOURCE_DIR / "10-modal-and-delegates.js").read_text(encoding="utf-8")
+    emby = (FRONTEND_SOURCE_DIR / "20-tools" / "10-emby-search-player.js").read_text(encoding="utf-8")
+    styles = (STYLE_SOURCE_DIR / "50-modals-results.css").read_text(encoding="utf-8")
+
+    assert "m.added_date, m.emby_item_id" in movie_handlers
+    assert "if (movie.emby_item_id)" in movie_results
+    assert "createMovieCardEmbyButton(movieIndex)" in movie_results
+    assert "actions.push(createMovieCardEditButton(movieIndex))" in movie_results
+    assert movie_results.index("actions.push(createMovieCardEmbyButton(movieIndex))") < movie_results.index("actions.push(createMovieCardEditButton(movieIndex))")
+    assert "dataset: { action: 'play-movie-emby', movieIndex }" in movie_results
+    assert "createSpriteSvg('emby-icon'" in movie_results
+    assert "actionElement.dataset.action === 'play-movie-emby'" in actions
+    assert "playMovieEmbyFromSearch(allMovies[index])" in actions
+    assert "function playMovieEmbyFromSearch(movie)" in emby
+    assert "openEmbyPlayer(data.playback.streamUrl" in emby
+    assert "rememberMovieEmbyLink" in emby
+    assert ".movie-card-actions" in styles
+    assert ".movie-card-emby-btn" in styles
+    shared_icon_block = styles.split(".movie-card-edit-btn svg,", 1)[1].split("}", 1)[0]
+    emby_icon_block = styles.rsplit(".movie-card-emby-btn svg {", 1)[1].split("}", 1)[0]
+    assert "width: 0.95rem" in shared_icon_block
+    assert "height: 0.95rem" in shared_icon_block
+    assert "width: 1.15rem" in emby_icon_block
+    assert "height: 1.15rem" in emby_icon_block
+
+
 def test_wtl_screenshot_import_uses_safe_api_event():
     content = (FRONTEND_SOURCE_DIR / "20-tools" / "30-wtl-search-results.js").read_text(encoding="utf-8")
     assert "event_map.fetch_external_image" in content
@@ -435,7 +534,8 @@ def test_search_result_counts_use_safe_dom_and_tokens():
     assert "searchResultTotal" in search_actions
     assert "searchResultTotal = 0" in search_actions
     assert "createResultsCountSummary(searchResultTotal, '部电影', 'movie-results-count')" in movie_results
-    assert "createResultsCountSummary(items.length, '个结果', 'emby-results-count')" in emby_results
+    assert "const resultUnit = embyLinkSelectionContext ? '个候选' : '个结果'" in emby_results
+    assert "createResultsCountSummary(candidates.length, '个候选', 'emby-results-count')" in emby_results
     assert ".results-count-summary" in styles
     assert ".movie-results-count" in styles
     assert ".emby-results-count" in styles

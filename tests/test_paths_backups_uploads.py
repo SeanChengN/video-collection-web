@@ -244,6 +244,52 @@ def test_image_upload_creates_webp_file(monkeypatch, tmp_path):
         assert_shared_image_mode(image_path)
 
 
+def test_image_upload_preserves_valid_capture_timestamp_in_filename(monkeypatch, tmp_path):
+    monkeypatch.setenv('APP_ACCESS_TOKEN', '')
+    monkeypatch.setitem(app_module.app.config, 'UPLOAD_FOLDER', str(tmp_path))
+    client = make_client()
+
+    image_bytes = io.BytesIO()
+    Image.new('RGB', (8, 8), color='blue').save(image_bytes, format='PNG')
+    image_bytes.seek(0)
+
+    response = client.post(
+        '/api',
+        data={
+            'image': (image_bytes, 'capture.png'),
+            'capture_timestamp': '83.45'
+        },
+        content_type='multipart/form-data'
+    )
+
+    payload = response.get_json()
+    assert response.status_code == 200
+    assert payload['success'] is True
+    assert payload['filename'].endswith('__at-83.45s.webp')
+
+
+def test_image_upload_rejects_invalid_capture_timestamp(monkeypatch, tmp_path):
+    monkeypatch.setenv('APP_ACCESS_TOKEN', '')
+    monkeypatch.setitem(app_module.app.config, 'UPLOAD_FOLDER', str(tmp_path))
+    client = make_client()
+
+    image_bytes = io.BytesIO()
+    Image.new('RGB', (8, 8), color='green').save(image_bytes, format='PNG')
+    image_bytes.seek(0)
+
+    response = client.post(
+        '/api',
+        data={
+            'image': (image_bytes, 'capture.png'),
+            'capture_timestamp': '-1'
+        },
+        content_type='multipart/form-data'
+    )
+
+    assert response.status_code == 400
+    assert response.get_json()['message'] == 'Invalid capture timestamp'
+
+
 def test_image_variants_limit_cover_size_and_cleanup_together(monkeypatch, tmp_path):
     image_bytes = io.BytesIO()
     Image.new('RGB', (1600, 800), color='red').save(image_bytes, format='PNG')

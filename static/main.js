@@ -196,6 +196,13 @@ function createNotification(type, message) {
     });
 }
 
+function appendCaptureTimestampToUpload(formData, file) {
+    const timestamp = Number(file?.captureTimestamp);
+    if (Number.isFinite(timestamp) && timestamp >= 0) {
+        formData.append('capture_timestamp', String(timestamp));
+    }
+}
+
 function createResultsCountSummary(count, unitText, extraClassName = '') {
     const safeCount = Math.max(0, Number(count) || 0);
     const className = ['results-count-summary', extraClassName]
@@ -564,6 +571,8 @@ function initStaticEventDelegates() {
         'add-new-tag': addNewTag,
         'add-new-rating': addNewRating,
         'close-image-viewer': closeImageViewer,
+        'play-image-timecode': playImageCaptureInEmby,
+        'exit-image-viewer-video': exitImageViewerVideoMode,
         'show-prev-image': showPrevImage,
         'show-next-image': showNextImage
     };
@@ -649,6 +658,13 @@ function initDynamicEventDelegates() {
                 const index = Number(actionElement.dataset.movieIndex);
                 if (Number.isInteger(index) && allMovies[index]) {
                     openModal(allMovies[index]);
+                }
+            }
+
+            if (actionElement.dataset.action === 'play-movie-emby') {
+                const index = Number(actionElement.dataset.movieIndex);
+                if (Number.isInteger(index) && allMovies[index]) {
+                    playMovieEmbyFromSearch(allMovies[index]);
                 }
             }
 
@@ -1051,6 +1067,8 @@ function closeEmbyModal() {
 const EMBY_MODAL_DEFAULT_HEIGHT_RATIO = 0.3;
 const EMBY_MODAL_MAX_HEIGHT_RATIO = 0.9;
 let embySearchRequestId = 0;
+let embyLinkSelectionContext = null;
+let currentEmbyPlaybackContext = null;
 
 function centerEmbyModal() {
     const modal = document.getElementById('embyModal');
@@ -1085,6 +1103,7 @@ function resetEmbyModalHeight() {
 
 function clearEmbyModalState() {
     embySearchRequestId += 1;
+    embyLinkSelectionContext = null;
     const input = document.getElementById('emby-search-input');
     const resultsDiv = document.getElementById('emby-results');
     const modalBody = document.querySelector('#embyModal .modal-card-body');
@@ -1125,35 +1144,273 @@ function resizeEmbyModalForResults() {
     });
 }
 
-function openEmbyPlayer(streamUrl, title) {
-    const modal = document.getElementById('embyPlayerModal');
-    const video = document.getElementById('emby-player-video');
-    const titleElement = modal?.querySelector('.modal-card-title');
-    if (!modal || !video || !streamUrl) return;
-
-    if (titleElement) {
-        titleElement.textContent = title ? `Emby: ${title}` : 'Emby Player';
+function rememberMovieEmbyLink(movieTitle, itemId) {
+    const movie = Array.isArray(allMovies)
+        ? allMovies.find(candidate => candidate.title === movieTitle)
+        : null;
+    if (!movie || movie.emby_item_id === itemId) return;
+    movie.emby_item_id = itemId || null;
+    if (document.getElementById('search-results')) {
+        displayCurrentPage();
     }
+}
 
+function releaseEmbyVideo(video) {
+    if (!video) return;
+    video.onerror = null;
     video.pause();
     video.removeAttribute('src');
     video.load();
-    video.src = streamUrl;
+}
 
-    ModalManager.open('embyPlayerModal');
-    requestAnimationFrame(() => {
+function getEmbyPlaybackVideo(target) {
+    return target === 'viewer'
+        ? document.querySelector('#imageViewerModal .image-viewer-emby-video')
+        : document.getElementById('emby-player-video');
+}
+
+function startEmbyPlayback(streamUrl, title, startTimestamp = 0, playbackContext = {}) {
+    const target = playbackContext.target === 'viewer' ? 'viewer' : 'modal';
+    const video = getEmbyPlaybackVideo(target);
+    if (!video || !streamUrl) return;
+
+    if (currentEmbyPlaybackContext?.video && currentEmbyPlaybackContext.video !== video) {
+        releaseEmbyVideo(currentEmbyPlaybackContext.video);
+    }
+    if (target === 'viewer') {
+        ModalManager.close('embyPlayerModal');
+        enterImageViewerVideoMode();
+    } else {
+        if (currentEmbyPlaybackContext?.target === 'viewer') {
+            leaveImageViewerVideoMode();
+        }
+        const modal = document.getElementById('embyPlayerModal');
+        const titleElement = modal?.querySelector('.modal-card-title');
+        if (titleElement) {
+            titleElement.textContent = title ? `Emby: ${title}` : 'Emby Player';
+        }
+        ModalManager.open('embyPlayerModal');
+    }
+
+    const context = {
+        target,
+        video,
+        movieTitle: playbackContext.movieTitle || '',
+        itemId: playbackContext.itemId || '',
+        startTimestamp: Math.max(0, Number(startTimestamp) || 0),
+        recoveryAttempted: Boolean(playbackContext.recoveryAttempted)
+    };
+    currentEmbyPlaybackContext = context;
+    releaseEmbyVideo(video);
+    video.src = streamUrl;
+    video.onerror = () => handleEmbyPlaybackError(context);
+    video.addEventListener('loadedmetadata', () => {
+        if (currentEmbyPlaybackContext !== context) return;
+        if (context.startTimestamp > 0) {
+            const duration = Number(video.duration);
+            video.currentTime = Number.isFinite(duration)
+                ? Math.min(context.startTimestamp, Math.max(0, duration))
+                : context.startTimestamp;
+        }
         video.play().catch(() => {});
+    }, { once: true });
+}
+
+function openEmbyPlayer(streamUrl, title, startTimestamp = 0, playbackContext = {}) {
+    startEmbyPlayback(streamUrl, title, startTimestamp, {
+        ...playbackContext,
+        target: playbackContext.target || 'modal'
+    });
+}
+
+function openImageViewerEmbyPlayer(streamUrl, title, startTimestamp = 0, playbackContext = {}) {
+    startEmbyPlayback(streamUrl, title, startTimestamp, {
+        ...playbackContext,
+        target: 'viewer'
     });
 }
 
 function closeEmbyPlayerModal() {
     const video = document.getElementById('emby-player-video');
-    if (video) {
-        video.pause();
-        video.removeAttribute('src');
-        video.load();
+    releaseEmbyVideo(video);
+    if (currentEmbyPlaybackContext?.target === 'modal') {
+        currentEmbyPlaybackContext = null;
     }
     ModalManager.close('embyPlayerModal');
+}
+
+async function handleEmbyPlaybackError(context) {
+    if (currentEmbyPlaybackContext !== context || !context.movieTitle || context.recoveryAttempted) {
+        return;
+    }
+    context.recoveryAttempted = true;
+    try {
+        const result = await callApi(event_map.resolve_movie_emby_playback, {
+            title: context.movieTitle,
+            refresh: true
+        });
+        if (!result.success) {
+            throw new Error(result.message || 'Emby playback could not be recovered');
+        }
+        const data = result.data || {};
+        if (data.status === 'linked' && data.playback?.streamUrl) {
+            if (data.playback.id === context.itemId) {
+                throw new Error('The linked Emby item is available, but playback failed');
+            }
+            rememberMovieEmbyLink(context.movieTitle, data.playback.id);
+            startEmbyPlayback(data.playback.streamUrl, data.playback.name || context.movieTitle, context.startTimestamp, {
+                target: context.target,
+                movieTitle: context.movieTitle,
+                itemId: data.playback.id,
+                recoveryAttempted: true
+            });
+            return;
+        }
+        if (data.status === 'candidates') {
+            rememberMovieEmbyLink(context.movieTitle, null);
+            if (context.target === 'viewer') {
+                exitImageViewerVideoMode();
+            } else {
+                closeEmbyPlayerModal();
+            }
+            openEmbyLinkSelection(context.movieTitle, context.startTimestamp, data.candidates || [], {
+                playbackTarget: context.target
+            });
+            return;
+        }
+        throw new Error('No matching Emby movie was found');
+    } catch (error) {
+        showAlert({
+            title: 'Emby',
+            message: error.message || 'Emby playback failed',
+            type: 'warning',
+            showCancel: false
+        });
+    }
+}
+
+function openEmbyLinkSelection(movieTitle, startTimestamp, candidates = [], options = {}) {
+    embyLinkSelectionContext = {
+        movieTitle,
+        startTimestamp: Math.max(0, Number(startTimestamp) || 0),
+        playbackTarget: options.playbackTarget === 'viewer' ? 'viewer' : 'modal'
+    };
+    openEmbyModal();
+    const input = document.getElementById('emby-search-input');
+    if (input) input.value = movieTitle;
+    renderEmbyLinkCandidates(candidates);
+}
+
+function renderEmbyLinkCandidates(candidates) {
+    const resultsDiv = document.getElementById('emby-results');
+    if (!resultsDiv) return;
+    if (!candidates.length) {
+        setNotification(resultsDiv, 'info', 'No exact Emby match. Search and select the correct movie.');
+        resizeEmbyModalForResults();
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    fragment.appendChild(createResultsCountSummary(candidates.length, '个候选', 'emby-results-count'));
+    const container = createEl('div', { className: 'columns is-multiline' });
+    candidates.forEach(movie => {
+        const movieName = movie.name || '';
+        const imageUrl = movie.imageUrl || '';
+        const column = createEl('div', { className: 'column emby-result-column' });
+        const card = createEl('div', {
+            className: 'card movie-card emby-playable-card emby-link-candidate',
+            attrs: { role: 'button', tabindex: '0', 'aria-label': `Link ${movieName}` }
+        }, [
+            createEl('div', { className: 'card-image' }, [
+                createEl('figure', { className: 'image is-2by3' }, [
+                    createEl('img', {
+                        attrs: { alt: movieName, src: IMAGE_LAZY_PLACEHOLDER },
+                        dataset: { src: imageUrl }
+                    }),
+                    createEl('div', { className: 'runtime-badge', text: formatRuntime(movie.runtimeTicks) })
+                ])
+            ]),
+            createEl('div', { className: 'card-content fixed-height emby-card-content' }, [
+                createEl('p', { className: 'title is-6 movie-title', text: movieName })
+            ])
+        ]);
+        const selectCandidate = () => linkMovieEmby(movie);
+        card.addEventListener('click', selectCandidate);
+        card.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                selectCandidate();
+            }
+        });
+        prepareDeferredImage(card.querySelector('img'), imageUrl);
+        column.appendChild(card);
+        container.appendChild(column);
+    });
+    fragment.appendChild(container);
+    clearElement(resultsDiv);
+    resultsDiv.appendChild(fragment);
+    resizeEmbyModalForResults();
+}
+
+async function linkMovieEmby(movie) {
+    const context = embyLinkSelectionContext;
+    if (!context || !movie?.id) return;
+    try {
+        const result = await callApi(event_map.link_movie_emby, {
+            title: context.movieTitle,
+            emby_item_id: movie.id
+        });
+        if (!result.success || !result.data?.playback?.streamUrl) {
+            throw new Error(result.message || 'Unable to link the Emby movie');
+        }
+        const playback = result.data.playback;
+        const startTimestamp = context.startTimestamp;
+        const playbackTarget = context.playbackTarget;
+        rememberMovieEmbyLink(context.movieTitle, playback.id);
+        closeEmbyModal();
+        startEmbyPlayback(playback.streamUrl, playback.name || context.movieTitle, startTimestamp, {
+            target: playbackTarget,
+            movieTitle: context.movieTitle,
+            itemId: playback.id
+        });
+    } catch (error) {
+        showAlert({
+            title: 'Emby',
+            message: error.message || 'Unable to link the Emby movie',
+            type: 'error',
+            showCancel: false
+        });
+    }
+}
+
+async function playMovieEmbyFromSearch(movie) {
+    if (!movie?.title || !movie.emby_item_id) return;
+    try {
+        const result = await callApi(event_map.resolve_movie_emby_playback, { title: movie.title });
+        if (!result.success) throw new Error(result.message || 'Unable to resolve Emby playback');
+        const data = result.data || {};
+        if (data.status === 'linked' && data.playback?.streamUrl) {
+            rememberMovieEmbyLink(movie.title, data.playback.id);
+            openEmbyPlayer(data.playback.streamUrl, data.playback.name || movie.title, 0, {
+                movieTitle: movie.title,
+                itemId: data.playback.id
+            });
+            return;
+        }
+        if (data.status === 'candidates') {
+            rememberMovieEmbyLink(movie.title, null);
+            openEmbyLinkSelection(movie.title, 0, data.candidates || [], { playbackTarget: 'modal' });
+            return;
+        }
+        throw new Error('No matching Emby movie was found');
+    } catch (error) {
+        showAlert({
+            title: 'Emby',
+            message: error.message || 'Unable to start Emby playback',
+            type: 'warning',
+            showCancel: false
+        });
+    }
 }
 
 function searchEmby() {
@@ -1185,7 +1442,8 @@ function searchEmby() {
             }
             
             const fragment = document.createDocumentFragment();
-            fragment.appendChild(createResultsCountSummary(items.length, '个结果', 'emby-results-count'));
+            const resultUnit = embyLinkSelectionContext ? '个候选' : '个结果';
+            fragment.appendChild(createResultsCountSummary(items.length, resultUnit, 'emby-results-count'));
             const container = createEl('div', { className: 'columns is-multiline' });
             
             items.forEach(movie => {
@@ -1226,7 +1484,13 @@ function searchEmby() {
                 prepareDeferredImage(img, imageUrl);
                 const movieCard = column.querySelector('.movie-card');
                 if (movieCard && streamUrl) {
-                    const playMovie = () => openEmbyPlayer(streamUrl, movieName);
+                    const playMovie = () => {
+                        if (embyLinkSelectionContext) {
+                            linkMovieEmby(movie);
+                            return;
+                        }
+                        openEmbyPlayer(streamUrl, movieName);
+                    };
                     movieCard.addEventListener('click', playMovie);
                     movieCard.addEventListener('keydown', event => {
                         if (event.key === 'Enter' || event.key === ' ') {
@@ -3553,6 +3817,7 @@ async function updateMovie() {
         const uploadResults = await Promise.all(uploadedFiles.map(async file => {
             const formData = new FormData();
             formData.append('image', file);
+            appendCaptureTimestampToUpload(formData, file);
             const response = await fetch('/api', { 
                 method: 'POST', 
                 headers: window.getCsrfHeaders ? window.getCsrfHeaders() : {},
@@ -3717,6 +3982,25 @@ function createMovieCardEditButton(movieIndex) {
     ]);
 }
 
+function createMovieCardEmbyButton(movieIndex) {
+    return createEl('button', {
+        className: 'movie-card-emby-btn',
+        attrs: { type: 'button', 'aria-label': 'Emby 播放', title: 'Emby 播放' },
+        dataset: { action: 'play-movie-emby', movieIndex }
+    }, [
+        createSpriteSvg('emby-icon', { width: 16, height: 16, ariaLabel: 'Emby 播放' })
+    ]);
+}
+
+function createMovieCardActions(movie, movieIndex) {
+    const actions = [];
+    if (movie.emby_item_id) {
+        actions.push(createMovieCardEmbyButton(movieIndex));
+    }
+    actions.push(createMovieCardEditButton(movieIndex));
+    return createEl('div', { className: 'movie-card-actions' }, actions);
+}
+
 function createSkeletonBlock(className) {
     return createEl('span', { className: `skeleton-block ${className}` });
 }
@@ -3740,7 +4024,7 @@ function createMovieCard(movie, movieIndex) {
     }
 
     appendChildren(card, [
-        createMovieCardEditButton(movieIndex),
+        createMovieCardActions(movie, movieIndex),
         createMovieCardCover(movie, movieIndex),
         createEl('div', { className: 'movie-card-body' }, [
             createEl('h3', { className: 'movie-card-title', text: title, attrs: { title } }),
@@ -3755,7 +4039,9 @@ function createMovieCard(movie, movieIndex) {
 
 function createSearchSkeletonCard() {
     return createEl('article', { className: 'movie-result-card search-skeleton-card' }, [
-        createEl('span', { className: 'skeleton-button movie-card-edit-placeholder' }),
+        createEl('div', { className: 'movie-card-actions movie-card-actions-placeholder' }, [
+            createEl('span', { className: 'skeleton-button movie-card-edit-placeholder' })
+        ]),
         createSkeletonBlock('skeleton-cover'),
         createEl('div', { className: 'movie-card-body' }, [
             createSkeletonBlock('skeleton-line skeleton-line-wide'),
@@ -4943,6 +5229,7 @@ function captureCurrentThumbnail(options = {}) {
                 type: 'image/jpeg',
                 lastModified: Date.now()
             });
+            file.captureTimestamp = currentTime;
             const capture = {
                 id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
                 file,
@@ -5622,6 +5909,7 @@ function addImagePreview(imageData, uploadArea, index) {
 // 添加图片查看器相关函数
 let currentImageIndex = 0;
 let currentImages = [];
+let currentImageMovieTitle = '';
 const IMAGE_VIEWER_WIDTH_RATIO = 3 / 5;
 const IMAGE_VIEWER_MAX_HEIGHT_RATIO = 0.9;
 const IMAGE_VIEWER_MOBILE_BREAKPOINT = 768;
@@ -5674,19 +5962,25 @@ function resizeImageViewerImage() {
     const modalCard = modal?.querySelector('.modal-card');
     const modalBody = modal?.querySelector('.modal-card-body');
     const viewer = modal?.querySelector('.viewer-image');
+    const video = modal?.querySelector('.image-viewer-emby-video');
     const container = modal?.querySelector('.image-viewer-container');
     const scrollContainer = modal?.querySelector('.image-viewer-scroll');
     const strip = modal?.querySelector('.image-viewer-strip');
 
-    if (!modalCard || !modalBody || !viewer || !container || !scrollContainer || !viewer.naturalWidth || !viewer.naturalHeight) return;
+    if (!modalCard || !modalBody || !viewer || !video || !container || !scrollContainer) return;
+
+    const isVideoMode = container.classList.contains('is-video-mode');
+    if (!isVideoMode && (!viewer.naturalWidth || !viewer.naturalHeight)) return;
 
     const displayWidth = scrollContainer.clientWidth || container.clientWidth || modalCard.clientWidth;
     if (!displayWidth) return;
 
-    const idealImageHeight = Math.round(displayWidth * viewer.naturalHeight / viewer.naturalWidth);
+    const idealMediaHeight = isVideoMode
+        ? Math.round(displayWidth * 9 / 16)
+        : Math.round(displayWidth * viewer.naturalHeight / viewer.naturalWidth);
     const stripHeight = strip && !strip.hidden ? strip.offsetHeight : 0;
     const imagePaneHeight = Math.min(
-        idealImageHeight,
+        idealMediaHeight,
         Math.max(1, getImageViewerMaxBodyHeight(modal, modalCard) - stripHeight)
     );
     const bodyHeight = imagePaneHeight + stripHeight;
@@ -5696,7 +5990,9 @@ function resizeImageViewerImage() {
     container.style.height = `${imagePaneHeight}px`;
     scrollContainer.style.height = '100%';
     viewer.style.width = '100%';
-    viewer.style.height = `${idealImageHeight}px`;
+    viewer.style.height = `${idealMediaHeight}px`;
+    video.style.width = '100%';
+    video.style.height = `${imagePaneHeight}px`;
     centerImageViewerModal();
 }
 
@@ -5715,8 +6011,10 @@ function scheduleImageViewerResize() {
     });
 }
 function openImageViewer(imageFilenames, movieTitle) {
+    stopImageViewerEmbyPlayback();
     currentImageIndex = 0;
     currentImages = [];
+    currentImageMovieTitle = movieTitle || '';
     
     currentImages = imageFilenames.split(',').filter(name => name.trim());
 
@@ -5728,12 +6026,131 @@ function openImageViewer(imageFilenames, movieTitle) {
     ModalManager.open('imageViewerModal');
     scheduleImageViewerResize();
 }
+
+function parseImageCaptureTimestamp(filename) {
+    const match = String(filename || '').match(/__at-(\d+(?:\.\d{1,2})?)s\.webp$/i);
+    if (!match) return null;
+    const timestamp = Number(match[1]);
+    return Number.isFinite(timestamp) && timestamp >= 0 ? timestamp : null;
+}
+
+function formatImageCaptureTimestamp(seconds) {
+    const totalSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const remainingSeconds = totalSeconds % 60;
+    return [hours, minutes, remainingSeconds]
+        .map(value => String(value).padStart(2, '0'))
+        .join(':');
+}
+
+function isImageViewerVideoMode() {
+    return document.querySelector('#imageViewerModal .image-viewer-container')?.classList.contains('is-video-mode') || false;
+}
+
+function enterImageViewerVideoMode() {
+    const modal = document.getElementById('imageViewerModal');
+    const container = modal?.querySelector('.image-viewer-container');
+    const viewer = modal?.querySelector('.viewer-image');
+    const video = modal?.querySelector('.image-viewer-emby-video');
+    const timecode = modal?.querySelector('.image-viewer-timecode');
+    const returnButton = modal?.querySelector('.image-viewer-video-return');
+    if (!container || !viewer || !video) return;
+
+    container.classList.add('is-video-mode');
+    viewer.hidden = true;
+    video.hidden = false;
+    if (timecode) timecode.hidden = true;
+    if (returnButton) returnButton.hidden = false;
+    scheduleImageViewerResize();
+}
+
+function leaveImageViewerVideoMode() {
+    const modal = document.getElementById('imageViewerModal');
+    const container = modal?.querySelector('.image-viewer-container');
+    const viewer = modal?.querySelector('.viewer-image');
+    const video = modal?.querySelector('.image-viewer-emby-video');
+    const returnButton = modal?.querySelector('.image-viewer-video-return');
+    container?.classList.remove('is-video-mode');
+    if (viewer) viewer.hidden = false;
+    if (video) video.hidden = true;
+    if (returnButton) returnButton.hidden = true;
+}
+
+function stopImageViewerEmbyPlayback() {
+    const video = document.querySelector('#imageViewerModal .image-viewer-emby-video');
+    releaseEmbyVideo(video);
+    if (currentEmbyPlaybackContext?.target === 'viewer') {
+        currentEmbyPlaybackContext = null;
+    }
+    leaveImageViewerVideoMode();
+}
+
+function exitImageViewerVideoMode() {
+    stopImageViewerEmbyPlayback();
+    updateViewerImage();
+}
+
+function seekImageViewerEmbyPlayback(timestamp) {
+    const context = currentEmbyPlaybackContext;
+    if (!context || context.target !== 'viewer' || !context.video) return false;
+    context.startTimestamp = Math.max(0, Number(timestamp) || 0);
+    const duration = Number(context.video.duration);
+    context.video.currentTime = Number.isFinite(duration)
+        ? Math.min(context.startTimestamp, Math.max(0, duration))
+        : context.startTimestamp;
+    context.video.play().catch(() => {});
+    return true;
+}
+
+async function playImageCaptureInEmby() {
+    const timecode = document.querySelector('#imageViewerModal .image-viewer-timecode');
+    const timestamp = Number(timecode?.dataset.timestamp);
+    if (!currentImageMovieTitle || !Number.isFinite(timestamp) || timestamp < 0 || !timecode) return;
+
+    timecode.disabled = true;
+    try {
+        const result = await callApi(event_map.resolve_movie_emby_playback, {
+            title: currentImageMovieTitle
+        });
+        if (!result.success) throw new Error(result.message || 'Unable to resolve Emby playback');
+
+        const data = result.data || {};
+        if (data.status === 'linked' && data.playback?.streamUrl) {
+            rememberMovieEmbyLink(currentImageMovieTitle, data.playback.id);
+            openImageViewerEmbyPlayer(data.playback.streamUrl, data.playback.name || currentImageMovieTitle, timestamp, {
+                movieTitle: currentImageMovieTitle,
+                itemId: data.playback.id
+            });
+            return;
+        }
+        if (data.status === 'candidates') {
+            rememberMovieEmbyLink(currentImageMovieTitle, null);
+            openEmbyLinkSelection(currentImageMovieTitle, timestamp, data.candidates || [], {
+                playbackTarget: 'viewer'
+            });
+            return;
+        }
+        throw new Error('No matching Emby movie was found');
+    } catch (error) {
+        showAlert({
+            title: 'Emby',
+            message: error.message || 'Unable to start Emby playback',
+            type: 'warning',
+            showCancel: false
+        });
+    } finally {
+        timecode.disabled = false;
+    }
+}
+
 function updateViewerImage() {
     const modal = document.getElementById('imageViewerModal');
     const viewer = modal.querySelector('.viewer-image');
     const prevButton = modal.querySelector('.nav-button.prev');
     const nextButton = modal.querySelector('.nav-button.next');
     const counter = modal.querySelector('.image-counter');
+    const timecode = modal.querySelector('.image-viewer-timecode');
     
     viewer.onload = scheduleImageViewerResize;
     resetImageViewerScroll();
@@ -5741,6 +6158,19 @@ function updateViewerImage() {
     viewer.src = buildImageUrl(currentImages[currentImageIndex]);
     if (viewer.complete) {
         scheduleImageViewerResize();
+    }
+
+    const captureTimestamp = parseImageCaptureTimestamp(currentImages[currentImageIndex]);
+    if (timecode) {
+        timecode.hidden = captureTimestamp === null;
+        timecode.disabled = false;
+        if (captureTimestamp !== null) {
+            timecode.dataset.timestamp = String(captureTimestamp);
+            timecode.textContent = formatImageCaptureTimestamp(captureTimestamp);
+        } else {
+            delete timecode.dataset.timestamp;
+            clearElement(timecode);
+        }
     }
     
     // 只有多张图片时才显示计数器
@@ -5755,10 +6185,32 @@ function updateViewerImage() {
         updateImageCounter();
     }
 }
+
+function updateImageViewerNavigationState() {
+    const modal = document.getElementById('imageViewerModal');
+    const prevButton = modal?.querySelector('.nav-button.prev');
+    const nextButton = modal?.querySelector('.nav-button.next');
+    const counter = modal?.querySelector('.image-counter');
+    if (!prevButton || !nextButton || !counter) return;
+    counter.style.display = currentImages.length > 1 ? 'block' : 'none';
+    prevButton.style.display = currentImages.length > 1 && currentImageIndex > 0 ? 'flex' : 'none';
+    nextButton.style.display = currentImages.length > 1 && currentImageIndex < currentImages.length - 1 ? 'flex' : 'none';
+    if (currentImages.length > 1) updateImageCounter();
+}
+
 function setImageViewerIndex(index) {
     const nextIndex = Number(index);
     if (!Number.isInteger(nextIndex) || nextIndex < 0 || nextIndex >= currentImages.length || nextIndex === currentImageIndex) return;
     currentImageIndex = nextIndex;
+    const captureTimestamp = parseImageCaptureTimestamp(currentImages[currentImageIndex]);
+    if (isImageViewerVideoMode() && captureTimestamp !== null && seekImageViewerEmbyPlayback(captureTimestamp)) {
+        renderImageViewerStrip();
+        updateImageViewerNavigationState();
+        return;
+    }
+    if (isImageViewerVideoMode()) {
+        stopImageViewerEmbyPlayback();
+    }
     updateViewerImage();
 }
 function renderImageViewerStrip() {
@@ -5800,18 +6252,18 @@ function updateImageCounter() {
     counter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
 }
 function closeImageViewer() {
+    stopImageViewerEmbyPlayback();
+    currentImageMovieTitle = '';
     ModalManager.close('imageViewerModal');
 }
 function showPrevImage() {
     if (currentImageIndex > 0) {
-        currentImageIndex--;
-        updateViewerImage();
+        setImageViewerIndex(currentImageIndex - 1);
     }
 }
 function showNextImage() {
     if (currentImageIndex < currentImages.length - 1) {
-        currentImageIndex++;
-        updateViewerImage();
+        setImageViewerIndex(currentImageIndex + 1);
     }
 }
 
@@ -5835,6 +6287,7 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
             const imageFormData = new FormData();
             imageFormData.append('image', file);
             imageFormData.append('title', formData.get('title'));
+            appendCaptureTimestampToUpload(imageFormData, file);
             
             const result = await fetch('/api', {
                 method: 'POST',

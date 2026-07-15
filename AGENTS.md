@@ -45,6 +45,8 @@
 - Frontend event IDs live in `src/config/events.js`; keep names aligned with `API_EVENTS`.
 - When adding an event, add focused tests for method validation and any input parsing.
 - New API events must update backend registration, `src/config/events.js`, and the event alignment test together.
+- Movie-to-Emby links are stored in `movies.emby_item_id`; only a unique normalized title match may bind automatically. Ambiguous matches must remain user-confirmed candidates.
+- Screenshot-derived uploads may carry `capture_timestamp`; preserve the `__at-<seconds>s.webp` filename suffix so the image viewer can offer Emby playback at that time.
 
 ## Frontend Assets
 

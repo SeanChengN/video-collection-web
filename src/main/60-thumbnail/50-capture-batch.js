@@ -32,6 +32,7 @@ function captureCurrentThumbnail(options = {}) {
                 type: 'image/jpeg',
                 lastModified: Date.now()
             });
+            file.captureTimestamp = currentTime;
             const capture = {
                 id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
                 file,

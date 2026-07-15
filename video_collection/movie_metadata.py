@@ -3,6 +3,7 @@ from .uploads import normalize_upload_filename as default_normalize_upload_filen
 
 MOVIE_METADATA_MIGRATION = '2026_06_18_normalize_movie_metadata'
 MOVIE_IMAGES_MIGRATION = '2026_06_21_normalize_movie_images'
+MOVIE_EMBY_LINK_MIGRATION = '2026_07_15_add_movie_emby_link'
 
 
 def table_exists(cursor, table_name):
@@ -451,3 +452,11 @@ def migrate_movie_images_schema(
 
     cursor.execute("ALTER TABLE movies DROP COLUMN image_filename")
     record_schema_migration(cursor, MOVIE_IMAGES_MIGRATION)
+
+
+def migrate_movie_emby_link_schema(conn, cursor, logger):
+    if not column_exists(cursor, 'movies', 'emby_item_id'):
+        logger.info("Adding Emby item link column to movies")
+        cursor.execute("ALTER TABLE movies ADD COLUMN emby_item_id VARCHAR(128) NULL")
+    if not migration_recorded(cursor, MOVIE_EMBY_LINK_MIGRATION):
+        record_schema_migration(cursor, MOVIE_EMBY_LINK_MIGRATION)

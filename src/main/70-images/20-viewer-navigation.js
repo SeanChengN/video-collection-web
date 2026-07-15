@@ -1,6 +1,8 @@
 function openImageViewer(imageFilenames, movieTitle) {
+    stopImageViewerEmbyPlayback();
     currentImageIndex = 0;
     currentImages = [];
+    currentImageMovieTitle = movieTitle || '';
     
     currentImages = imageFilenames.split(',').filter(name => name.trim());
 
@@ -12,12 +14,131 @@ function openImageViewer(imageFilenames, movieTitle) {
     ModalManager.open('imageViewerModal');
     scheduleImageViewerResize();
 }
+
+function parseImageCaptureTimestamp(filename) {
+    const match = String(filename || '').match(/__at-(\d+(?:\.\d{1,2})?)s\.webp$/i);
+    if (!match) return null;
+    const timestamp = Number(match[1]);
+    return Number.isFinite(timestamp) && timestamp >= 0 ? timestamp : null;
+}
+
+function formatImageCaptureTimestamp(seconds) {
+    const totalSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const remainingSeconds = totalSeconds % 60;
+    return [hours, minutes, remainingSeconds]
+        .map(value => String(value).padStart(2, '0'))
+        .join(':');
+}
+
+function isImageViewerVideoMode() {
+    return document.querySelector('#imageViewerModal .image-viewer-container')?.classList.contains('is-video-mode') || false;
+}
+
+function enterImageViewerVideoMode() {
+    const modal = document.getElementById('imageViewerModal');
+    const container = modal?.querySelector('.image-viewer-container');
+    const viewer = modal?.querySelector('.viewer-image');
+    const video = modal?.querySelector('.image-viewer-emby-video');
+    const timecode = modal?.querySelector('.image-viewer-timecode');
+    const returnButton = modal?.querySelector('.image-viewer-video-return');
+    if (!container || !viewer || !video) return;
+
+    container.classList.add('is-video-mode');
+    viewer.hidden = true;
+    video.hidden = false;
+    if (timecode) timecode.hidden = true;
+    if (returnButton) returnButton.hidden = false;
+    scheduleImageViewerResize();
+}
+
+function leaveImageViewerVideoMode() {
+    const modal = document.getElementById('imageViewerModal');
+    const container = modal?.querySelector('.image-viewer-container');
+    const viewer = modal?.querySelector('.viewer-image');
+    const video = modal?.querySelector('.image-viewer-emby-video');
+    const returnButton = modal?.querySelector('.image-viewer-video-return');
+    container?.classList.remove('is-video-mode');
+    if (viewer) viewer.hidden = false;
+    if (video) video.hidden = true;
+    if (returnButton) returnButton.hidden = true;
+}
+
+function stopImageViewerEmbyPlayback() {
+    const video = document.querySelector('#imageViewerModal .image-viewer-emby-video');
+    releaseEmbyVideo(video);
+    if (currentEmbyPlaybackContext?.target === 'viewer') {
+        currentEmbyPlaybackContext = null;
+    }
+    leaveImageViewerVideoMode();
+}
+
+function exitImageViewerVideoMode() {
+    stopImageViewerEmbyPlayback();
+    updateViewerImage();
+}
+
+function seekImageViewerEmbyPlayback(timestamp) {
+    const context = currentEmbyPlaybackContext;
+    if (!context || context.target !== 'viewer' || !context.video) return false;
+    context.startTimestamp = Math.max(0, Number(timestamp) || 0);
+    const duration = Number(context.video.duration);
+    context.video.currentTime = Number.isFinite(duration)
+        ? Math.min(context.startTimestamp, Math.max(0, duration))
+        : context.startTimestamp;
+    context.video.play().catch(() => {});
+    return true;
+}
+
+async function playImageCaptureInEmby() {
+    const timecode = document.querySelector('#imageViewerModal .image-viewer-timecode');
+    const timestamp = Number(timecode?.dataset.timestamp);
+    if (!currentImageMovieTitle || !Number.isFinite(timestamp) || timestamp < 0 || !timecode) return;
+
+    timecode.disabled = true;
+    try {
+        const result = await callApi(event_map.resolve_movie_emby_playback, {
+            title: currentImageMovieTitle
+        });
+        if (!result.success) throw new Error(result.message || 'Unable to resolve Emby playback');
+
+        const data = result.data || {};
+        if (data.status === 'linked' && data.playback?.streamUrl) {
+            rememberMovieEmbyLink(currentImageMovieTitle, data.playback.id);
+            openImageViewerEmbyPlayer(data.playback.streamUrl, data.playback.name || currentImageMovieTitle, timestamp, {
+                movieTitle: currentImageMovieTitle,
+                itemId: data.playback.id
+            });
+            return;
+        }
+        if (data.status === 'candidates') {
+            rememberMovieEmbyLink(currentImageMovieTitle, null);
+            openEmbyLinkSelection(currentImageMovieTitle, timestamp, data.candidates || [], {
+                playbackTarget: 'viewer'
+            });
+            return;
+        }
+        throw new Error('No matching Emby movie was found');
+    } catch (error) {
+        showAlert({
+            title: 'Emby',
+            message: error.message || 'Unable to start Emby playback',
+            type: 'warning',
+            showCancel: false
+        });
+    } finally {
+        timecode.disabled = false;
+    }
+}
+
 function updateViewerImage() {
     const modal = document.getElementById('imageViewerModal');
     const viewer = modal.querySelector('.viewer-image');
     const prevButton = modal.querySelector('.nav-button.prev');
     const nextButton = modal.querySelector('.nav-button.next');
     const counter = modal.querySelector('.image-counter');
+    const timecode = modal.querySelector('.image-viewer-timecode');
     
     viewer.onload = scheduleImageViewerResize;
     resetImageViewerScroll();
@@ -25,6 +146,19 @@ function updateViewerImage() {
     viewer.src = buildImageUrl(currentImages[currentImageIndex]);
     if (viewer.complete) {
         scheduleImageViewerResize();
+    }
+
+    const captureTimestamp = parseImageCaptureTimestamp(currentImages[currentImageIndex]);
+    if (timecode) {
+        timecode.hidden = captureTimestamp === null;
+        timecode.disabled = false;
+        if (captureTimestamp !== null) {
+            timecode.dataset.timestamp = String(captureTimestamp);
+            timecode.textContent = formatImageCaptureTimestamp(captureTimestamp);
+        } else {
+            delete timecode.dataset.timestamp;
+            clearElement(timecode);
+        }
     }
     
     // 只有多张图片时才显示计数器
@@ -39,10 +173,32 @@ function updateViewerImage() {
         updateImageCounter();
     }
 }
+
+function updateImageViewerNavigationState() {
+    const modal = document.getElementById('imageViewerModal');
+    const prevButton = modal?.querySelector('.nav-button.prev');
+    const nextButton = modal?.querySelector('.nav-button.next');
+    const counter = modal?.querySelector('.image-counter');
+    if (!prevButton || !nextButton || !counter) return;
+    counter.style.display = currentImages.length > 1 ? 'block' : 'none';
+    prevButton.style.display = currentImages.length > 1 && currentImageIndex > 0 ? 'flex' : 'none';
+    nextButton.style.display = currentImages.length > 1 && currentImageIndex < currentImages.length - 1 ? 'flex' : 'none';
+    if (currentImages.length > 1) updateImageCounter();
+}
+
 function setImageViewerIndex(index) {
     const nextIndex = Number(index);
     if (!Number.isInteger(nextIndex) || nextIndex < 0 || nextIndex >= currentImages.length || nextIndex === currentImageIndex) return;
     currentImageIndex = nextIndex;
+    const captureTimestamp = parseImageCaptureTimestamp(currentImages[currentImageIndex]);
+    if (isImageViewerVideoMode() && captureTimestamp !== null && seekImageViewerEmbyPlayback(captureTimestamp)) {
+        renderImageViewerStrip();
+        updateImageViewerNavigationState();
+        return;
+    }
+    if (isImageViewerVideoMode()) {
+        stopImageViewerEmbyPlayback();
+    }
     updateViewerImage();
 }
 function renderImageViewerStrip() {
@@ -84,18 +240,18 @@ function updateImageCounter() {
     counter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
 }
 function closeImageViewer() {
+    stopImageViewerEmbyPlayback();
+    currentImageMovieTitle = '';
     ModalManager.close('imageViewerModal');
 }
 function showPrevImage() {
     if (currentImageIndex > 0) {
-        currentImageIndex--;
-        updateViewerImage();
+        setImageViewerIndex(currentImageIndex - 1);
     }
 }
 function showNextImage() {
     if (currentImageIndex < currentImages.length - 1) {
-        currentImageIndex++;
-        updateViewerImage();
+        setImageViewerIndex(currentImageIndex + 1);
     }
 }
 
@@ -119,6 +275,7 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
             const imageFormData = new FormData();
             imageFormData.append('image', file);
             imageFormData.append('title', formData.get('title'));
+            appendCaptureTimestampToUpload(imageFormData, file);
             
             const result = await fetch('/api', {
                 method: 'POST',

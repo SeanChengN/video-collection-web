@@ -2,12 +2,13 @@ import ast
 import io
 import re
 import socket
+from dataclasses import replace
 from pathlib import Path
 
 import app as app_module
 from PIL import Image
 from video_collection import api_handlers_integrations as integrations_module
-from video_collection.api_handlers import ApiHandlerDependencies
+from video_collection.api_handlers import ApiHandlerDependencies, ApiHandlers
 from video_collection.api_handlers_catalog import ApiCatalogHandlersMixin
 from video_collection.api_handlers_integrations import ApiIntegrationHandlersMixin
 from video_collection.api_handlers_maintenance import ApiMaintenanceHandlersMixin
@@ -63,10 +64,209 @@ def test_backend_api_events_match_frontend_event_map():
     backend_events = {
         event_id: event['name']
         for event_id, event in app_module.API_EVENTS.items()
-        if 1001 <= event_id <= 1024
+        if 1001 <= event_id <= 1026
     }
 
     assert backend_events == frontend_events
+
+
+class FakeEmbyLinkCursor:
+    def __init__(self, item_id=None):
+        self.item_id = item_id
+        self.rowcount = 1
+
+    def execute(self, sql, params=None):
+        normalized = ' '.join(sql.split()).casefold()
+        if normalized.startswith('update movies set emby_item_id'):
+            self.item_id = params[0]
+
+    def fetchone(self):
+        return (self.item_id,) if self.item_id else None
+
+
+class FakeEmbyLinkConnection:
+    def __init__(self, cursor):
+        self.cursor_value = cursor
+        self.commits = 0
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        return False
+
+    def cursor(self):
+        return self.cursor_value
+
+    def commit(self):
+        self.commits += 1
+
+
+class FakeEmbyResponse:
+    def __init__(self, payload, status_code=200):
+        self.payload = payload
+        self.status_code = status_code
+        self.ok = 200 <= status_code < 300
+        self.closed = False
+
+    def json(self):
+        return self.payload
+
+    def close(self):
+        self.closed = True
+
+
+def make_emby_link_handlers(cursor, emby_request, user_id='user-1'):
+    dependencies = replace(
+        app_module._api_handlers.dependencies,
+        get_db_connection=lambda: FakeEmbyLinkConnection(cursor),
+        emby_request=emby_request,
+        get_emby_user_id=lambda: user_id
+    )
+    return ApiHandlers(dependencies)
+
+
+def test_resolve_movie_emby_playback_uses_cached_link_without_search():
+    cursor = FakeEmbyLinkCursor('cached-id')
+    calls = []
+    handlers = make_emby_link_handlers(cursor, lambda *args, **kwargs: calls.append((args, kwargs)))
+
+    with app_module.app.test_request_context('/api'):
+        response, status = unpack_response(handlers.resolve_movie_emby_playback_handler({'title': 'Demo'}))
+
+    payload = response.get_json()
+    assert status == 200
+    assert payload['data']['status'] == 'linked'
+    assert payload['data']['playback']['id'] == 'cached-id'
+    assert calls == []
+
+
+def test_resolve_movie_emby_playback_auto_links_one_exact_normalized_title():
+    cursor = FakeEmbyLinkCursor()
+    search_response = FakeEmbyResponse({
+        'Items': [{'Id': 'matched-id', 'Name': 'Demo Movie', 'Type': 'Movie'}]
+    })
+    handlers = make_emby_link_handlers(cursor, lambda *args, **kwargs: search_response)
+
+    with app_module.app.test_request_context('/api'):
+        response, status = unpack_response(handlers.resolve_movie_emby_playback_handler({'title': 'demo-movie'}))
+
+    payload = response.get_json()
+    assert status == 200
+    assert payload['data']['status'] == 'linked'
+    assert payload['data']['playback']['id'] == 'matched-id'
+    assert cursor.item_id == 'matched-id'
+    assert search_response.closed is True
+
+
+def test_resolve_movie_emby_refresh_keeps_valid_cached_link():
+    cursor = FakeEmbyLinkCursor('cached-id')
+    item_response = FakeEmbyResponse({'Id': 'cached-id', 'Name': 'Demo', 'Type': 'Movie'})
+    handlers = make_emby_link_handlers(cursor, lambda *args, **kwargs: item_response)
+
+    with app_module.app.test_request_context('/api'):
+        response, status = unpack_response(
+            handlers.resolve_movie_emby_playback_handler({'title': 'Demo', 'refresh': True})
+        )
+
+    assert status == 200
+    assert response.get_json()['data']['playback']['id'] == 'cached-id'
+    assert cursor.item_id == 'cached-id'
+    assert item_response.closed is True
+
+
+def test_resolve_movie_emby_refresh_clears_missing_link_before_exact_rebind():
+    cursor = FakeEmbyLinkCursor('missing-id')
+    responses = iter([
+        FakeEmbyResponse({}, status_code=404),
+        FakeEmbyResponse({'Items': [{'Id': 'new-id', 'Name': 'Demo', 'Type': 'Movie'}]})
+    ])
+    handlers = make_emby_link_handlers(cursor, lambda *args, **kwargs: next(responses))
+
+    with app_module.app.test_request_context('/api'):
+        response, status = unpack_response(
+            handlers.resolve_movie_emby_playback_handler({'title': 'Demo', 'refresh': True})
+        )
+
+    assert status == 200
+    assert response.get_json()['data']['playback']['id'] == 'new-id'
+    assert cursor.item_id == 'new-id'
+
+
+def test_link_movie_emby_verifies_movie_before_persisting():
+    cursor = FakeEmbyLinkCursor()
+    item_response = FakeEmbyResponse({'Id': 'movie-id', 'Name': 'Demo', 'Type': 'Movie'})
+    calls = []
+
+    def fake_emby_request(*args, **kwargs):
+        calls.append((args, kwargs))
+        return item_response
+
+    handlers = make_emby_link_handlers(cursor, fake_emby_request)
+
+    with app_module.app.test_request_context('/api'):
+        response, status = unpack_response(
+            handlers.link_movie_emby_handler({'title': 'Demo', 'emby_item_id': 'movie-id'})
+        )
+
+    assert status == 200
+    assert response.get_json()['data']['playback']['id'] == 'movie-id'
+    assert cursor.item_id == 'movie-id'
+    assert calls[0][0] == ('GET', '/emby/Users/user-1/Items/movie-id')
+
+
+def test_link_movie_emby_distinguishes_missing_auth_and_service_failures():
+    scenarios = (
+        (404, 404, 'no longer exists'),
+        (401, 502, 'authentication or permission'),
+        (403, 502, 'authentication or permission'),
+        (503, 502, 'temporarily unavailable'),
+    )
+
+    for emby_status, expected_status, message_fragment in scenarios:
+        cursor = FakeEmbyLinkCursor()
+        response = FakeEmbyResponse({}, status_code=emby_status)
+        handlers = make_emby_link_handlers(cursor, lambda *args, response=response, **kwargs: response)
+
+        with app_module.app.test_request_context('/api'):
+            api_response, status = unpack_response(
+                handlers.link_movie_emby_handler({'title': 'Demo', 'emby_item_id': 'movie-id'})
+            )
+
+        assert status == expected_status
+        assert message_fragment in api_response.get_json()['message']
+        assert cursor.item_id is None
+
+    calls = []
+    handlers = make_emby_link_handlers(
+        FakeEmbyLinkCursor(),
+        lambda *args, **kwargs: calls.append((args, kwargs)),
+        user_id=None
+    )
+    with app_module.app.test_request_context('/api'):
+        api_response, status = unpack_response(
+            handlers.link_movie_emby_handler({'title': 'Demo', 'emby_item_id': 'movie-id'})
+        )
+    assert status == 502
+    assert 'authentication or permission' in api_response.get_json()['message']
+    assert calls == []
+
+
+def test_link_movie_emby_handles_network_failure_without_persisting():
+    cursor = FakeEmbyLinkCursor()
+
+    def fail_request(*args, **kwargs):
+        raise TimeoutError('Emby timeout')
+
+    handlers = make_emby_link_handlers(cursor, fail_request)
+    with app_module.app.test_request_context('/api'):
+        response, status = unpack_response(
+            handlers.link_movie_emby_handler({'title': 'Demo', 'emby_item_id': 'movie-id'})
+        )
+
+    assert status == 502
+    assert response.get_json()['message'] == 'Emby service is temporarily unavailable'
+    assert cursor.item_id is None
 
 
 class FakeExternalImageResponse:

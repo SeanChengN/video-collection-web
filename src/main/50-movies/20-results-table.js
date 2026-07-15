@@ -110,6 +110,25 @@ function createMovieCardEditButton(movieIndex) {
     ]);
 }
 
+function createMovieCardEmbyButton(movieIndex) {
+    return createEl('button', {
+        className: 'movie-card-emby-btn',
+        attrs: { type: 'button', 'aria-label': 'Emby 播放', title: 'Emby 播放' },
+        dataset: { action: 'play-movie-emby', movieIndex }
+    }, [
+        createSpriteSvg('emby-icon', { width: 16, height: 16, ariaLabel: 'Emby 播放' })
+    ]);
+}
+
+function createMovieCardActions(movie, movieIndex) {
+    const actions = [];
+    if (movie.emby_item_id) {
+        actions.push(createMovieCardEmbyButton(movieIndex));
+    }
+    actions.push(createMovieCardEditButton(movieIndex));
+    return createEl('div', { className: 'movie-card-actions' }, actions);
+}
+
 function createSkeletonBlock(className) {
     return createEl('span', { className: `skeleton-block ${className}` });
 }
@@ -133,7 +152,7 @@ function createMovieCard(movie, movieIndex) {
     }
 
     appendChildren(card, [
-        createMovieCardEditButton(movieIndex),
+        createMovieCardActions(movie, movieIndex),
         createMovieCardCover(movie, movieIndex),
         createEl('div', { className: 'movie-card-body' }, [
             createEl('h3', { className: 'movie-card-title', text: title, attrs: { title } }),
@@ -148,7 +167,9 @@ function createMovieCard(movie, movieIndex) {
 
 function createSearchSkeletonCard() {
     return createEl('article', { className: 'movie-result-card search-skeleton-card' }, [
-        createEl('span', { className: 'skeleton-button movie-card-edit-placeholder' }),
+        createEl('div', { className: 'movie-card-actions movie-card-actions-placeholder' }, [
+            createEl('span', { className: 'skeleton-button movie-card-edit-placeholder' })
+        ]),
         createSkeletonBlock('skeleton-cover'),
         createEl('div', { className: 'movie-card-body' }, [
             createSkeletonBlock('skeleton-line skeleton-line-wide'),

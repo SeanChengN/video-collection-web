@@ -132,6 +132,13 @@ function createNotification(type, message) {
     });
 }
 
+function appendCaptureTimestampToUpload(formData, file) {
+    const timestamp = Number(file?.captureTimestamp);
+    if (Number.isFinite(timestamp) && timestamp >= 0) {
+        formData.append('capture_timestamp', String(timestamp));
+    }
+}
+
 function createResultsCountSummary(count, unitText, extraClassName = '') {
     const safeCount = Math.max(0, Number(count) || 0);
     const className = ['results-count-summary', extraClassName]

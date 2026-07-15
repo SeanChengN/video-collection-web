@@ -30,6 +30,7 @@ class ApiHandlerDependencies:
     api_event_metadata: Any
     get_service_url: Any
     emby_request: Any
+    get_emby_user_id: Any
     get_movie_image_filenames: Any
     get_database_upgrade_diagnostics: Any
     check_database_connection: Any

@@ -695,11 +695,19 @@
     filter: var(--vc-result-recommended-icon-shadow, drop-shadow(0 1px 2px rgba(15, 23, 42, 0.32)));
 }
 
-.movie-card-edit-btn {
+.movie-card-actions {
     position: absolute !important;
     top: 0.25rem;
     right: 0.25rem;
     z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.18rem;
+}
+
+.movie-card-edit-btn,
+.movie-card-emby-btn {
+    position: relative;
     display: inline-flex;
     width: 2.1rem !important;
     min-width: 2.1rem !important;
@@ -718,24 +726,33 @@
 }
 
 .movie-card-edit-btn:hover,
-.movie-card-edit-btn:focus-visible {
+.movie-card-edit-btn:focus-visible,
+.movie-card-emby-btn:hover,
+.movie-card-emby-btn:focus-visible {
     background: var(--vc-result-edit-hover-bg, rgba(15, 23, 42, 0.32)) !important;
     color: var(--vc-result-edit-icon, #ffffff) !important;
     box-shadow: var(--vc-result-edit-hover-shadow, 0 10px 24px rgba(15, 23, 42, 0.34));
     transform: translateY(-1px);
 }
 
-.movie-card-edit-btn:active {
+.movie-card-edit-btn:active,
+.movie-card-emby-btn:active {
     background: var(--vc-result-edit-active-bg, rgba(15, 23, 42, 0.48)) !important;
     box-shadow: var(--vc-result-edit-active-shadow, 0 5px 12px rgba(15, 23, 42, 0.26));
     transform: translateY(0) scale(0.96);
 }
 
-.movie-card-edit-btn svg {
+.movie-card-edit-btn svg,
+.movie-card-emby-btn svg {
     width: 0.95rem;
     height: 0.95rem;
     fill: currentColor;
     filter: var(--vc-result-edit-icon-shadow, drop-shadow(0 2px 4px rgba(15, 23, 42, 0.38)));
+}
+
+.movie-card-emby-btn svg {
+    width: 1.3rem;
+    height: 1.3rem;
 }
 
 .movie-card-cover {
@@ -885,10 +902,13 @@ button.movie-card-cover {
     min-height: 2.2rem;
 }
 
-.movie-card-edit-placeholder {
-    position: absolute;
+.movie-card-actions-placeholder {
     top: 0.55rem;
     right: 0.55rem;
+}
+
+.movie-card-edit-placeholder {
+    display: block;
 }
 
 @keyframes search-skeleton-loading {
@@ -1076,7 +1096,8 @@ button.movie-card-cover {
         font-size: 1rem;
     }
 
-    .movie-card-edit-btn {
+    .movie-card-edit-btn,
+    .movie-card-emby-btn {
         width: 2.15rem !important;
         min-width: 2.15rem !important;
         height: 2.15rem !important;

@@ -1,9 +1,30 @@
 import os
 import time
 import uuid
+import math
 
 from flask import request
 from PIL import Image, UnidentifiedImageError
+
+
+MAX_CAPTURE_TIMESTAMP_SECONDS = 365 * 24 * 60 * 60
+
+
+def parse_capture_timestamp(value):
+    if value in (None, ''):
+        return None
+    try:
+        timestamp = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(timestamp) or timestamp < 0 or timestamp > MAX_CAPTURE_TIMESTAMP_SECONDS:
+        return None
+    return timestamp
+
+
+def format_capture_timestamp_suffix(timestamp):
+    centiseconds = int(round(timestamp * 100))
+    return f"__at-{centiseconds // 100}.{centiseconds % 100:02d}s"
 
 
 class ApiMediaHandlersMixin:
@@ -95,10 +116,19 @@ class ApiMediaHandlersMixin:
         if not file or not self.dependencies.allowed_file(file.filename):
             return self.dependencies.jsonify({'success': False, 'message': '仅支持 PNG/JPG/JPEG 图片'}), 400
 
+        capture_timestamp_raw = request.form.get('capture_timestamp')
+        capture_timestamp = parse_capture_timestamp(capture_timestamp_raw)
+        if capture_timestamp_raw not in (None, '') and capture_timestamp is None:
+            return self.dependencies.jsonify({
+                'success': False,
+                'message': 'Invalid capture timestamp'
+            }), 400
+
         timestamp = int(time.time())
         unique_id = str(uuid.uuid4())[:8]
         image_year = time.strftime('%Y', time.localtime(timestamp))
-        filename = f"{image_year}/{timestamp}_{unique_id}.webp"
+        capture_suffix = format_capture_timestamp_suffix(capture_timestamp) if capture_timestamp is not None else ''
+        filename = f"{image_year}/{timestamp}_{unique_id}{capture_suffix}.webp"
         os.makedirs(self.dependencies.get_upload_folder(), exist_ok=True)
 
         try:

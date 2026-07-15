@@ -272,9 +272,95 @@
     overflow: hidden;
 }
 #imageViewerModal .image-viewer-scroll {
+    position: relative;
     width: 100%;
     height: 100%;
     overflow: auto;
+}
+#imageViewerModal .image-viewer-timecode {
+    background: color-mix(in srgb, var(--vc-color-surface, #ffffff) 78%, var(--vc-color-bg, #111827));
+    border: 1px solid var(--vc-color-border, #dbdbdb);
+    border-radius: var(--vc-radius-sm, 4px);
+    bottom: auto;
+    box-shadow: var(--vc-shadow-sm, 0 2px 8px rgb(0 0 0 / 20%));
+    color: var(--vc-color-text, #363636);
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    left: 0.7rem;
+    line-height: 1;
+    opacity: 0.65;
+    padding: 0.38rem 0.5rem;
+    position: absolute;
+    top: 0.7rem;
+    transition: background-color 160ms ease, box-shadow 160ms ease, opacity 160ms ease, transform 160ms ease;
+    z-index: 2;
+}
+#imageViewerModal .image-viewer-timecode:hover,
+#imageViewerModal .image-viewer-timecode:focus-visible {
+    background: var(--vc-color-accent, #3273dc);
+    box-shadow: var(--vc-shadow-md, 0 4px 14px rgb(0 0 0 / 24%));
+    color: var(--vc-color-on-action, #ffffff);
+    outline: none;
+    opacity: 1;
+    transform: translateY(-1px);
+}
+#imageViewerModal .image-viewer-timecode:active {
+    opacity: 0.9;
+    transform: scale(0.96);
+}
+#imageViewerModal .image-viewer-timecode:disabled {
+    cursor: wait;
+    opacity: 0.45;
+}
+#imageViewerModal .image-viewer-container.is-video-mode .image-viewer-scroll {
+    background: var(--vc-color-bg, #111827);
+    overflow: hidden;
+}
+#imageViewerModal .image-viewer-emby-video {
+    background: var(--vc-color-bg, #111827);
+    display: block;
+    height: 100%;
+    object-fit: contain;
+    width: 100%;
+}
+#imageViewerModal .image-viewer-emby-video[hidden],
+#imageViewerModal .viewer-image[hidden],
+#imageViewerModal .image-viewer-video-return[hidden] {
+    display: none !important;
+}
+#imageViewerModal .image-viewer-video-return {
+    align-items: center;
+    background: color-mix(in srgb, var(--vc-color-surface, #ffffff) 72%, transparent);
+    border: 1px solid var(--vc-color-border, #dbdbdb);
+    border-radius: var(--vc-radius-md, 8px);
+    box-shadow: var(--vc-shadow-sm, 0 2px 8px rgb(0 0 0 / 20%));
+    color: var(--vc-color-text, #363636);
+    cursor: pointer;
+    display: inline-flex;
+    height: 2.2rem;
+    justify-content: center;
+    left: 0.7rem;
+    opacity: 0.65;
+    padding: 0;
+    position: absolute;
+    top: 0.7rem;
+    transition: background-color 160ms ease, box-shadow 160ms ease, opacity 160ms ease, transform 160ms ease;
+    width: 2.2rem;
+    z-index: 5;
+}
+#imageViewerModal .image-viewer-video-return:hover,
+#imageViewerModal .image-viewer-video-return:focus-visible {
+    background: var(--vc-color-accent, #3273dc);
+    box-shadow: var(--vc-shadow-md, 0 4px 14px rgb(0 0 0 / 24%));
+    color: var(--vc-color-on-action, #ffffff);
+    outline: none;
+    opacity: 1;
+    transform: translateY(-1px);
+}
+#imageViewerModal .image-viewer-video-return:active {
+    opacity: 0.9;
+    transform: scale(0.96);
 }
 #imageViewerModal .viewer-image {
     display: block;

@@ -37,6 +37,8 @@ function initStaticEventDelegates() {
         'add-new-tag': addNewTag,
         'add-new-rating': addNewRating,
         'close-image-viewer': closeImageViewer,
+        'play-image-timecode': playImageCaptureInEmby,
+        'exit-image-viewer-video': exitImageViewerVideoMode,
         'show-prev-image': showPrevImage,
         'show-next-image': showNextImage
     };
@@ -122,6 +124,13 @@ function initDynamicEventDelegates() {
                 const index = Number(actionElement.dataset.movieIndex);
                 if (Number.isInteger(index) && allMovies[index]) {
                     openModal(allMovies[index]);
+                }
+            }
+
+            if (actionElement.dataset.action === 'play-movie-emby') {
+                const index = Number(actionElement.dataset.movieIndex);
+                if (Number.isInteger(index) && allMovies[index]) {
+                    playMovieEmbyFromSearch(allMovies[index]);
                 }
             }
 

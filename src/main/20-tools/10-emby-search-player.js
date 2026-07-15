@@ -14,6 +14,8 @@ function closeEmbyModal() {
 const EMBY_MODAL_DEFAULT_HEIGHT_RATIO = 0.3;
 const EMBY_MODAL_MAX_HEIGHT_RATIO = 0.9;
 let embySearchRequestId = 0;
+let embyLinkSelectionContext = null;
+let currentEmbyPlaybackContext = null;
 
 function centerEmbyModal() {
     const modal = document.getElementById('embyModal');
@@ -48,6 +50,7 @@ function resetEmbyModalHeight() {
 
 function clearEmbyModalState() {
     embySearchRequestId += 1;
+    embyLinkSelectionContext = null;
     const input = document.getElementById('emby-search-input');
     const resultsDiv = document.getElementById('emby-results');
     const modalBody = document.querySelector('#embyModal .modal-card-body');
@@ -88,35 +91,273 @@ function resizeEmbyModalForResults() {
     });
 }
 
-function openEmbyPlayer(streamUrl, title) {
-    const modal = document.getElementById('embyPlayerModal');
-    const video = document.getElementById('emby-player-video');
-    const titleElement = modal?.querySelector('.modal-card-title');
-    if (!modal || !video || !streamUrl) return;
-
-    if (titleElement) {
-        titleElement.textContent = title ? `Emby: ${title}` : 'Emby Player';
+function rememberMovieEmbyLink(movieTitle, itemId) {
+    const movie = Array.isArray(allMovies)
+        ? allMovies.find(candidate => candidate.title === movieTitle)
+        : null;
+    if (!movie || movie.emby_item_id === itemId) return;
+    movie.emby_item_id = itemId || null;
+    if (document.getElementById('search-results')) {
+        displayCurrentPage();
     }
+}
 
+function releaseEmbyVideo(video) {
+    if (!video) return;
+    video.onerror = null;
     video.pause();
     video.removeAttribute('src');
     video.load();
-    video.src = streamUrl;
+}
 
-    ModalManager.open('embyPlayerModal');
-    requestAnimationFrame(() => {
+function getEmbyPlaybackVideo(target) {
+    return target === 'viewer'
+        ? document.querySelector('#imageViewerModal .image-viewer-emby-video')
+        : document.getElementById('emby-player-video');
+}
+
+function startEmbyPlayback(streamUrl, title, startTimestamp = 0, playbackContext = {}) {
+    const target = playbackContext.target === 'viewer' ? 'viewer' : 'modal';
+    const video = getEmbyPlaybackVideo(target);
+    if (!video || !streamUrl) return;
+
+    if (currentEmbyPlaybackContext?.video && currentEmbyPlaybackContext.video !== video) {
+        releaseEmbyVideo(currentEmbyPlaybackContext.video);
+    }
+    if (target === 'viewer') {
+        ModalManager.close('embyPlayerModal');
+        enterImageViewerVideoMode();
+    } else {
+        if (currentEmbyPlaybackContext?.target === 'viewer') {
+            leaveImageViewerVideoMode();
+        }
+        const modal = document.getElementById('embyPlayerModal');
+        const titleElement = modal?.querySelector('.modal-card-title');
+        if (titleElement) {
+            titleElement.textContent = title ? `Emby: ${title}` : 'Emby Player';
+        }
+        ModalManager.open('embyPlayerModal');
+    }
+
+    const context = {
+        target,
+        video,
+        movieTitle: playbackContext.movieTitle || '',
+        itemId: playbackContext.itemId || '',
+        startTimestamp: Math.max(0, Number(startTimestamp) || 0),
+        recoveryAttempted: Boolean(playbackContext.recoveryAttempted)
+    };
+    currentEmbyPlaybackContext = context;
+    releaseEmbyVideo(video);
+    video.src = streamUrl;
+    video.onerror = () => handleEmbyPlaybackError(context);
+    video.addEventListener('loadedmetadata', () => {
+        if (currentEmbyPlaybackContext !== context) return;
+        if (context.startTimestamp > 0) {
+            const duration = Number(video.duration);
+            video.currentTime = Number.isFinite(duration)
+                ? Math.min(context.startTimestamp, Math.max(0, duration))
+                : context.startTimestamp;
+        }
         video.play().catch(() => {});
+    }, { once: true });
+}
+
+function openEmbyPlayer(streamUrl, title, startTimestamp = 0, playbackContext = {}) {
+    startEmbyPlayback(streamUrl, title, startTimestamp, {
+        ...playbackContext,
+        target: playbackContext.target || 'modal'
+    });
+}
+
+function openImageViewerEmbyPlayer(streamUrl, title, startTimestamp = 0, playbackContext = {}) {
+    startEmbyPlayback(streamUrl, title, startTimestamp, {
+        ...playbackContext,
+        target: 'viewer'
     });
 }
 
 function closeEmbyPlayerModal() {
     const video = document.getElementById('emby-player-video');
-    if (video) {
-        video.pause();
-        video.removeAttribute('src');
-        video.load();
+    releaseEmbyVideo(video);
+    if (currentEmbyPlaybackContext?.target === 'modal') {
+        currentEmbyPlaybackContext = null;
     }
     ModalManager.close('embyPlayerModal');
+}
+
+async function handleEmbyPlaybackError(context) {
+    if (currentEmbyPlaybackContext !== context || !context.movieTitle || context.recoveryAttempted) {
+        return;
+    }
+    context.recoveryAttempted = true;
+    try {
+        const result = await callApi(event_map.resolve_movie_emby_playback, {
+            title: context.movieTitle,
+            refresh: true
+        });
+        if (!result.success) {
+            throw new Error(result.message || 'Emby playback could not be recovered');
+        }
+        const data = result.data || {};
+        if (data.status === 'linked' && data.playback?.streamUrl) {
+            if (data.playback.id === context.itemId) {
+                throw new Error('The linked Emby item is available, but playback failed');
+            }
+            rememberMovieEmbyLink(context.movieTitle, data.playback.id);
+            startEmbyPlayback(data.playback.streamUrl, data.playback.name || context.movieTitle, context.startTimestamp, {
+                target: context.target,
+                movieTitle: context.movieTitle,
+                itemId: data.playback.id,
+                recoveryAttempted: true
+            });
+            return;
+        }
+        if (data.status === 'candidates') {
+            rememberMovieEmbyLink(context.movieTitle, null);
+            if (context.target === 'viewer') {
+                exitImageViewerVideoMode();
+            } else {
+                closeEmbyPlayerModal();
+            }
+            openEmbyLinkSelection(context.movieTitle, context.startTimestamp, data.candidates || [], {
+                playbackTarget: context.target
+            });
+            return;
+        }
+        throw new Error('No matching Emby movie was found');
+    } catch (error) {
+        showAlert({
+            title: 'Emby',
+            message: error.message || 'Emby playback failed',
+            type: 'warning',
+            showCancel: false
+        });
+    }
+}
+
+function openEmbyLinkSelection(movieTitle, startTimestamp, candidates = [], options = {}) {
+    embyLinkSelectionContext = {
+        movieTitle,
+        startTimestamp: Math.max(0, Number(startTimestamp) || 0),
+        playbackTarget: options.playbackTarget === 'viewer' ? 'viewer' : 'modal'
+    };
+    openEmbyModal();
+    const input = document.getElementById('emby-search-input');
+    if (input) input.value = movieTitle;
+    renderEmbyLinkCandidates(candidates);
+}
+
+function renderEmbyLinkCandidates(candidates) {
+    const resultsDiv = document.getElementById('emby-results');
+    if (!resultsDiv) return;
+    if (!candidates.length) {
+        setNotification(resultsDiv, 'info', 'No exact Emby match. Search and select the correct movie.');
+        resizeEmbyModalForResults();
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    fragment.appendChild(createResultsCountSummary(candidates.length, '个候选', 'emby-results-count'));
+    const container = createEl('div', { className: 'columns is-multiline' });
+    candidates.forEach(movie => {
+        const movieName = movie.name || '';
+        const imageUrl = movie.imageUrl || '';
+        const column = createEl('div', { className: 'column emby-result-column' });
+        const card = createEl('div', {
+            className: 'card movie-card emby-playable-card emby-link-candidate',
+            attrs: { role: 'button', tabindex: '0', 'aria-label': `Link ${movieName}` }
+        }, [
+            createEl('div', { className: 'card-image' }, [
+                createEl('figure', { className: 'image is-2by3' }, [
+                    createEl('img', {
+                        attrs: { alt: movieName, src: IMAGE_LAZY_PLACEHOLDER },
+                        dataset: { src: imageUrl }
+                    }),
+                    createEl('div', { className: 'runtime-badge', text: formatRuntime(movie.runtimeTicks) })
+                ])
+            ]),
+            createEl('div', { className: 'card-content fixed-height emby-card-content' }, [
+                createEl('p', { className: 'title is-6 movie-title', text: movieName })
+            ])
+        ]);
+        const selectCandidate = () => linkMovieEmby(movie);
+        card.addEventListener('click', selectCandidate);
+        card.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                selectCandidate();
+            }
+        });
+        prepareDeferredImage(card.querySelector('img'), imageUrl);
+        column.appendChild(card);
+        container.appendChild(column);
+    });
+    fragment.appendChild(container);
+    clearElement(resultsDiv);
+    resultsDiv.appendChild(fragment);
+    resizeEmbyModalForResults();
+}
+
+async function linkMovieEmby(movie) {
+    const context = embyLinkSelectionContext;
+    if (!context || !movie?.id) return;
+    try {
+        const result = await callApi(event_map.link_movie_emby, {
+            title: context.movieTitle,
+            emby_item_id: movie.id
+        });
+        if (!result.success || !result.data?.playback?.streamUrl) {
+            throw new Error(result.message || 'Unable to link the Emby movie');
+        }
+        const playback = result.data.playback;
+        const startTimestamp = context.startTimestamp;
+        const playbackTarget = context.playbackTarget;
+        rememberMovieEmbyLink(context.movieTitle, playback.id);
+        closeEmbyModal();
+        startEmbyPlayback(playback.streamUrl, playback.name || context.movieTitle, startTimestamp, {
+            target: playbackTarget,
+            movieTitle: context.movieTitle,
+            itemId: playback.id
+        });
+    } catch (error) {
+        showAlert({
+            title: 'Emby',
+            message: error.message || 'Unable to link the Emby movie',
+            type: 'error',
+            showCancel: false
+        });
+    }
+}
+
+async function playMovieEmbyFromSearch(movie) {
+    if (!movie?.title || !movie.emby_item_id) return;
+    try {
+        const result = await callApi(event_map.resolve_movie_emby_playback, { title: movie.title });
+        if (!result.success) throw new Error(result.message || 'Unable to resolve Emby playback');
+        const data = result.data || {};
+        if (data.status === 'linked' && data.playback?.streamUrl) {
+            rememberMovieEmbyLink(movie.title, data.playback.id);
+            openEmbyPlayer(data.playback.streamUrl, data.playback.name || movie.title, 0, {
+                movieTitle: movie.title,
+                itemId: data.playback.id
+            });
+            return;
+        }
+        if (data.status === 'candidates') {
+            rememberMovieEmbyLink(movie.title, null);
+            openEmbyLinkSelection(movie.title, 0, data.candidates || [], { playbackTarget: 'modal' });
+            return;
+        }
+        throw new Error('No matching Emby movie was found');
+    } catch (error) {
+        showAlert({
+            title: 'Emby',
+            message: error.message || 'Unable to start Emby playback',
+            type: 'warning',
+            showCancel: false
+        });
+    }
 }
 
 function searchEmby() {
@@ -148,7 +389,8 @@ function searchEmby() {
             }
             
             const fragment = document.createDocumentFragment();
-            fragment.appendChild(createResultsCountSummary(items.length, '个结果', 'emby-results-count'));
+            const resultUnit = embyLinkSelectionContext ? '个候选' : '个结果';
+            fragment.appendChild(createResultsCountSummary(items.length, resultUnit, 'emby-results-count'));
             const container = createEl('div', { className: 'columns is-multiline' });
             
             items.forEach(movie => {
@@ -189,7 +431,13 @@ function searchEmby() {
                 prepareDeferredImage(img, imageUrl);
                 const movieCard = column.querySelector('.movie-card');
                 if (movieCard && streamUrl) {
-                    const playMovie = () => openEmbyPlayer(streamUrl, movieName);
+                    const playMovie = () => {
+                        if (embyLinkSelectionContext) {
+                            linkMovieEmby(movie);
+                            return;
+                        }
+                        openEmbyPlayer(streamUrl, movieName);
+                    };
                     movieCard.addEventListener('click', playMovie);
                     movieCard.addEventListener('keydown', event => {
                         if (event.key === 'Enter' || event.key === ' ') {

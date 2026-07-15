@@ -1,6 +1,7 @@
 // 添加图片查看器相关函数
 let currentImageIndex = 0;
 let currentImages = [];
+let currentImageMovieTitle = '';
 const IMAGE_VIEWER_WIDTH_RATIO = 3 / 5;
 const IMAGE_VIEWER_MAX_HEIGHT_RATIO = 0.9;
 const IMAGE_VIEWER_MOBILE_BREAKPOINT = 768;
@@ -53,19 +54,25 @@ function resizeImageViewerImage() {
     const modalCard = modal?.querySelector('.modal-card');
     const modalBody = modal?.querySelector('.modal-card-body');
     const viewer = modal?.querySelector('.viewer-image');
+    const video = modal?.querySelector('.image-viewer-emby-video');
     const container = modal?.querySelector('.image-viewer-container');
     const scrollContainer = modal?.querySelector('.image-viewer-scroll');
     const strip = modal?.querySelector('.image-viewer-strip');
 
-    if (!modalCard || !modalBody || !viewer || !container || !scrollContainer || !viewer.naturalWidth || !viewer.naturalHeight) return;
+    if (!modalCard || !modalBody || !viewer || !video || !container || !scrollContainer) return;
+
+    const isVideoMode = container.classList.contains('is-video-mode');
+    if (!isVideoMode && (!viewer.naturalWidth || !viewer.naturalHeight)) return;
 
     const displayWidth = scrollContainer.clientWidth || container.clientWidth || modalCard.clientWidth;
     if (!displayWidth) return;
 
-    const idealImageHeight = Math.round(displayWidth * viewer.naturalHeight / viewer.naturalWidth);
+    const idealMediaHeight = isVideoMode
+        ? Math.round(displayWidth * 9 / 16)
+        : Math.round(displayWidth * viewer.naturalHeight / viewer.naturalWidth);
     const stripHeight = strip && !strip.hidden ? strip.offsetHeight : 0;
     const imagePaneHeight = Math.min(
-        idealImageHeight,
+        idealMediaHeight,
         Math.max(1, getImageViewerMaxBodyHeight(modal, modalCard) - stripHeight)
     );
     const bodyHeight = imagePaneHeight + stripHeight;
@@ -75,7 +82,9 @@ function resizeImageViewerImage() {
     container.style.height = `${imagePaneHeight}px`;
     scrollContainer.style.height = '100%';
     viewer.style.width = '100%';
-    viewer.style.height = `${idealImageHeight}px`;
+    viewer.style.height = `${idealMediaHeight}px`;
+    video.style.width = '100%';
+    video.style.height = `${imagePaneHeight}px`;
     centerImageViewerModal();
 }
 

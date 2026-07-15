@@ -170,7 +170,7 @@ class ApiMovieHandlersMixin:
             query_params = list(params)
             query_params.extend([per_page, offset])
             cursor.execute(f"""
-                SELECT m.title, m.recommended, m.review, m.added_date
+                SELECT m.title, m.recommended, m.review, m.added_date, m.emby_item_id
                 FROM movies m
                 {where_sql}
                 ORDER BY m.added_date DESC

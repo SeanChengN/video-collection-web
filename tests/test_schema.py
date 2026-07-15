@@ -46,12 +46,16 @@ def run_schema_initialization(cursor):
     def migrate_images(conn_arg, cursor_arg):
         migration_calls.append(('images', conn_arg, cursor_arg))
 
+    def migrate_emby_link(conn_arg, cursor_arg):
+        migration_calls.append(('emby', conn_arg, cursor_arg))
+
     result = schema.initialize_database(
         lambda: connection,
         app_module.logger,
         ensure_index,
         migrate_metadata,
-        migrate_images
+        migrate_images,
+        migrate_emby_link
     )
     return result, connection, ensure_index_calls, migration_calls
 
@@ -74,7 +78,7 @@ def test_schema_initialization_creates_tables_indexes_defaults_and_runs_migratio
     assert [call[2] for call in ensure_index_calls] == [index[1] for index in schema.CORE_INDEXES]
     assert tag_inserts == list(schema.DEFAULT_TAGS)
     assert dimension_inserts == list(schema.DEFAULT_RATING_DIMENSIONS)
-    assert [call[0] for call in migration_calls] == ['metadata', 'images']
+    assert [call[0] for call in migration_calls] == ['metadata', 'images', 'emby']
     assert connection.commit_count == 1
 
 
