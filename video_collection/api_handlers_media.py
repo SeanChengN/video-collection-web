@@ -84,7 +84,7 @@ class ApiMediaHandlersMixin:
             }), 400
 
         try:
-            deleted_path = self.dependencies.delete_video_file((data or {}).get('path', ''))
+            delete_result = self.dependencies.delete_video_file((data or {}).get('path', ''))
         except ValueError:
             return self.dependencies.jsonify({
                 'success': False,
@@ -104,7 +104,7 @@ class ApiMediaHandlersMixin:
 
         return self.dependencies.jsonify({
             'success': True,
-            'path': deleted_path
+            **delete_result
         })
 
     def upload_image_handler(self, data, method='POST'):

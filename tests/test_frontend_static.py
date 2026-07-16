@@ -309,13 +309,24 @@ def test_thumbnail_local_video_delete_uses_confirmed_icon_action():
     assert "event_map.delete_video_file" in local_browser
     assert "confirm: true" in local_browser
     assert "clearDeletedThumbnailVideo" in local_browser
-    assert "await loadThumbnailDirectory(thumbnailState.currentPath)" in local_browser
+    assert "await loadThumbnailDirectory(result.next_path ?? thumbnailState.currentPath)" in local_browser
     deleted_video_state = local_browser.split("function clearDeletedThumbnailVideo(videoFile) {", 1)[1].split("\n}\n", 1)[0]
     assert "clearThumbnailCaptures()" not in deleted_video_state
     assert "thumbnail-delete-file" not in emby_browser
     assert ".thumbnail-file-row.has-delete" in styles
     assert ".thumbnail-delete-file" in styles
     assert "var(--vc-color-danger)" in styles
+
+
+def test_thumbnail_copy_name_removes_only_the_last_extension():
+    local_browser = (FRONTEND_SOURCE_DIR / "60-thumbnail" / "30-local-browser.js").read_text(encoding="utf-8")
+
+    assert "function getThumbnailVideoNameWithoutExtension" in local_browser
+    assert "normalizedName.lastIndexOf('.')" in local_browser
+    assert "normalizedName.slice(0, extensionIndex)" in local_browser
+    assert "navigator.clipboard.writeText(copyName)" in local_browser
+    assert "textarea.value = copyName" in local_browser
+    assert "`已复制文件名：${copyName}`" in local_browser
 
 
 def test_capture_timestamp_upload_and_emby_viewer_linking_are_wired():

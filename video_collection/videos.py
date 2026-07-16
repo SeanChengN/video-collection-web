@@ -1,3 +1,5 @@
+import errno
+import logging
 import os
 import re
 import stat
@@ -7,6 +9,9 @@ from urllib.parse import quote
 ALLOWED_VIDEO_EXTENSIONS = {
     'mp4', 'webm', 'ogg', 'ogv', 'mov', 'm4v', 'mkv', 'avi', 'wmv', 'flv', 'ts'
 }
+
+
+logger = logging.getLogger(__name__)
 
 
 def normalize_video_relative_path(path_value=''):
@@ -104,13 +109,50 @@ def delete_video_file(relative_path, video_library_root='/videos'):
     if not safe_relative_path or not allowed_video_file(os.path.basename(safe_relative_path)):
         raise ValueError('Invalid video file path')
 
-    abs_path = get_video_library_abs_path(safe_relative_path, video_library_root)
-    if not abs_path:
+    resolved_path = get_video_library_abs_path(safe_relative_path, video_library_root)
+    if not resolved_path:
         raise ValueError('Invalid video file path')
 
-    stat_result = os.lstat(abs_path)
+    root_path = os.path.realpath(video_library_root)
+    abs_path = os.path.abspath(os.path.join(root_path, *safe_relative_path.split('/')))
+    try:
+        if os.path.commonpath([root_path, abs_path]) != root_path:
+            raise ValueError('Invalid video file path')
+    except ValueError:
+        raise ValueError('Invalid video file path') from None
+
+    current_path = root_path
+    for part in safe_relative_path.split('/'):
+        current_path = os.path.join(current_path, part)
+        stat_result = os.lstat(current_path)
+        if stat.S_ISLNK(stat_result.st_mode):
+            raise ValueError('Video path contains a symbolic link')
+
     if not stat.S_ISREG(stat_result.st_mode):
         raise ValueError('Video path is not a regular file')
 
     os.remove(abs_path)
-    return safe_relative_path
+
+    parent_relative_path = normalize_video_relative_path(os.path.dirname(safe_relative_path)) or ''
+    removed_directory = None
+    next_path = parent_relative_path
+    if parent_relative_path:
+        parent_abs_path = os.path.dirname(abs_path)
+        try:
+            parent_stat = os.lstat(parent_abs_path)
+            if stat.S_ISDIR(parent_stat.st_mode) and not stat.S_ISLNK(parent_stat.st_mode):
+                os.rmdir(parent_abs_path)
+                removed_directory = parent_relative_path
+                next_path = normalize_video_relative_path(os.path.dirname(parent_relative_path)) or ''
+        except FileNotFoundError:
+            removed_directory = parent_relative_path
+            next_path = normalize_video_relative_path(os.path.dirname(parent_relative_path)) or ''
+        except OSError as exc:
+            if exc.errno not in (errno.ENOTEMPTY, errno.EEXIST) and getattr(exc, 'winerror', None) != 145:
+                logger.warning('Unable to remove video directory after deleting %s: %s', safe_relative_path, exc)
+
+    return {
+        'path': safe_relative_path,
+        'removed_directory': removed_directory,
+        'next_path': next_path
+    }

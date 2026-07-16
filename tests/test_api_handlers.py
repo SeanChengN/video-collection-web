@@ -516,10 +516,15 @@ def test_delete_video_file_wrapper_deletes_confirmed_local_video(monkeypatch, tm
     with app_module.app.test_request_context('/api'):
         response, status = unpack_response(
             app_module.delete_video_file_handler({'path': 'sample.mp4', 'confirm': True}, 'DELETE')
-        )
+    )
 
     assert status == 200
-    assert response.get_json() == {'success': True, 'path': 'sample.mp4'}
+    assert response.get_json() == {
+        'success': True,
+        'path': 'sample.mp4',
+        'removed_directory': None,
+        'next_path': ''
+    }
     assert not video_path.exists()
 
 

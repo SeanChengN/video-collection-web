@@ -89,6 +89,44 @@ def test_video_file_deletion_rejects_symbolic_links(monkeypatch, tmp_path):
     assert video_path.exists()
 
 
+def test_video_file_deletion_removes_only_the_empty_direct_parent(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, 'VIDEO_LIBRARY_ROOT', str(tmp_path))
+    parent_dir = tmp_path / 'collection'
+    video_dir = parent_dir / 'movie'
+    video_dir.mkdir(parents=True)
+    (video_dir / 'sample.mp4').write_bytes(b'video')
+
+    result = app_module.delete_video_file('collection/movie/sample.mp4')
+
+    assert result == {
+        'path': 'collection/movie/sample.mp4',
+        'removed_directory': 'collection/movie',
+        'next_path': 'collection'
+    }
+    assert not video_dir.exists()
+    assert parent_dir.exists()
+
+
+def test_video_file_deletion_keeps_nonempty_parent_directory(monkeypatch, tmp_path):
+    monkeypatch.setattr(app_module, 'VIDEO_LIBRARY_ROOT', str(tmp_path))
+    video_dir = tmp_path / 'movie'
+    video_dir.mkdir()
+    (video_dir / 'sample.mp4').write_bytes(b'video')
+    (video_dir / '.keep').write_text('keep', encoding='utf-8')
+    (video_dir / 'extras').mkdir()
+
+    result = app_module.delete_video_file('movie/sample.mp4')
+
+    assert result == {
+        'path': 'movie/sample.mp4',
+        'removed_directory': None,
+        'next_path': 'movie'
+    }
+    assert video_dir.exists()
+    assert (video_dir / '.keep').exists()
+    assert (video_dir / 'extras').is_dir()
+
+
 def test_video_route_serves_full_file_with_range_support(monkeypatch, tmp_path):
     monkeypatch.setattr(app_module, 'VIDEO_LIBRARY_ROOT', str(tmp_path))
     video_dir = tmp_path / 'movies'

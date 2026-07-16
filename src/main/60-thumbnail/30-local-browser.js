@@ -212,7 +212,7 @@ async function deleteThumbnailVideoFile(videoFile) {
         }
 
         clearDeletedThumbnailVideo(videoFile);
-        await loadThumbnailDirectory(thumbnailState.currentPath);
+        await loadThumbnailDirectory(result.next_path ?? thumbnailState.currentPath);
         setThumbnailStatus(`已删除视频文件：${videoFile.name}`);
     } catch (error) {
         setThumbnailStatus(error.message || '删除视频文件失败');
@@ -256,6 +256,7 @@ function clearDeletedThumbnailVideo(videoFile) {
 }
 
 async function copyThumbnailVideoFileName(fileName, button) {
+    const copyName = getThumbnailVideoNameWithoutExtension(fileName);
     const setCopyIcon = (symbolId, stateClass) => {
         if (!button) return;
         button.classList.remove('is-success', 'is-danger');
@@ -268,10 +269,10 @@ async function copyThumbnailVideoFileName(fileName, button) {
 
     try {
         if (navigator.clipboard?.writeText) {
-            await navigator.clipboard.writeText(fileName);
+            await navigator.clipboard.writeText(copyName);
         } else {
             const textarea = document.createElement('textarea');
-            textarea.value = fileName;
+            textarea.value = copyName;
             textarea.style.position = 'fixed';
             textarea.style.opacity = '0';
             document.body.appendChild(textarea);
@@ -280,12 +281,18 @@ async function copyThumbnailVideoFileName(fileName, button) {
             document.body.removeChild(textarea);
         }
         setCopyIcon('copy-success-btn-icon', 'is-success');
-        setThumbnailStatus(`已复制文件名：${fileName}`);
+        setThumbnailStatus(`已复制文件名：${copyName}`);
     } catch (error) {
         setCopyIcon('copy-fail-btn-icon', 'is-danger');
         setThumbnailStatus('复制文件名失败');
     } finally {
         setTimeout(() => setCopyIcon('copy-btn-icon', ''), 1200);
     }
+}
+
+function getThumbnailVideoNameWithoutExtension(fileName) {
+    const normalizedName = String(fileName || '');
+    const extensionIndex = normalizedName.lastIndexOf('.');
+    return extensionIndex > 0 ? normalizedName.slice(0, extensionIndex) : normalizedName;
 }
 
