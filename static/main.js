@@ -559,6 +559,7 @@ function initStaticEventDelegates() {
         'edit-movie-emby': handleEditMovieEmbyAction,
         'close-wtl-modal': closeWtlModal,
         'search-wtl': searchWtl,
+        'clear-wtl-search-cache': clearWtlSearchCache,
         'refresh-wtl-status': refreshWtlStatus,
         'close-jackett-modal': closeJackettModal,
         'close-thunder-modal': closeThunderModal,
@@ -1622,6 +1623,8 @@ function closeThunderModal() {
 
 // What's the link?查询相关代码
 function openWtlModal() {
+    initializeWtlSearchCache();
+    renderWtlRecentSearches();
     if (ModalManager.minimizedModals.has('wtlModal')) {
         ModalManager.restoreModal('wtlModal');
         if (typeof checkWtlStatus === 'function') checkWtlStatus();
@@ -1640,6 +1643,8 @@ function closeWtlModal() {
 }
 const WTL_MODAL_DEFAULT_HEIGHT_RATIO = 0.3;
 const WTL_MODAL_MAX_HEIGHT_RATIO = 0.9;
+const WTL_SEARCH_CACHE_STORAGE_KEY = 'vc-wtl-search-cache-v1';
+const WTL_SEARCH_CACHE_LIMIT = 5;
 const wtlState = {
     screenshots: [],
     selectedScreenshotUrls: new Set(),
@@ -1648,7 +1653,9 @@ const wtlState = {
     serviceMessage: '',
     serviceLatencyMs: null,
     serviceCached: false,
-    serviceCheckedAt: null
+    serviceCheckedAt: null,
+    searchCache: [],
+    searchCacheLoaded: false
 };
 
 function resetWtlSelection() {
@@ -1748,7 +1755,7 @@ function setWtlStatus(status, options = {}) {
     wtlState.serviceCached = Boolean(options.cached);
     wtlState.serviceCheckedAt = options.checkedAt || null;
     updateWtlStatusPanel();
-    setWtlSearchDisabled(status === 'checking' || status === 'offline' || status === 'limited');
+    setWtlSearchDisabled(status === 'checking');
 }
 
 async function checkWtlStatus(options = {}) {
@@ -1780,29 +1787,285 @@ function markWtlApiFailure(statusCode, message) {
     });
 }
 
-function searchWtl() {
-    const query = document.getElementById('wtl-input').value;
+function getWtlSearchCacheKey(query) {
+    const normalizedQuery = String(query || '').trim();
+    if (!normalizedQuery) return '';
+
+    try {
+        const url = new URL(normalizedQuery);
+        if (url.protocol.toLowerCase() === 'magnet:') {
+            const exactTopic = url.searchParams.getAll('xt')
+                .find(value => /^urn:btih:[a-z0-9]+$/i.test(value));
+            if (exactTopic) {
+                return `btih:${exactTopic.slice('urn:btih:'.length).toLowerCase()}`;
+            }
+        }
+    } catch (error) {
+        // Non-URL values keep exact trimmed matching for compatibility.
+    }
+
+    return `query:${normalizedQuery}`;
+}
+
+function sanitizeWtlSearchResult(data) {
+    const name = String(data?.name || '').trim();
+    if (!name) return null;
+
+    const size = Number(data?.size);
+    const count = Number(data?.count);
+    const screenshots = Array.isArray(data?.screenshots)
+        ? data.screenshots
+            .map(shot => String(shot?.screenshot || '').trim())
+            .filter(Boolean)
+            .map(screenshot => ({ screenshot }))
+        : [];
+
+    return {
+        file_type: String(data?.file_type || ''),
+        name,
+        size: Number.isFinite(size) ? size : 0,
+        count: Number.isFinite(count) ? count : 0,
+        screenshots
+    };
+}
+
+function initializeWtlSearchCache() {
+    if (wtlState.searchCacheLoaded) return;
+    wtlState.searchCacheLoaded = true;
+    wtlState.searchCache = [];
+
+    try {
+        const storedValue = window.localStorage.getItem(WTL_SEARCH_CACHE_STORAGE_KEY);
+        if (!storedValue) return;
+        const parsed = JSON.parse(storedValue);
+        if (!Array.isArray(parsed)) throw new Error('Invalid WTL cache');
+
+        const seenKeys = new Set();
+        wtlState.searchCache = parsed
+            .map(record => {
+                const query = String(record?.query || '').trim();
+                const cacheKey = getWtlSearchCacheKey(query);
+                const data = sanitizeWtlSearchResult(record?.data);
+                if (!query || !cacheKey || !data) return null;
+                return {
+                    query,
+                    cacheKey,
+                    data,
+                    lastUsedAt: Number(record?.lastUsedAt) || 0
+                };
+            })
+            .filter(Boolean)
+            .sort((left, right) => right.lastUsedAt - left.lastUsedAt)
+            .filter(record => {
+                if (seenKeys.has(record.cacheKey)) return false;
+                seenKeys.add(record.cacheKey);
+                return true;
+            })
+            .slice(0, WTL_SEARCH_CACHE_LIMIT);
+    } catch (error) {
+        wtlState.searchCache = [];
+        try {
+            window.localStorage.removeItem(WTL_SEARCH_CACHE_STORAGE_KEY);
+        } catch (storageError) {
+            // Keep the empty in-memory cache when storage is unavailable.
+        }
+    }
+}
+
+function persistWtlSearchCache() {
+    try {
+        window.localStorage.setItem(
+            WTL_SEARCH_CACHE_STORAGE_KEY,
+            JSON.stringify(wtlState.searchCache)
+        );
+    } catch (error) {
+        // The in-memory cache remains usable for the current page.
+    }
+}
+
+function findWtlCachedSearch(query, options = {}) {
+    initializeWtlSearchCache();
+    const cacheKey = getWtlSearchCacheKey(query);
+    const index = wtlState.searchCache.findIndex(record => record.cacheKey === cacheKey);
+    if (index < 0) return null;
+
+    const record = wtlState.searchCache[index];
+    if (options.touch !== false) {
+        record.lastUsedAt = Date.now();
+        wtlState.searchCache.splice(index, 1);
+        wtlState.searchCache.unshift(record);
+        persistWtlSearchCache();
+        renderWtlRecentSearches();
+    }
+    return record;
+}
+
+function cacheSuccessfulWtlSearch(query, data) {
+    initializeWtlSearchCache();
+    const normalizedQuery = String(query || '').trim();
+    const cacheKey = getWtlSearchCacheKey(normalizedQuery);
+    const safeData = sanitizeWtlSearchResult(data);
+    if (!normalizedQuery || !cacheKey || !safeData) return null;
+
+    wtlState.searchCache = wtlState.searchCache
+        .filter(record => record.cacheKey !== cacheKey);
+    const record = {
+        query: normalizedQuery,
+        cacheKey,
+        data: safeData,
+        lastUsedAt: Date.now()
+    };
+    wtlState.searchCache.unshift(record);
+    wtlState.searchCache = wtlState.searchCache.slice(0, WTL_SEARCH_CACHE_LIMIT);
+    persistWtlSearchCache();
+    renderWtlRecentSearches();
+    return record;
+}
+
+function clearWtlSearchCache() {
+    wtlState.searchCacheLoaded = true;
+    wtlState.searchCache = [];
+    try {
+        window.localStorage.removeItem(WTL_SEARCH_CACHE_STORAGE_KEY);
+    } catch (error) {
+        // Clearing the in-memory records is still sufficient for this page.
+    }
+    renderWtlRecentSearches();
+}
+
+function loadWtlCachedRecord(record) {
+    if (!record) return;
+    const input = document.getElementById('wtl-input');
+    if (input) input.value = record.query;
+    const touchedRecord = findWtlCachedSearch(record.query) || record;
+    renderWtlSearchResult(touchedRecord.data, {
+        cached: true,
+        query: touchedRecord.query
+    });
+}
+
+function refreshWtlCachedRecord(record) {
+    loadWtlCachedRecord(record);
+    return searchWtl({ force: true, query: record.query });
+}
+
+function renderWtlRecentSearches() {
+    initializeWtlSearchCache();
+    const panel = document.getElementById('wtl-recent-searches');
+    const list = document.getElementById('wtl-recent-list');
+    if (!panel || !list) return;
+
+    clearElement(list);
+    panel.hidden = wtlState.searchCache.length === 0;
+    if (panel.hidden) return;
+
+    wtlState.searchCache.forEach(record => {
+        const loadButton = createEl('button', {
+            className: 'wtl-recent-load',
+            attrs: {
+                type: 'button',
+                title: record.data.name
+            }
+        }, [
+            createEl('span', { className: 'wtl-recent-name', text: record.data.name })
+        ]);
+        loadButton.addEventListener('click', () => loadWtlCachedRecord(record));
+
+        const refreshButton = createEl('button', {
+            className: 'wtl-recent-refresh',
+            attrs: {
+                type: 'button',
+                title: '重新查询',
+                'aria-label': `重新查询 ${record.data.name}`
+            }
+        }, [
+            createSpriteSvg('search-btn-icon', {
+                width: 13,
+                height: 13,
+                fill: 'currentColor',
+                ariaLabel: '重新查询'
+            })
+        ]);
+        refreshButton.addEventListener('click', () => refreshWtlCachedRecord(record));
+
+        list.appendChild(createEl('div', {
+            className: 'wtl-recent-item',
+            attrs: { role: 'listitem' }
+        }, [loadButton, refreshButton]));
+    });
+}
+
+function createWtlCacheNotice(query) {
+    const refreshButton = createEl('button', {
+        className: 'wtl-cache-refresh',
+        attrs: { type: 'button' },
+        text: '重新查询'
+    });
+    refreshButton.addEventListener('click', () => searchWtl({ force: true, query }));
+    return createEl('div', { className: 'wtl-cache-notice' }, [
+        createEl('span', { text: '缓存结果' }),
+        refreshButton
+    ]);
+}
+
+function renderWtlSearchResult(data, options = {}) {
     const resultsDiv = document.getElementById('wtl-results');
-
-    if (wtlState.serviceStatus === 'checking') {
-        setNotification(resultsDiv, 'warning', 'WTL 服务仍在检测中，请稍后再试');
-        return;
+    if (!resultsDiv) return;
+    resetWtlSelection();
+    clearElement(resultsDiv);
+    if (options.cached) {
+        resultsDiv.appendChild(createWtlCacheNotice(options.query || ''));
     }
-    if (wtlState.serviceStatus === 'offline' || wtlState.serviceStatus === 'limited') {
-        setNotification(resultsDiv, 'warning', wtlState.serviceMessage || 'WTL 服务当前不可用，请稍后刷新状态');
-        return;
-    }
+    resultsDiv.appendChild(createWtlResultBox(data));
+    resultsDiv.querySelectorAll('img').forEach(img => {
+        if (!img.complete) {
+            img.addEventListener('load', resizeWtlModalForResults, { once: true });
+            img.addEventListener('error', resizeWtlModalForResults, { once: true });
+        }
+    });
+    resizeWtlModalForResults();
+}
 
-    if (!query.trim()) {
+function searchWtl(options = {}) {
+    const input = document.getElementById('wtl-input');
+    const query = String(options.query ?? input?.value ?? '').trim();
+    const resultsDiv = document.getElementById('wtl-results');
+    const forceRefresh = options.force === true;
+    if (input) input.value = query;
+
+    if (!query) {
         resetWtlModalHeight();
         setNotification(resultsDiv, 'warning', '请输入链接');
         return;
     }
 
-    setNotification(resultsDiv, 'info', '正在查询...');
+    const cachedRecord = findWtlCachedSearch(query, { touch: !forceRefresh });
+    if (cachedRecord && !forceRefresh) {
+        renderWtlSearchResult(cachedRecord.data, {
+            cached: true,
+            query: cachedRecord.query
+        });
+        return;
+    }
 
-    resetWtlSelection();
-    fetch(`https://whatslink.info/api/v1/link?url=${encodeURIComponent(query)}`)
+    if (wtlState.serviceStatus === 'checking') {
+        if (!forceRefresh || !cachedRecord) {
+            setNotification(resultsDiv, 'warning', 'WTL 服务仍在检测中，请稍后再试');
+        }
+        return;
+    }
+    if (wtlState.serviceStatus === 'offline' || wtlState.serviceStatus === 'limited') {
+        if (!forceRefresh || !cachedRecord) {
+            setNotification(resultsDiv, 'warning', wtlState.serviceMessage || 'WTL 服务当前不可用，请稍后刷新状态');
+        }
+        return;
+    }
+
+    if (!forceRefresh || !cachedRecord) {
+        setNotification(resultsDiv, 'info', '正在查询...');
+    }
+
+    return fetch(`https://whatslink.info/api/v1/link?url=${encodeURIComponent(query)}`)
         .then(response => {
             if (!response.ok) {
                 markWtlApiFailure(response.status, `WTL API HTTP ${response.status}`);
@@ -1811,23 +2074,23 @@ function searchWtl() {
             return response.json();
         })
         .then(data => {
+            const record = cacheSuccessfulWtlSearch(query, data);
+            if (!record) {
+                throw new Error('WTL API 返回了无效结果');
+            }
             setWtlStatus('online', { message: '服务在线' });
-            clearElement(resultsDiv);
-            resultsDiv.appendChild(createWtlResultBox(data));
-            resultsDiv.querySelectorAll('img').forEach(img => {
-                if (!img.complete) {
-                    img.addEventListener('load', resizeWtlModalForResults, { once: true });
-                    img.addEventListener('error', resizeWtlModalForResults, { once: true });
-                }
-            });
-            resizeWtlModalForResults();
+            renderWtlSearchResult(record.data);
         })
         .catch(error => {
-            resetWtlModalHeight();
+            if (!forceRefresh || !cachedRecord) {
+                resetWtlModalHeight();
+            }
             if (wtlState.serviceStatus !== 'limited') {
                 markWtlApiFailure(0, error.message);
             }
-            setNotification(resultsDiv, 'danger', '查询失败，请检查链接是否正确');
+            if (!forceRefresh || !cachedRecord) {
+                setNotification(resultsDiv, 'danger', '查询失败，请检查链接是否正确');
+            }
             showAlert({
                 title: '查询失败',
                 message: error.message || '查询过程出错',

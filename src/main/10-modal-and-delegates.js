@@ -25,6 +25,7 @@ function initStaticEventDelegates() {
         'edit-movie-emby': handleEditMovieEmbyAction,
         'close-wtl-modal': closeWtlModal,
         'search-wtl': searchWtl,
+        'clear-wtl-search-cache': clearWtlSearchCache,
         'refresh-wtl-status': refreshWtlStatus,
         'close-jackett-modal': closeJackettModal,
         'close-thunder-modal': closeThunderModal,

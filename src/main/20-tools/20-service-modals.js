@@ -28,6 +28,8 @@ function closeThunderModal() {
 
 // What's the link?查询相关代码
 function openWtlModal() {
+    initializeWtlSearchCache();
+    renderWtlRecentSearches();
     if (ModalManager.minimizedModals.has('wtlModal')) {
         ModalManager.restoreModal('wtlModal');
         if (typeof checkWtlStatus === 'function') checkWtlStatus();

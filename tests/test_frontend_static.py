@@ -610,6 +610,50 @@ def test_wtl_status_indicator_uses_safe_status_api():
     assert "#wtlModal .wtl-status-meta {\n        display: none;" not in styles
 
 
+def test_wtl_successful_searches_use_persistent_five_item_lru_cache():
+    template = INDEX_TEMPLATE.read_text(encoding="utf-8")
+    actions = (FRONTEND_SOURCE_DIR / "10-modal-and-delegates.js").read_text(encoding="utf-8")
+    service_modals = (FRONTEND_SOURCE_DIR / "20-tools" / "20-service-modals.js").read_text(encoding="utf-8")
+    content = (FRONTEND_SOURCE_DIR / "20-tools" / "30-wtl-search-results.js").read_text(encoding="utf-8")
+    styles = (STYLE_SOURCE_DIR / "10-services-tools.css").read_text(encoding="utf-8")
+
+    assert 'id="wtl-recent-searches"' in template
+    assert 'id="wtl-recent-list"' in template
+    assert 'data-action="clear-wtl-search-cache"' in template
+    assert "'clear-wtl-search-cache': clearWtlSearchCache" in actions
+    assert "initializeWtlSearchCache()" in service_modals
+    assert "renderWtlRecentSearches()" in service_modals
+
+    assert "WTL_SEARCH_CACHE_STORAGE_KEY = 'vc-wtl-search-cache-v1'" in content
+    assert "WTL_SEARCH_CACHE_LIMIT = 5" in content
+    assert "window.localStorage.getItem(WTL_SEARCH_CACHE_STORAGE_KEY)" in content
+    assert "window.localStorage.setItem(" in content
+    assert "window.localStorage.removeItem(WTL_SEARCH_CACHE_STORAGE_KEY)" in content
+    assert "url.searchParams.getAll('xt')" in content
+    assert "return `btih:${exactTopic.slice('urn:btih:'.length).toLowerCase()}`" in content
+    assert ".slice(0, WTL_SEARCH_CACHE_LIMIT)" in content
+    assert "function sanitizeWtlSearchResult" in content
+    assert "function cacheSuccessfulWtlSearch" in content
+    assert "function clearWtlSearchCache" in content
+    assert "function renderWtlRecentSearches" in content
+    assert "function createWtlCacheNotice" in content
+    assert "searchWtl({ force: true" in content
+    assert "setWtlSearchDisabled(status === 'checking')" in content
+
+    search_body = content.split("function searchWtl(options = {}) {", 1)[1].split("\n}\n\nfunction formatFileSize", 1)[0]
+    assert search_body.index("findWtlCachedSearch") < search_body.index("wtlState.serviceStatus === 'checking'")
+    assert search_body.index("cacheSuccessfulWtlSearch") < search_body.index("renderWtlSearchResult(record.data)")
+    assert "if (!forceRefresh || !cachedRecord)" in search_body
+
+    assert "#wtlModal .wtl-recent-searches" in styles
+    assert "#wtlModal .wtl-recent-list" in styles
+    assert "#wtlModal .wtl-recent-item" in styles
+    assert "#wtlModal .wtl-cache-notice" in styles
+    assert "var(--vc-tool-wtl)" in styles
+    assert "grid-template-columns: repeat(3, minmax(0, 1fr))" in styles
+    assert "overflow-x: visible" in styles
+
+
 def test_image_viewer_has_thumbnail_navigation():
     template = INDEX_TEMPLATE.read_text(encoding="utf-8")
     layout = (FRONTEND_SOURCE_DIR / "70-images" / "10-viewer-layout.js").read_text(encoding="utf-8")
