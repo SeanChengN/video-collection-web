@@ -1,7 +1,7 @@
 function setEditMovieEmbyFeedback(message = '', state = '') {
     const feedback = document.getElementById('edit-emby-link-feedback');
     if (!feedback) return;
-    feedback.textContent = message;
+    feedback.textContent = normalizeUiMessage(message, '');
     feedback.hidden = !message;
     feedback.dataset.state = state;
 }

@@ -23,7 +23,7 @@ function loadDatabaseBackups() {
             renderDatabaseUpgradeDiagnostic({});
             renderScheduledBackupStatus({});
             clearElement(list);
-            list.appendChild(createBackupTableMessage(`备份列表读取失败: ${error.message}`));
+            list.appendChild(createBackupTableMessage(normalizeUiMessage(error.message, '备份列表读取失败。')));
         });
 }
 

@@ -32,6 +32,78 @@ async function cachedFetch(url, options = {}) {
     return response;
 }
 
+const UI_MESSAGE_TRANSLATIONS = new Map([
+    ['Request failed', '请求失败。'],
+    ['Unauthorized', '未授权访问。'],
+    ['Invalid CSRF token', '请求验证无效，请刷新页面后重试。'],
+    ['Invalid API payload', '请求数据无效。'],
+    ['Invalid event payload', '操作数据无效。'],
+    ['Movie title is required', '电影名称不能为空。'],
+    ['No exact Emby match. Search and select the correct movie.', '未找到完全匹配的 Emby 电影，请搜索并选择正确的电影。'],
+    ['The selected Emby movie no longer exists', '所选 Emby 电影已不存在。'],
+    ['Selected Emby movie is unavailable', '所选 Emby 电影当前不可用。'],
+    ['Emby authentication or permission validation failed', 'Emby 登录或访问权限验证失败。'],
+    ['Emby service is temporarily unavailable', 'Emby 服务暂时不可用。'],
+    ['Movie was not found', '未找到该电影记录。'],
+    ['Invalid movie link', '电影关联信息无效。'],
+    ['Emby playback could not be recovered', 'Emby 播放恢复失败。'],
+    ['The linked Emby item is available, but playback failed', '已绑定的 Emby 条目可用，但播放失败。'],
+    ['No matching Emby movie was found', '未找到匹配的 Emby 电影。'],
+    ['Emby playback failed', 'Emby 播放失败。'],
+    ['Unable to link the Emby movie', '无法绑定 Emby 电影。'],
+    ['Unable to resolve Emby playback', '无法获取 Emby 播放信息。'],
+    ['Unable to start Emby playback', '无法启动 Emby 播放。'],
+    ['Emby search failed', 'Emby 搜索失败。'],
+    ['WTL service is reachable', 'WTL 服务在线。'],
+    ['WTL status check failed', 'WTL 服务状态检测失败。'],
+    ['Search query is required', '请输入搜索内容。'],
+    ['Unsupported external image URL', '不支持该外部图片地址。'],
+    ['External image fetch failed', '外部图片获取失败。'],
+    ['Invalid video directory', '视频目录无效。'],
+    ['Video directory is not available', '视频目录不可用。'],
+    ['Video deletion requires confirmation', '请确认后再删除视频文件。'],
+    ['Invalid video file path', '视频文件路径无效。'],
+    ['Video file was not found', '未找到视频文件。'],
+    ['Unable to delete video file', '无法删除视频文件。'],
+    ['Invalid capture timestamp', '截图时间戳无效。'],
+    ['Invalid imported image data', '导入的图片数据无效。']
+]);
+
+function normalizeUiMessage(message, fallback = '操作失败。', options = {}) {
+    const { preserveUnknown = false } = options;
+    const original = String(message ?? '').trim();
+    if (!original) return fallback;
+
+    const translated = UI_MESSAGE_TRANSLATIONS.get(original);
+    if (translated) return translated;
+
+    const httpStatus = /^HTTP error! status:\s*(\d+)$/i.exec(original);
+    if (httpStatus) return `请求失败（HTTP ${httpStatus[1]}）。`;
+
+    const oversizedUpload = /^Uploaded file is too large\. Max size is (\d+) MB\.$/i.exec(original);
+    if (oversizedUpload) return `上传文件过大，最大允许 ${oversizedUpload[1]} MB。`;
+
+    const embySearchFailure = /^Emby search failed: HTTP (\d+)$/i.exec(original);
+    if (embySearchFailure) return `Emby 搜索失败（HTTP ${embySearchFailure[1]}）。`;
+
+    const wtlStatusFailure = /^WTL service returned HTTP (\d+)$/i.exec(original);
+    if (wtlStatusFailure) return `WTL 服务状态检测失败（HTTP ${wtlStatusFailure[1]}）。`;
+
+    const externalImageFailure = /^External image fetch failed: HTTP (\d+)$/i.exec(original);
+    if (externalImageFailure) return `外部图片获取失败（HTTP ${externalImageFailure[1]}）。`;
+
+    if (/^Method .+ is not allowed for event \d+$/i.test(original)) {
+        return '当前操作不被允许。';
+    }
+
+    if (/[A-Za-z]/.test(original) && !/[\u4E00-\u9FFF]/.test(original)) {
+        console.warn('未翻译的界面提示：', original);
+        return preserveUnknown ? original : fallback;
+    }
+
+    return original;
+}
+
 
 // 图片懒加载观察器
 function clearElement(element) {
@@ -128,7 +200,7 @@ function createActionButton({ className, text, action, dataset = {}, children = 
 function createNotification(type, message) {
     return createEl('div', {
         className: `notification is-${type}`,
-        text: message
+        text: normalizeUiMessage(message, '操作提示。')
     });
 }
 
@@ -240,7 +312,7 @@ function showAlert(options = {}) {
     
     // 设置内容
     titleEl.textContent = title;
-    messageEl.textContent = message;
+    messageEl.textContent = normalizeUiMessage(message);
     confirmBtn.textContent = confirmText;
     cancelBtn.textContent = cancelText;
     

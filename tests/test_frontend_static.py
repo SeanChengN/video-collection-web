@@ -918,3 +918,42 @@ def test_table_hover_tooltip_requires_title_attribute():
 
     assert ".table td.hoverable[title]:hover::after" in styles
     assert ".table td.hoverable:hover::after" not in styles
+
+
+def test_user_facing_messages_are_normalized_to_simplified_chinese():
+    foundation = (FRONTEND_SOURCE_DIR / "00-foundation.js").read_text(encoding="utf-8")
+    emby = (FRONTEND_SOURCE_DIR / "20-tools" / "10-emby-search-player.js").read_text(encoding="utf-8")
+    viewer = (FRONTEND_SOURCE_DIR / "70-images" / "20-viewer-navigation.js").read_text(encoding="utf-8")
+    wtl = (FRONTEND_SOURCE_DIR / "20-tools" / "30-wtl-search-results.js").read_text(encoding="utf-8")
+    thumbnail = (FRONTEND_SOURCE_DIR / "60-thumbnail" / "40-video-controls.js").read_text(encoding="utf-8")
+    local_browser = (FRONTEND_SOURCE_DIR / "60-thumbnail" / "30-local-browser.js").read_text(encoding="utf-8")
+    pagination = (FRONTEND_SOURCE_DIR / "50-movies" / "30-pagination-formatting.js").read_text(encoding="utf-8")
+    template = INDEX_TEMPLATE.read_text(encoding="utf-8")
+
+    assert "function normalizeUiMessage" in foundation
+    assert "No exact Emby match. Search and select the correct movie." in foundation
+    assert "未找到完全匹配的 Emby 电影，请搜索并选择正确的电影。" in foundation
+    assert "Selected Emby movie is unavailable" in foundation
+    assert "所选 Emby 电影当前不可用。" in foundation
+    assert "HTTP error! status" in foundation
+    assert "console.warn('未翻译的界面提示：', original)" in foundation
+    assert "text: normalizeUiMessage(message, '操作提示。')" in foundation
+    assert "messageEl.textContent = normalizeUiMessage(message);" in foundation
+
+    assert "No exact Emby match. Search and select the correct movie." not in emby
+    assert "Unable to start Emby playback" not in emby
+    assert "aria-label': `关联 ${movieName}`" in emby
+    assert "Emby 播放器" in emby
+    assert "查看图片 ${index + 1}" in viewer
+    assert "normalizeUiMessage(wtlState.serviceMessage, '状态未检测')" in wtl
+    assert "options.fallback || '操作失败。'" in thumbnail
+    assert "preserveUnknown: Boolean(options.preserveUnknown)" in thumbnail
+    assert "rootButton.textContent = '视频库'" in local_browser
+    assert "'aria-label': '分页导航'" in pagination
+
+    assert 'aria-label="close"' not in template
+    assert 'aria-label="minimize"' not in template
+    assert 'aria-label="logo"' not in template
+    assert 'aria-label="应用标志"' in template
+    assert 'aria-label="最小化窗口"' in template
+    assert 'aria-label="关闭窗口"' in template

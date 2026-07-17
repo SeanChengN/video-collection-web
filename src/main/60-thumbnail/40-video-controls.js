@@ -24,13 +24,17 @@ function selectThumbnailVideo(file) {
 function updateThumbnailStatusForVideo() {
     const video = document.getElementById('thumbnail-video');
     if (!video || !thumbnailState.selectedVideo) return;
-    setThumbnailStatus(`${thumbnailState.selectedVideo.name} · ${formatThumbnailTime(video.duration)}`);
+    setThumbnailStatus(`${thumbnailState.selectedVideo.name} · ${formatThumbnailTime(video.duration)}`, {
+        preserveUnknown: true
+    });
 }
 
-function setThumbnailStatus(message) {
+function setThumbnailStatus(message, options = {}) {
     const status = document.getElementById('thumbnail-status');
     if (status) {
-        status.textContent = message;
+        status.textContent = normalizeUiMessage(message, options.fallback || '操作失败。', {
+            preserveUnknown: Boolean(options.preserveUnknown)
+        });
     }
 }
 

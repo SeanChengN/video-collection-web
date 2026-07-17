@@ -76,7 +76,7 @@ function renderThumbnailBreadcrumbs(path) {
 
     const rootButton = document.createElement('button');
     rootButton.type = 'button';
-    rootButton.textContent = 'videos';
+    rootButton.textContent = '视频库';
     rootButton.addEventListener('click', () => loadThumbnailDirectory(''));
     breadcrumbs.appendChild(rootButton);
 

@@ -82,7 +82,7 @@ function searchMovies(page = 1, options = {}) {
         })
         .catch(error => {
             if (requestId !== searchRequestSequence) return;
-            setNotification(messageDiv, 'danger', `搜索出错: ${error.message}`);
+            setNotification(messageDiv, 'danger', normalizeUiMessage(error.message, '搜索出错，请稍后重试。'));
             clearElement(resultsDiv);
             clearElement(paginationDiv);
             searchResultTotal = 0;

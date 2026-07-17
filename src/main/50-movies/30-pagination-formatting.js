@@ -62,7 +62,7 @@ function updatePagination() {
 
     const nav = createEl('nav', {
         className: 'pagination is-centered',
-        attrs: { role: 'navigation', 'aria-label': 'pagination' }
+        attrs: { role: 'navigation', 'aria-label': '分页导航' }
     });
 
     nav.appendChild(createPaginationAnchor('上一页', currentPage - 1, {

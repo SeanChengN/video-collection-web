@@ -96,6 +96,78 @@ async function cachedFetch(url, options = {}) {
     return response;
 }
 
+const UI_MESSAGE_TRANSLATIONS = new Map([
+    ['Request failed', '请求失败。'],
+    ['Unauthorized', '未授权访问。'],
+    ['Invalid CSRF token', '请求验证无效，请刷新页面后重试。'],
+    ['Invalid API payload', '请求数据无效。'],
+    ['Invalid event payload', '操作数据无效。'],
+    ['Movie title is required', '电影名称不能为空。'],
+    ['No exact Emby match. Search and select the correct movie.', '未找到完全匹配的 Emby 电影，请搜索并选择正确的电影。'],
+    ['The selected Emby movie no longer exists', '所选 Emby 电影已不存在。'],
+    ['Selected Emby movie is unavailable', '所选 Emby 电影当前不可用。'],
+    ['Emby authentication or permission validation failed', 'Emby 登录或访问权限验证失败。'],
+    ['Emby service is temporarily unavailable', 'Emby 服务暂时不可用。'],
+    ['Movie was not found', '未找到该电影记录。'],
+    ['Invalid movie link', '电影关联信息无效。'],
+    ['Emby playback could not be recovered', 'Emby 播放恢复失败。'],
+    ['The linked Emby item is available, but playback failed', '已绑定的 Emby 条目可用，但播放失败。'],
+    ['No matching Emby movie was found', '未找到匹配的 Emby 电影。'],
+    ['Emby playback failed', 'Emby 播放失败。'],
+    ['Unable to link the Emby movie', '无法绑定 Emby 电影。'],
+    ['Unable to resolve Emby playback', '无法获取 Emby 播放信息。'],
+    ['Unable to start Emby playback', '无法启动 Emby 播放。'],
+    ['Emby search failed', 'Emby 搜索失败。'],
+    ['WTL service is reachable', 'WTL 服务在线。'],
+    ['WTL status check failed', 'WTL 服务状态检测失败。'],
+    ['Search query is required', '请输入搜索内容。'],
+    ['Unsupported external image URL', '不支持该外部图片地址。'],
+    ['External image fetch failed', '外部图片获取失败。'],
+    ['Invalid video directory', '视频目录无效。'],
+    ['Video directory is not available', '视频目录不可用。'],
+    ['Video deletion requires confirmation', '请确认后再删除视频文件。'],
+    ['Invalid video file path', '视频文件路径无效。'],
+    ['Video file was not found', '未找到视频文件。'],
+    ['Unable to delete video file', '无法删除视频文件。'],
+    ['Invalid capture timestamp', '截图时间戳无效。'],
+    ['Invalid imported image data', '导入的图片数据无效。']
+]);
+
+function normalizeUiMessage(message, fallback = '操作失败。', options = {}) {
+    const { preserveUnknown = false } = options;
+    const original = String(message ?? '').trim();
+    if (!original) return fallback;
+
+    const translated = UI_MESSAGE_TRANSLATIONS.get(original);
+    if (translated) return translated;
+
+    const httpStatus = /^HTTP error! status:\s*(\d+)$/i.exec(original);
+    if (httpStatus) return `请求失败（HTTP ${httpStatus[1]}）。`;
+
+    const oversizedUpload = /^Uploaded file is too large\. Max size is (\d+) MB\.$/i.exec(original);
+    if (oversizedUpload) return `上传文件过大，最大允许 ${oversizedUpload[1]} MB。`;
+
+    const embySearchFailure = /^Emby search failed: HTTP (\d+)$/i.exec(original);
+    if (embySearchFailure) return `Emby 搜索失败（HTTP ${embySearchFailure[1]}）。`;
+
+    const wtlStatusFailure = /^WTL service returned HTTP (\d+)$/i.exec(original);
+    if (wtlStatusFailure) return `WTL 服务状态检测失败（HTTP ${wtlStatusFailure[1]}）。`;
+
+    const externalImageFailure = /^External image fetch failed: HTTP (\d+)$/i.exec(original);
+    if (externalImageFailure) return `外部图片获取失败（HTTP ${externalImageFailure[1]}）。`;
+
+    if (/^Method .+ is not allowed for event \d+$/i.test(original)) {
+        return '当前操作不被允许。';
+    }
+
+    if (/[A-Za-z]/.test(original) && !/[\u4E00-\u9FFF]/.test(original)) {
+        console.warn('未翻译的界面提示：', original);
+        return preserveUnknown ? original : fallback;
+    }
+
+    return original;
+}
+
 
 // 图片懒加载观察器
 function clearElement(element) {
@@ -192,7 +264,7 @@ function createActionButton({ className, text, action, dataset = {}, children = 
 function createNotification(type, message) {
     return createEl('div', {
         className: `notification is-${type}`,
-        text: message
+        text: normalizeUiMessage(message, '操作提示。')
     });
 }
 
@@ -304,7 +376,7 @@ function showAlert(options = {}) {
     
     // 设置内容
     titleEl.textContent = title;
-    messageEl.textContent = message;
+    messageEl.textContent = normalizeUiMessage(message);
     confirmBtn.textContent = confirmText;
     cancelBtn.textContent = cancelText;
     
@@ -1195,7 +1267,7 @@ function startEmbyPlayback(streamUrl, title, startTimestamp = 0, playbackContext
         const modal = document.getElementById('embyPlayerModal');
         const titleElement = modal?.querySelector('.modal-card-title');
         if (titleElement) {
-            titleElement.textContent = title ? `Emby: ${title}` : 'Emby Player';
+            titleElement.textContent = title ? `Emby: ${title}` : 'Emby 播放器';
         }
         ModalManager.open('embyPlayerModal');
     }
@@ -1258,12 +1330,12 @@ async function handleEmbyPlaybackError(context) {
             refresh: true
         });
         if (!result.success) {
-            throw new Error(result.message || 'Emby playback could not be recovered');
+            throw new Error(result.message || 'Emby 播放恢复失败。');
         }
         const data = result.data || {};
         if (data.status === 'linked' && data.playback?.streamUrl) {
             if (data.playback.id === context.itemId) {
-                throw new Error('The linked Emby item is available, but playback failed');
+                throw new Error('已绑定的 Emby 条目可用，但播放失败。');
             }
             rememberMovieEmbyLink(context.movieTitle, data.playback.id);
             startEmbyPlayback(data.playback.streamUrl, data.playback.name || context.movieTitle, context.startTimestamp, {
@@ -1286,11 +1358,11 @@ async function handleEmbyPlaybackError(context) {
             });
             return;
         }
-        throw new Error('No matching Emby movie was found');
+        throw new Error('未找到匹配的 Emby 电影。');
     } catch (error) {
         showAlert({
             title: 'Emby',
-            message: error.message || 'Emby playback failed',
+            message: error.message || 'Emby 播放失败。',
             type: 'warning',
             showCancel: false
         });
@@ -1314,7 +1386,7 @@ function renderEmbyLinkCandidates(candidates) {
     const resultsDiv = document.getElementById('emby-results');
     if (!resultsDiv) return;
     if (!candidates.length) {
-        setNotification(resultsDiv, 'info', 'No exact Emby match. Search and select the correct movie.');
+        setNotification(resultsDiv, 'info', '未找到完全匹配的 Emby 电影，请搜索并选择正确的电影。');
         resizeEmbyModalForResults();
         return;
     }
@@ -1328,7 +1400,7 @@ function renderEmbyLinkCandidates(candidates) {
         const column = createEl('div', { className: 'column emby-result-column' });
         const card = createEl('div', {
             className: 'card movie-card emby-playable-card emby-link-candidate',
-            attrs: { role: 'button', tabindex: '0', 'aria-label': `Link ${movieName}` }
+            attrs: { role: 'button', tabindex: '0', 'aria-label': `关联 ${movieName}` }
         }, [
             createEl('div', { className: 'card-image' }, [
                 createEl('figure', { className: 'image is-2by3' }, [
@@ -1370,7 +1442,7 @@ async function linkMovieEmby(movie) {
             emby_item_id: movie.id
         });
         if (!result.success || !result.data?.playback?.streamUrl) {
-            throw new Error(result.message || 'Unable to link the Emby movie');
+            throw new Error(result.message || '无法绑定 Emby 电影。');
         }
         const playback = result.data.playback;
         const startTimestamp = context.startTimestamp;
@@ -1390,7 +1462,7 @@ async function linkMovieEmby(movie) {
     } catch (error) {
         showAlert({
             title: 'Emby',
-            message: error.message || 'Unable to link the Emby movie',
+            message: error.message || '无法绑定 Emby 电影。',
             type: 'error',
             showCancel: false
         });
@@ -1449,7 +1521,7 @@ async function playMovieEmbyFromSearch(movie) {
     if (!movie?.title || !movie.emby_item_id) return;
     try {
         const result = await callApi(event_map.resolve_movie_emby_playback, { title: movie.title });
-        if (!result.success) throw new Error(result.message || 'Unable to resolve Emby playback');
+        if (!result.success) throw new Error(result.message || '无法获取 Emby 播放信息。');
         const data = result.data || {};
         if (data.status === 'linked' && data.playback?.streamUrl) {
             rememberMovieEmbyLink(movie.title, data.playback.id);
@@ -1464,11 +1536,11 @@ async function playMovieEmbyFromSearch(movie) {
             openEmbyLinkSelection(movie.title, 0, data.candidates || [], { playbackTarget: 'modal' });
             return;
         }
-        throw new Error('No matching Emby movie was found');
+        throw new Error('未找到匹配的 Emby 电影。');
     } catch (error) {
         showAlert({
             title: 'Emby',
-            message: error.message || 'Unable to start Emby playback',
+            message: error.message || '无法启动 Emby 播放。',
             type: 'warning',
             showCancel: false
         });
@@ -1493,7 +1565,7 @@ function searchEmby() {
             if (requestId !== embySearchRequestId) return;
 
             if (!result.success) {
-                throw new Error(result.message || 'Emby search failed');
+                throw new Error(result.message || 'Emby 搜索失败。');
             }
 
             const items = result.data?.items || [];
@@ -1742,7 +1814,7 @@ function updateWtlStatusPanel() {
     const text = document.getElementById('wtl-status-text');
     const meta = document.getElementById('wtl-status-meta');
     panel.dataset.state = wtlState.serviceStatus;
-    if (text) text.textContent = wtlState.serviceMessage || '状态未检测';
+    if (text) text.textContent = normalizeUiMessage(wtlState.serviceMessage, '状态未检测');
     if (meta) meta.textContent = formatWtlStatusMeta();
     panel.disabled = wtlState.serviceStatus === 'checking';
     panel.setAttribute('aria-disabled', wtlState.serviceStatus === 'checking' ? 'true' : 'false');
@@ -1750,7 +1822,7 @@ function updateWtlStatusPanel() {
 
 function setWtlStatus(status, options = {}) {
     wtlState.serviceStatus = status;
-    wtlState.serviceMessage = options.message || '';
+    wtlState.serviceMessage = normalizeUiMessage(options.message, '');
     wtlState.serviceLatencyMs = Number.isFinite(options.latencyMs) ? options.latencyMs : null;
     wtlState.serviceCached = Boolean(options.cached);
     wtlState.serviceCheckedAt = options.checkedAt || null;
@@ -2207,7 +2279,7 @@ function wtlDataUrlToFile(dataUrl, filename) {
     const [header, encoded] = String(dataUrl || '').split(',');
     const match = /^data:([^;]+);base64$/.exec(header || '');
     if (!match || !encoded) {
-        throw new Error('Invalid imported image data');
+        throw new Error('导入的图片数据无效。');
     }
     const binary = atob(encoded);
     const bytes = new Uint8Array(binary.length);
@@ -2926,7 +2998,7 @@ function renderScheduledBackupStatus(result = {}) {
 function createBackupTableMessage(message) {
     return createEl('tr', { className: 'maintenance-empty-row' }, [
         createEl('td', {
-            text: message,
+            text: normalizeUiMessage(message, '备份列表读取失败。'),
             attrs: { colspan: '5' }
         })
     ]);
@@ -3012,7 +3084,7 @@ function loadDatabaseBackups() {
             renderDatabaseUpgradeDiagnostic({});
             renderScheduledBackupStatus({});
             clearElement(list);
-            list.appendChild(createBackupTableMessage(`备份列表读取失败: ${error.message}`));
+            list.appendChild(createBackupTableMessage(normalizeUiMessage(error.message, '备份列表读取失败。')));
         });
 }
 
@@ -3536,7 +3608,7 @@ function searchMovies(page = 1, options = {}) {
         })
         .catch(error => {
             if (requestId !== searchRequestSequence) return;
-            setNotification(messageDiv, 'danger', `搜索出错: ${error.message}`);
+            setNotification(messageDiv, 'danger', normalizeUiMessage(error.message, '搜索出错，请稍后重试。'));
             clearElement(resultsDiv);
             clearElement(paginationDiv);
             searchResultTotal = 0;
@@ -3767,7 +3839,7 @@ function getDragAfterElement(container, x, y) {
 function setEditMovieEmbyFeedback(message = '', state = '') {
     const feedback = document.getElementById('edit-emby-link-feedback');
     if (!feedback) return;
-    feedback.textContent = message;
+    feedback.textContent = normalizeUiMessage(message, '');
     feedback.hidden = !message;
     feedback.dataset.state = state;
 }
@@ -4727,7 +4799,7 @@ function updatePagination() {
 
     const nav = createEl('nav', {
         className: 'pagination is-centered',
-        attrs: { role: 'navigation', 'aria-label': 'pagination' }
+        attrs: { role: 'navigation', 'aria-label': '分页导航' }
     });
 
     nav.appendChild(createPaginationAnchor('上一页', currentPage - 1, {
@@ -5249,7 +5321,7 @@ function renderThumbnailBreadcrumbs(path) {
 
     const rootButton = document.createElement('button');
     rootButton.type = 'button';
-    rootButton.textContent = 'videos';
+    rootButton.textContent = '视频库';
     rootButton.addEventListener('click', () => loadThumbnailDirectory(''));
     breadcrumbs.appendChild(rootButton);
 
@@ -5494,13 +5566,17 @@ function selectThumbnailVideo(file) {
 function updateThumbnailStatusForVideo() {
     const video = document.getElementById('thumbnail-video');
     if (!video || !thumbnailState.selectedVideo) return;
-    setThumbnailStatus(`${thumbnailState.selectedVideo.name} · ${formatThumbnailTime(video.duration)}`);
+    setThumbnailStatus(`${thumbnailState.selectedVideo.name} · ${formatThumbnailTime(video.duration)}`, {
+        preserveUnknown: true
+    });
 }
 
-function setThumbnailStatus(message) {
+function setThumbnailStatus(message, options = {}) {
     const status = document.getElementById('thumbnail-status');
     if (status) {
-        status.textContent = message;
+        status.textContent = normalizeUiMessage(message, options.fallback || '操作失败。', {
+            preserveUnknown: Boolean(options.preserveUnknown)
+        });
     }
 }
 
@@ -6655,7 +6731,7 @@ async function playImageCaptureInEmby() {
         const result = await callApi(event_map.resolve_movie_emby_playback, {
             title: currentImageMovieTitle
         });
-        if (!result.success) throw new Error(result.message || 'Unable to resolve Emby playback');
+        if (!result.success) throw new Error(result.message || '无法获取 Emby 播放信息。');
 
         const data = result.data || {};
         if (data.status === 'linked' && data.playback?.streamUrl) {
@@ -6673,11 +6749,11 @@ async function playImageCaptureInEmby() {
             });
             return;
         }
-        throw new Error('No matching Emby movie was found');
+        throw new Error('未找到匹配的 Emby 电影。');
     } catch (error) {
         showAlert({
             title: 'Emby',
-            message: error.message || 'Unable to start Emby playback',
+            message: error.message || '无法启动 Emby 播放。',
             type: 'warning',
             showCancel: false
         });
@@ -6767,13 +6843,13 @@ function renderImageViewerStrip() {
 
     currentImages.forEach((filename, index) => {
         const isActive = index === currentImageIndex;
-        const thumbnailImage = createEl('img', { attrs: { alt: `Image ${index + 1}` } });
+        const thumbnailImage = createEl('img', { attrs: { alt: `图片 ${index + 1}` } });
         prepareDeferredImage(thumbnailImage, buildImageUrl(filename, 'cover'));
         const button = createEl('button', {
             className: `image-viewer-thumb${isActive ? ' is-active' : ''}`,
             attrs: {
                 type: 'button',
-                'aria-label': `Image ${index + 1}`,
+                'aria-label': `查看图片 ${index + 1}`,
                 'aria-current': isActive ? 'true' : 'false'
             },
             dataset: { index: String(index) }
@@ -6880,7 +6956,7 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
             setNotification(messageDiv, 'danger', result.error || '添加失败');
         }
     } catch (error) {
-        setNotification(messageDiv, 'danger', `添加失败: ${error.message}`);
+        setNotification(messageDiv, 'danger', normalizeUiMessage(error.message, '添加失败，请稍后重试。'));
     }
 });
 

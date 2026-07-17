@@ -140,7 +140,7 @@ function startEmbyPlayback(streamUrl, title, startTimestamp = 0, playbackContext
         const modal = document.getElementById('embyPlayerModal');
         const titleElement = modal?.querySelector('.modal-card-title');
         if (titleElement) {
-            titleElement.textContent = title ? `Emby: ${title}` : 'Emby Player';
+            titleElement.textContent = title ? `Emby: ${title}` : 'Emby 播放器';
         }
         ModalManager.open('embyPlayerModal');
     }
@@ -203,12 +203,12 @@ async function handleEmbyPlaybackError(context) {
             refresh: true
         });
         if (!result.success) {
-            throw new Error(result.message || 'Emby playback could not be recovered');
+            throw new Error(result.message || 'Emby 播放恢复失败。');
         }
         const data = result.data || {};
         if (data.status === 'linked' && data.playback?.streamUrl) {
             if (data.playback.id === context.itemId) {
-                throw new Error('The linked Emby item is available, but playback failed');
+                throw new Error('已绑定的 Emby 条目可用，但播放失败。');
             }
             rememberMovieEmbyLink(context.movieTitle, data.playback.id);
             startEmbyPlayback(data.playback.streamUrl, data.playback.name || context.movieTitle, context.startTimestamp, {
@@ -231,11 +231,11 @@ async function handleEmbyPlaybackError(context) {
             });
             return;
         }
-        throw new Error('No matching Emby movie was found');
+        throw new Error('未找到匹配的 Emby 电影。');
     } catch (error) {
         showAlert({
             title: 'Emby',
-            message: error.message || 'Emby playback failed',
+            message: error.message || 'Emby 播放失败。',
             type: 'warning',
             showCancel: false
         });
@@ -259,7 +259,7 @@ function renderEmbyLinkCandidates(candidates) {
     const resultsDiv = document.getElementById('emby-results');
     if (!resultsDiv) return;
     if (!candidates.length) {
-        setNotification(resultsDiv, 'info', 'No exact Emby match. Search and select the correct movie.');
+        setNotification(resultsDiv, 'info', '未找到完全匹配的 Emby 电影，请搜索并选择正确的电影。');
         resizeEmbyModalForResults();
         return;
     }
@@ -273,7 +273,7 @@ function renderEmbyLinkCandidates(candidates) {
         const column = createEl('div', { className: 'column emby-result-column' });
         const card = createEl('div', {
             className: 'card movie-card emby-playable-card emby-link-candidate',
-            attrs: { role: 'button', tabindex: '0', 'aria-label': `Link ${movieName}` }
+            attrs: { role: 'button', tabindex: '0', 'aria-label': `关联 ${movieName}` }
         }, [
             createEl('div', { className: 'card-image' }, [
                 createEl('figure', { className: 'image is-2by3' }, [
@@ -315,7 +315,7 @@ async function linkMovieEmby(movie) {
             emby_item_id: movie.id
         });
         if (!result.success || !result.data?.playback?.streamUrl) {
-            throw new Error(result.message || 'Unable to link the Emby movie');
+            throw new Error(result.message || '无法绑定 Emby 电影。');
         }
         const playback = result.data.playback;
         const startTimestamp = context.startTimestamp;
@@ -335,7 +335,7 @@ async function linkMovieEmby(movie) {
     } catch (error) {
         showAlert({
             title: 'Emby',
-            message: error.message || 'Unable to link the Emby movie',
+            message: error.message || '无法绑定 Emby 电影。',
             type: 'error',
             showCancel: false
         });
@@ -394,7 +394,7 @@ async function playMovieEmbyFromSearch(movie) {
     if (!movie?.title || !movie.emby_item_id) return;
     try {
         const result = await callApi(event_map.resolve_movie_emby_playback, { title: movie.title });
-        if (!result.success) throw new Error(result.message || 'Unable to resolve Emby playback');
+        if (!result.success) throw new Error(result.message || '无法获取 Emby 播放信息。');
         const data = result.data || {};
         if (data.status === 'linked' && data.playback?.streamUrl) {
             rememberMovieEmbyLink(movie.title, data.playback.id);
@@ -409,11 +409,11 @@ async function playMovieEmbyFromSearch(movie) {
             openEmbyLinkSelection(movie.title, 0, data.candidates || [], { playbackTarget: 'modal' });
             return;
         }
-        throw new Error('No matching Emby movie was found');
+        throw new Error('未找到匹配的 Emby 电影。');
     } catch (error) {
         showAlert({
             title: 'Emby',
-            message: error.message || 'Unable to start Emby playback',
+            message: error.message || '无法启动 Emby 播放。',
             type: 'warning',
             showCancel: false
         });
@@ -438,7 +438,7 @@ function searchEmby() {
             if (requestId !== embySearchRequestId) return;
 
             if (!result.success) {
-                throw new Error(result.message || 'Emby search failed');
+                throw new Error(result.message || 'Emby 搜索失败。');
             }
 
             const items = result.data?.items || [];

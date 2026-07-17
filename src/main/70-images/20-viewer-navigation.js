@@ -101,7 +101,7 @@ async function playImageCaptureInEmby() {
         const result = await callApi(event_map.resolve_movie_emby_playback, {
             title: currentImageMovieTitle
         });
-        if (!result.success) throw new Error(result.message || 'Unable to resolve Emby playback');
+        if (!result.success) throw new Error(result.message || '无法获取 Emby 播放信息。');
 
         const data = result.data || {};
         if (data.status === 'linked' && data.playback?.streamUrl) {
@@ -119,11 +119,11 @@ async function playImageCaptureInEmby() {
             });
             return;
         }
-        throw new Error('No matching Emby movie was found');
+        throw new Error('未找到匹配的 Emby 电影。');
     } catch (error) {
         showAlert({
             title: 'Emby',
-            message: error.message || 'Unable to start Emby playback',
+            message: error.message || '无法启动 Emby 播放。',
             type: 'warning',
             showCancel: false
         });
@@ -213,13 +213,13 @@ function renderImageViewerStrip() {
 
     currentImages.forEach((filename, index) => {
         const isActive = index === currentImageIndex;
-        const thumbnailImage = createEl('img', { attrs: { alt: `Image ${index + 1}` } });
+        const thumbnailImage = createEl('img', { attrs: { alt: `图片 ${index + 1}` } });
         prepareDeferredImage(thumbnailImage, buildImageUrl(filename, 'cover'));
         const button = createEl('button', {
             className: `image-viewer-thumb${isActive ? ' is-active' : ''}`,
             attrs: {
                 type: 'button',
-                'aria-label': `Image ${index + 1}`,
+                'aria-label': `查看图片 ${index + 1}`,
                 'aria-current': isActive ? 'true' : 'false'
             },
             dataset: { index: String(index) }
@@ -326,7 +326,7 @@ document.getElementById('add-movie-form').addEventListener('submit', async funct
             setNotification(messageDiv, 'danger', result.error || '添加失败');
         }
     } catch (error) {
-        setNotification(messageDiv, 'danger', `添加失败: ${error.message}`);
+        setNotification(messageDiv, 'danger', normalizeUiMessage(error.message, '添加失败，请稍后重试。'));
     }
 });
 

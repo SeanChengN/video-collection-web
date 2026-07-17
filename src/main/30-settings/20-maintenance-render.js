@@ -86,7 +86,7 @@ function renderScheduledBackupStatus(result = {}) {
 function createBackupTableMessage(message) {
     return createEl('tr', { className: 'maintenance-empty-row' }, [
         createEl('td', {
-            text: message,
+            text: normalizeUiMessage(message, '备份列表读取失败。'),
             attrs: { colspan: '5' }
         })
     ]);

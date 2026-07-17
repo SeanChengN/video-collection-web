@@ -99,7 +99,7 @@ function updateWtlStatusPanel() {
     const text = document.getElementById('wtl-status-text');
     const meta = document.getElementById('wtl-status-meta');
     panel.dataset.state = wtlState.serviceStatus;
-    if (text) text.textContent = wtlState.serviceMessage || '状态未检测';
+    if (text) text.textContent = normalizeUiMessage(wtlState.serviceMessage, '状态未检测');
     if (meta) meta.textContent = formatWtlStatusMeta();
     panel.disabled = wtlState.serviceStatus === 'checking';
     panel.setAttribute('aria-disabled', wtlState.serviceStatus === 'checking' ? 'true' : 'false');
@@ -107,7 +107,7 @@ function updateWtlStatusPanel() {
 
 function setWtlStatus(status, options = {}) {
     wtlState.serviceStatus = status;
-    wtlState.serviceMessage = options.message || '';
+    wtlState.serviceMessage = normalizeUiMessage(options.message, '');
     wtlState.serviceLatencyMs = Number.isFinite(options.latencyMs) ? options.latencyMs : null;
     wtlState.serviceCached = Boolean(options.cached);
     wtlState.serviceCheckedAt = options.checkedAt || null;
@@ -564,7 +564,7 @@ function wtlDataUrlToFile(dataUrl, filename) {
     const [header, encoded] = String(dataUrl || '').split(',');
     const match = /^data:([^;]+);base64$/.exec(header || '');
     if (!match || !encoded) {
-        throw new Error('Invalid imported image data');
+        throw new Error('导入的图片数据无效。');
     }
     const binary = atob(encoded);
     const bytes = new Uint8Array(binary.length);
